@@ -1,14 +1,8 @@
 import type { Config } from "tailwindcss"
 
 const config = {
-  darkMode: "class",
-  content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
-  ],
-  prefix: "",
+  // The 'content', 'darkMode', and 'prefix' keys are no longer used in v4.
+  // Content is automatically detected, and dark mode is handled in your CSS.
   theme: {
     container: {
       center: true,
@@ -91,7 +85,10 @@ const config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    // 'tailwindcss-animate' was removed as it's not in your package.json
+    // and you've already defined its animations above.
+  ],
 } satisfies Config
 
 export default config;
