@@ -1,8 +1,7 @@
 import type { Config } from "tailwindcss"
 
 const config = {
-  // The 'content', 'darkMode', and 'prefix' keys are no longer used in v4.
-  // Content is automatically detected, and dark mode is handled in your CSS.
+
   theme: {
     container: {
       center: true,
@@ -49,15 +48,21 @@ const config = {
         // Custom DOST colors
         dost: {
           blue: "#003DA5",
-          lightblue: "#0066CC",
+          lightblue: "#0066CC", // <-- ADD THIS
           green: "#00A859",
           orange: "#FF6B35",
+          title: "#0f7cbf",     // <-- ADD THIS
+          bgstart: "#5de0e6",  // <-- ADD THIS
+          bgend: "#004aad",    // <-- ADD THIS
         },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      backgroundImage: {
+        "auth-gradient": "radial-gradient(circle at 50% 50%, var(--tw-color-dost-bgstart), var(--tw-color-dost-bgend))",
       },
       keyframes: {
         "accordion-down": {

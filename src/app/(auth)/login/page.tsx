@@ -68,7 +68,7 @@ export default function LoginPage() {
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8">
       <div className="mb-6">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">SIGN IN</h2>
+        <h2 className="text-3xl font-bold text-dost-title mb-2">Sign In</h2>
       </div>
 
       {errorMessage && (
@@ -106,7 +106,7 @@ export default function LoginPage() {
           />
           <Link
             href="/forgot-password"
-            className="text-sm text-dost-blue hover:underline"
+            className="text-sm text-dost-title hover:underline"
           >
             Forgot Password
           </Link>
@@ -125,7 +125,7 @@ export default function LoginPage() {
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600">
           Don't have an account?{' '}
-          <Link href="/signup" className="text-dost-blue font-medium hover:underline">
+          <Link href="/signup" className="text-dost-title font-medium hover:underline">
             Create Account
           </Link>
         </p>

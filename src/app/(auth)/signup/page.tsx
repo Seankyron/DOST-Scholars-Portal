@@ -262,7 +262,7 @@ export default function SignupPage() {
     <div className="bg-white rounded-2xl shadow-xl p-8">
       {/* Header */}
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
+        <h2 className="text-3xl font-bold text-dost-title mb-2">Create Account</h2>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <span className={currentStep >= 1 ? 'text-dost-blue font-medium' : ''}>
             Scholar Information
@@ -613,7 +613,7 @@ export default function SignupPage() {
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600">
           Already have an account?{' '}
-          <Link href="/login" className="text-dost-blue font-medium hover:underline">
+          <Link href="/login" className="text-dost-title font-medium hover:underline">
             Sign In
           </Link>
         </p>
