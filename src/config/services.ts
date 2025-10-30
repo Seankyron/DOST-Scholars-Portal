@@ -1,0 +1,85 @@
+import { 
+  FileText, 
+  CreditCard, 
+  Briefcase, 
+  GraduationCap, 
+  FileEdit,
+  Plane, 
+  RefreshCw, 
+  DollarSign, 
+  FileX, 
+  MessageSquare 
+} from 'lucide-react';
+
+export const scholarServices = [
+  {
+    id: 'grade-submission',
+    title: 'Grade Submission',
+    description: 'Submit your grades and registration form',
+    icon: FileText,
+    color: 'bg-blue-500',
+  },
+  {
+    id: 'stipend-tracking',
+    title: 'Stipend Tracking',
+    description: 'Track your stipend and allowances',
+    icon: CreditCard,
+    color: 'bg-green-500',
+  },
+  {
+    id: 'practical-training',
+    title: 'Practical Training Program',
+    description: 'Submit PTP referral and completion documents',
+    icon: Briefcase,
+    color: 'bg-purple-500',
+  },
+  {
+    id: 'thesis-allowance',
+    title: 'Thesis Allowance',
+    description: 'Request thesis allowance (90%, 10%, 100%)',
+    icon: GraduationCap,
+    color: 'bg-indigo-500',
+  },
+  {
+    id: 'request-forms',
+    title: 'Request Forms',
+    description: 'Request letters and endorsements',
+    icon: FileEdit,
+    color: 'bg-orange-500',
+  },
+  {
+    id: 'travel-clearance',
+    title: 'Travel Clearance',
+    description: 'Apply for travel clearance abroad',
+    icon: Plane,
+    color: 'bg-cyan-500',
+  },
+  {
+    id: 'shifting-transferring',
+    title: 'Shifting / Transferring',
+    description: 'Apply for course shifting or school transfer',
+    icon: RefreshCw,
+    color: 'bg-pink-500',
+  },
+  {
+    id: 'reimbursement',
+    title: 'Reimbursement',
+    description: 'Request reimbursement for expenses',
+    icon: DollarSign,
+    color: 'bg-emerald-500',
+  },
+  {
+    id: 'leave-of-absence',
+    title: 'Leave of Absence',
+    description: 'Apply for leave of absence',
+    icon: FileX,
+    color: 'bg-red-500',
+  },
+  {
+    id: 'support-feedback',
+    title: 'Support & Feedback',
+    description: 'Get help or provide feedback',
+    icon: MessageSquare,
+    color: 'bg-yellow-500',
+  },
+];
