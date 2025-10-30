@@ -1,36 +1,25 @@
-import Image from 'next/image';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css"; // This imports your Tailwind styles
 
-export default function AuthLayout({
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "DOST-SEI CALABARZON Scholars Portal",
+  description: "Official portal for DOST-SEI CALABARZON scholars",
+};
+
+export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          {/* --- ADD THIS --- */}
-          <Image
-            src="/dost-logo.png" // <-- **** REPLACE THIS with your logo's path in /public ****
-            alt="DOST-SEI Logo"
-            width={80} // You can adjust the size
-            height={80}
-            className="mx-auto mb-4"
-          />
-          {/* --- END ADD --- */}
-
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="text-4xl font-bold text-dost-blue">DOST-SEI CALABARZON</div>
-          </div>
-          <h1 className="text-2xl font-semibold text-gray-800">Scholars Portal</h1>
-        </div>
-
-        {/* Auth Content */}
-        <div className="max-w-2xl mx-auto">
-          {children}
-        </div>
-      </div>
-    </div>
+    <html lang="en">
+      {/* These <html> and <body> tags are required */}
+      <body className={inter.className}>
+        {children}
+      </body>
+    </html>
   );
 }
