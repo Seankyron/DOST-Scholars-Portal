@@ -1,7 +1,12 @@
 import type { Config } from "tailwindcss"
 
 const config = {
-
+ 
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
   theme: {
     container: {
       center: true,
@@ -62,7 +67,7 @@ const config = {
         sm: "calc(var(--radius) - 4px)",
       },
       backgroundImage: {
-        "auth-gradient": "radial-gradient(circle at 50% 50%, var(--tw-color-dost-bgstart), var(--tw-color-dost-bgend))",
+        "auth-gradient": "radial-gradient(circle at 50% 50%, theme(colors.dost.bgstart), theme(colors.dost.bgend))",
       },
       keyframes: {
         "accordion-down": {
@@ -91,8 +96,7 @@ const config = {
     },
   },
   plugins: [
-    // 'tailwindcss-animate' was removed as it's not in your package.json
-    // and you've already defined its animations above.
+    require("tailwindcss-animate")
   ],
 } satisfies Config
 

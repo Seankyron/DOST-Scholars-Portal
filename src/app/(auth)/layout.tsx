@@ -28,7 +28,7 @@ export default function AuthLayout({
 
         {/* Right Column (Form) */}
         <div className="flex items-center justify-center p-4 sm:p-8">
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-xl">
             {/* Logo for mobile view */}
             <Image
               src="/dost-logo.png"

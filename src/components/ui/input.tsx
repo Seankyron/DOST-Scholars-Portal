@@ -1,3 +1,4 @@
+// src/components/ui/input.tsx
 import { InputHTMLAttributes, forwardRef } from 'react';
 import { cn } from '@/lib/utils/cn';
 
@@ -21,8 +22,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           className={cn(
             'w-full px-4 py-2.5 border rounded-lg transition-colors',
-            'focus:outline-none focus:ring-2 focus:ring-dost-blue focus:border-transparent',
+            'focus:outline-none focus:ring-2 focus:ring-dost-title focus:border-transparent',
             'disabled:bg-gray-100 disabled:cursor-not-allowed',
+            'placeholder:text-gray-400',
             error 
               ? 'border-red-500 focus:ring-red-500' 
               : 'border-gray-300',

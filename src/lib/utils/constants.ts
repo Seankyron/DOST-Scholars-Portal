@@ -45,6 +45,41 @@ export const UNIVERSITIES = [
   'University of the Philippines - Los Baños',
 ];
 
+export const PROGRAMS_BY_UNIVERSITY: Record<string, string[]> = {
+  'University of the Philippines - Los Baños': [
+    'BS Computer Science',
+    'BS Agricultural Biotechnology',
+    'BS Biology',
+    'BS Chemistry',
+    'BS Applied Mathematics',
+    'BS Statistics',
+    'BS Chemical Engineering',
+    'BS Civil Engineering',
+    'BS Electrical Engineering',
+    'BS Industrial Engineering',
+  ],
+  'Batangas State University - Main 1': [
+    'BS Chemical Engineering',
+    'BS Civil Engineering',
+    'BS Computer Engineering',
+    'BS Electrical Engineering',
+    'BS Electronics Engineering',
+    'BS Industrial Engineering',
+    'BS Mechanical Engineering',
+    'BS Computer Science',
+    'BS Information Technology',
+  ],
+  'Cavite State University - Indang': [
+    'BS Computer Science',
+    'BS Information Technology',
+    'BS Civil Engineering',
+    'BS Electrical Engineering',
+    'BS Industrial Engineering',
+    'BS Agricultural and Biosystems Engineering',
+  ],
+  // Add more universities and their programs as needed
+};
+
 export const STATUS_COLORS = {
   Active: 'bg-green-100 text-green-800',
   Warning: 'bg-yellow-100 text-yellow-800',
