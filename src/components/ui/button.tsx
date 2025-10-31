@@ -1,19 +1,39 @@
-// src/components/ui/button.tsx
-import { ButtonHTMLAttributes, forwardRef } from 'react';
+'use client';
+
+import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
 import { cn } from '@/lib/utils/cn';
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
+  asChild?: boolean; // <-- This prop is now officially part of the interface
 }
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      className,
+      variant = 'primary',
+      size = 'md',
+      isLoading,
+      asChild = false, // <-- Add default value
+      children,
+      disabled,
+      ...props
+    },
+    ref
+  ) => {
+    const Comp = asChild ? Slot : 'button'; // <-- Use Slot if asChild is true
+
     const variants = {
-      primary: 'bg-dost-title text-white hover:bg-dost-title/90 disabled:opacity-50',
-      secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 disabled:bg-gray-100',
-      outline: 'border-2 border-dost-title text-dost-title hover:bg-dost-title/5 disabled:border-dost-title/40 disabled:text-dost-title/40',
+      primary:
+        'bg-dost-title text-white hover:bg-dost-title/90 disabled:opacity-50',
+      secondary:
+        'bg-gray-200 text-gray-900 hover:bg-gray-300 disabled:bg-gray-100',
+      outline:
+        'border-2 border-dost-title text-dost-title hover:bg-dost-title/5 disabled:border-dost-title/40 disabled:text-dost-title/40',
       ghost: 'text-gray-700 hover:bg-gray-100 disabled:text-gray-400',
     };
 
@@ -24,7 +44,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     return (
-      <button
+      <Comp
         ref={ref}
         className={cn(
           'rounded-lg font-medium transition-all duration-200 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2',
@@ -35,14 +55,35 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || isLoading}
         {...props}
       >
-        {isLoading && (
-          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
+        {/* Updated loading logic to correctly wrap children */}
+        {isLoading ? (
+          <>
+            <svg
+              className="animate-spin h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            {children}
+          </>
+        ) : (
+          children
         )}
-        {children}
-      </button>
+      </Comp>
     );
   }
 );

@@ -7,7 +7,8 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen w-full bg-auth-gradient">
+    // REMOVED "bg-auth-gradient" from this div
+    <div className="min-h-screen w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 min-h-screen">
         {/* Left Column (Branding) */}
         <div className="hidden md:flex flex-col items-center justify-center p-12 text-white">

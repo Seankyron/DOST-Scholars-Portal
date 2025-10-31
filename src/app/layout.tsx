@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
-import "./globals.css"; // <-- THIS IS THE MISSING IMPORT
+import type { Metadata } from 'next';
+import './globals.css';
+import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: "DOST-SEI Scholars Portal",
-  description: "Official portal for DOST-SEI CALABARZON scholars",
+  title: 'DOST-SEI Scholars Portal',
+  description: 'Official portal for DOST-SEI CALABARZON scholars',
 };
 
 export default function RootLayout({
@@ -13,9 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* The <body> tag is where your children (including the auth layout) will be rendered */}
-      <body>
-        {children}
+      {/* Apply the gradient to the main <body> tag.
+        This will cover the entire application.
+      */}
+      <body className="min-h-screen w-full bg-auth-gradient">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
