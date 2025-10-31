@@ -28,16 +28,16 @@ export function ScholarHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-white shadow-sm">
-      <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className=" top-0 z-40 w-full bg-transparent">
+      <div className="container mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/scholar/dashboard" className="flex items-center gap-3">
           <Image
             src="/dost-logo.png"
             alt="DOST-SEI Logo"
-            width={40}
-            height={40}
+            width={48}
+            height={48}
           />
-          <span className="hidden text-lg font-semibold text-dost-title sm:block">
+          <span className="hidden text-2xl font-bold text-white sm:block">
             DOST-SEI CALABARZON Scholars Portal
           </span>
         </Link>
@@ -46,9 +46,9 @@ export function ScholarHeader() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="flex items-center gap-2 rounded-full p-2 h-9 w-9"
+              className="flex items-center gap-2 rounded-full p-2 h-10 w-10 hover:bg-white/20"
             >
-              <Settings className="h-5 w-5 text-gray-600" />
+              <Settings className="h-6 w-6 text-white" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">

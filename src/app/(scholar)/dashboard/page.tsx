@@ -18,17 +18,11 @@ export default function ScholarDashboardPage() {
           
           <EventBannerSection />
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <NavigationTabs />
-            </div>
-            <div className="lg:col-span-1">
-              <RecentActivity />
-            </div>
-          </div>
+          <NavigationTabs />
           
-        </div>
-      </Card>
+          <RecentActivity />
+            </div>
+          </Card>
     </div>
   );
 }
