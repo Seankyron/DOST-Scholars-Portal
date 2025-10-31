@@ -7,7 +7,6 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    // REMOVED "bg-auth-gradient" from this div
     <div className="min-h-screen w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 min-h-screen">
         {/* Left Column (Branding) */}

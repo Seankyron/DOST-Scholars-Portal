@@ -1,0 +1,600 @@
+# DOST-SEI Scholars Portal - Complete File Structure
+
+```
+dost-scholars-portal/
+├── public/
+│   ├── images/
+│   │   ├── logos/
+│   │   │   ├── dost-logo.png
+│   │   │   ├── sei-calabarzon-logo.png
+│   │   │   └── dost-sei-combined.png
+│   │   ├── banners/
+│   │   │   ├── banner-1.jpg
+│   │   │   ├── banner-2.jpg
+│   │   │   └── banner-3.jpg
+│   │   └── placeholders/
+│   │       ├── avatar-placeholder.png
+│   │       ├── no-image.png
+│   │       └── qr-placeholder.png
+│   │
+│   └── templates/
+│       ├── grade-submission/
+│       │   ├── grade-submission-form.pdf
+│       │   └── form-5-template.pdf
+│       ├── ptp/
+│       │   ├── reply-slip-template.pdf
+│       │   ├── form-126.pdf
+│       │   ├── form-127.pdf
+│       │   └── form-128.pdf
+│       ├── thesis/
+│       │   ├── abstract-template.pdf
+│       │   └── thesis-manuscript-guide.pdf
+│       ├── travel-clearance/
+│       │   ├── request-form.pdf
+│       │   ├── deed-of-undertaking.pdf
+│       │   └── guarantee-letter-template.pdf
+│       ├── shifting-transferring/
+│       │   ├── application-form.pdf
+│       │   └── sample-approved-pos.pdf
+│       └── leave-of-absence/
+│           └── loa-application-form.pdf
+│
+├── src/
+│   ├── app/
+│   │   ├── (auth)/
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx
+│   │   │   ├── signup/
+│   │   │   │   └── page.tsx
+│   │   │   ├── forgot-password/
+│   │   │   │   └── page.tsx
+│   │   │   └── layout.tsx
+│   │   │
+│   │   ├── (scholar)/
+│   │   │   ├── dashboard/
+│   │   │   │   └── page.tsx          # Main static scholar dashboard
+│   │   │   ├── profile/
+│   │   │   │   └── page.tsx          # Profile settings page
+│   │   │   └── layout.tsx            # Scholar layout wrapper
+│   │   │
+│   │   ├── (admin)/
+│   │   │   ├── dashboard/
+│   │   │   │   └── page.tsx          # Admin dashboard with charts
+│   │   │   ├── scholars/
+│   │   │   │   ├── page.tsx          # Scholar management table
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx      # Individual scholar details & history
+│   │   │   ├── verification/
+│   │   │   │   └── page.tsx          # Account verification table
+│   │   │   ├── events/
+│   │   │   │   └── page.tsx          # Event banner management
+│   │   │   ├── grade-submissions/
+│   │   │   │   └── page.tsx
+│   │   │   ├── stipend-tracking/
+│   │   │   │   └── page.tsx
+│   │   │   ├── practical-training/
+│   │   │   │   └── page.tsx
+│   │   │   ├── thesis-allowance/
+│   │   │   │   └── page.tsx
+│   │   │   ├── travel-clearance/
+│   │   │   │   └── page.tsx
+│   │   │   ├── shifting-transferring/
+│   │   │   │   └── page.tsx
+│   │   │   ├── reimbursement/
+│   │   │   │   └── page.tsx
+│   │   │   ├── leave-of-absence/
+│   │   │   │   └── page.tsx
+│   │   │   ├── request-forms/
+│   │   │   │   └── page.tsx
+│   │   │   ├── support-feedback/
+│   │   │   │   └── page.tsx
+│   │   │   └── layout.tsx            # Admin layout with collapsible sidebar
+│   │   │
+│   │   ├── api/
+│   │   │   ├── auth/
+│   │   │   │   ├── signup/
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── login/
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── logout/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── verify-email/
+│   │   │   │       └── route.ts
+│   │   │   ├── scholars/
+│   │   │   │   ├── route.ts          # CRUD operations
+│   │   │   │   └── [id]/
+│   │   │   │       ├── route.ts
+│   │   │   │       └── history/
+│   │   │   │           └── route.ts
+│   │   │   ├── services/
+│   │   │   │   ├── grade-submission/
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── stipend-tracking/
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── ptp/
+│   │   │   │   │   ├── referral/
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   └── completion/
+│   │   │   │   │       └── route.ts
+│   │   │   │   ├── thesis/
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── travel-clearance/
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── shifting-transferring/
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── reimbursement/
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── leave-of-absence/
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── request-forms/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── support-feedback/
+│   │   │   │       └── route.ts
+│   │   │   ├── upload/
+│   │   │   │   └── route.ts         # File upload handler
+│   │   │   ├── email/
+│   │   │   │   └── route.ts         # Email notifications
+│   │   │   └── reports/
+│   │   │       └── route.ts         # Generate admin reports
+│   │   │
+│   │   ├── layout.tsx
+│   │   ├── page.tsx                 # Landing page
+│   │   └── globals.css
+│   │
+│   ├── components/
+│   │   ├── ui/                       # Shadcn/ui components
+│   │   │   ├── button.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── textarea.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── modal.tsx
+│   │   │   ├── tabs.tsx
+│   │   │   ├── table.tsx
+│   │   │   ├── dropdown-menu.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── badge.tsx
+│   │   │   ├── toast.tsx
+│   │   │   ├── toaster.tsx
+│   │   │   ├── alert.tsx
+│   │   │   ├── alert-dialog.tsx
+│   │   │   ├── checkbox.tsx
+│   │   │   ├── radio-group.tsx
+│   │   │   ├── label.tsx
+│   │   │   ├── separator.tsx
+│   │   │   ├── skeleton.tsx
+│   │   │   ├── accordion.tsx
+│   │   │   ├── avatar.tsx
+│   │   │   ├── progress.tsx
+│   │   │   ├── scroll-area.tsx
+│   │   │   ├── calendar.tsx
+│   │   │   ├── popover.tsx
+│   │   │   ├── command.tsx
+│   │   │   └── tooltip.tsx
+│   │   │
+│   │   ├── scholar/
+│   │   │   ├── layout/
+│   │   │   │   ├── ScholarHeader.tsx        # Section 1: Profile + Event Banner
+│   │   │   │   ├── ProfileSection.tsx       # Left side profile card with QR
+│   │   │   │   ├── EventBannerSection.tsx   # Right side event carousel
+│   │   │   │   ├── NavigationTabs.tsx       # Section 2: Home, Directories, Downloadables, FAQs
+│   │   │   │   ├── RecentActivity.tsx       # Section 3: All transactions
+│   │   │   │   └── ServicePanelOverlay.tsx  # Overlay that stacks above sections 2 & 3
+│   │   │   │
+│   │   │   ├── profile/
+│   │   │   │   ├── ProfileCard.tsx          # Main profile display
+│   │   │   │   ├── ProfileInfo.tsx          # Scholar information with status indicator
+│   │   │   │   ├── QRCodeDisplay.tsx        # QR code component
+│   │   │   │   ├── StatusBadge.tsx          # Active/Warning/Suspended status
+│   │   │   │   ├── InfoTooltip.tsx          # Info icon with tooltip
+│   │   │   │   └── EditProfileModal.tsx     # Profile editing modal
+│   │   │   │
+│   │   │   ├── event-banner/
+│   │   │   │   ├── EventCarousel.tsx        # Auto-rotating carousel
+│   │   │   │   ├── EventSlide.tsx           # Individual banner slide
+│   │   │   │   ├── CarouselControls.tsx     # Navigation dots & arrows
+│   │   │   │   └── EventQuote.tsx           # Inspirational quote display
+│   │   │   │
+│   │   │   ├── home/
+│   │   │   │   ├── ServiceTilesGrid.tsx     # Main 3x3 grid of service tiles
+│   │   │   │   └── ServiceTile.tsx          # Individual clickable tile
+│   │   │   │
+│   │   │   ├── directories/
+│   │   │   │   ├── DirectoriesPanel.tsx     # Main directories content
+│   │   │   │   ├── RegionalOffices.tsx      # Regional office contacts
+│   │   │   │   ├── UniversityAssociations.tsx # University associations
+│   │   │   │   └── ContactCard.tsx          # Clickable contact card (auto-copy)
+│   │   │   │
+│   │   │   ├── downloadables/
+│   │   │   │   ├── DownloadablesPanel.tsx   # Main downloadables content
+│   │   │   │   ├── CategoryAccordion.tsx    # Collapsible categories
+│   │   │   │   └── DownloadItem.tsx         # Individual file download link
+│   │   │   │
+│   │   │   ├── faqs/
+│   │   │   │   ├── FAQsPanel.tsx            # Main FAQs content
+│   │   │   │   ├── FAQSearch.tsx            # Search/filter component
+│   │   │   │   ├── FAQCategory.tsx          # Category accordion
+│   │   │   │   └── FAQItem.tsx              # Individual Q&A item
+│   │   │   │
+│   │   │   └── services/
+│   │   │       ├── GradeSubmission/
+│   │   │       │   ├── GradeSubmissionPanel.tsx       # Stacked panel view
+│   │   │       │   ├── GradeSubmissionModal.tsx       # Popup form
+│   │   │       │   ├── SemesterGrid.tsx               # Year/Semester cards
+│   │   │       │   ├── SemesterCard.tsx               # Individual semester status
+│   │   │       │   ├── SubmissionForm.tsx             # File upload form
+│   │   │       │   ├── SubmissionReview.tsx           # View/Edit submitted files
+│   │   │       │   ├── AdminCommentAlert.tsx          # Admin feedback banner
+│   │   │       │   └── RecentSubmissions.tsx          # Activity updates
+│   │   │       │
+│   │   │       ├── StipendTracking/
+│   │   │       │   ├── StipendTrackingPanel.tsx
+│   │   │       │   ├── StipendSummaryCards.tsx        # Total/Pending/Expected cards
+│   │   │       │   ├── StipendTimeline.tsx            # Visual timeline of releases
+│   │   │       │   ├── AllowanceBreakdown.tsx         # Expandable allowance details
+│   │   │       │   └── StipendAlerts.tsx              # On-hold warnings
+│   │   │       │
+│   │   │       ├── PracticalTraining/
+│   │   │       │   ├── PracticalTrainingPanel.tsx
+│   │   │       │   ├── PTPReferralModal.tsx           # Referral letter submission
+│   │   │       │   ├── PTPCompletionModal.tsx         # Completion docs submission
+│   │   │       │   ├── PTPPlanSelector.tsx            # Radio button plan selection
+│   │   │       │   ├── RequirementsChecklist.tsx      # Document requirements list
+│   │   │       │   └── SubmissionReview.tsx           # View/Edit response
+│   │   │       │
+│   │   │       ├── ThesisAllowance/
+│   │   │       │   ├── ThesisAllowancePanel.tsx
+│   │   │       │   ├── ThesisAllowanceModal.tsx       # Submission modal
+│   │   │       │   ├── PercentageSelector.tsx         # 90%, 10%, 100% tabs
+│   │   │       │   ├── RequirementsForm.tsx           # File upload form
+│   │   │       │   ├── SubmissionReview.tsx           # View/Edit response
+│   │   │       │   └── AdminCommentAlert.tsx          # Admin feedback
+│   │   │       │
+│   │   │       ├── RequestForms/
+│   │   │       │   ├── RequestFormsPanel.tsx
+│   │   │       │   ├── RequestFormsModal.tsx          # Submission modal
+│   │   │       │   ├── FormTypeSelector.tsx           # Dropdown for form types
+│   │   │       │   ├── RequestForm.tsx                # Brief reason + confirmation
+│   │   │       │   └── RequestHistory.tsx             # Recent requests activity
+│   │   │       │
+│   │   │       ├── TravelClearance/
+│   │   │       │   ├── TravelClearancePanel.tsx
+│   │   │       │   ├── TravelClearanceModal.tsx       # Submission modal
+│   │   │       │   ├── PurposeSelector.tsx            # Official/Other radio buttons
+│   │   │       │   ├── OfficialBusinessForm.tsx       # Form for official travel
+│   │   │       │   ├── OtherPurposesForm.tsx          # Form for other travel
+│   │   │       │   ├── SubmissionReview.tsx           # View/Edit response
+│   │   │       │   └── TravelHistory.tsx              # Recent travel requests
+│   │   │       │
+│   │   │       ├── ShiftingTransferring/
+│   │   │       │   ├── ShiftingTransferringPanel.tsx
+│   │   │       │   ├── ShiftingTransferringModal.tsx  # Submission modal
+│   │   │       │   ├── ApplicationTypeSelector.tsx    # 3 radio options
+│   │   │       │   ├── ShiftingCourseForm.tsx         # Shifting course form
+│   │   │       │   ├── TransferringSchoolForm.tsx     # Transferring school form
+│   │   │       │   ├── BothForm.tsx                   # Shifting + Transferring form
+│   │   │       │   ├── RequirementsUpload.tsx         # Multiple file uploads
+│   │   │       │   └── SubmissionReview.tsx           # View/Edit response
+│   │   │       │
+│   │   │       ├── Reimbursement/
+│   │   │       │   ├── ReimbursementPanel.tsx
+│   │   │       │   ├── ReimbursementModal.tsx         # Submission modal
+│   │   │       │   ├── TypeSelector.tsx               # Dropdown for reimbursement types
+│   │   │       │   ├── ReimbursementForm.tsx          # Brief reason + receipt upload
+│   │   │       │   └── ReimbursementHistory.tsx       # Recent reimbursements
+│   │   │       │
+│   │   │       ├── LeaveOfAbsence/
+│   │   │       │   ├── LeaveOfAbsencePanel.tsx
+│   │   │       │   ├── LeaveOfAbsenceModal.tsx        # Submission modal
+│   │   │       │   ├── ReasonSelector.tsx             # Medical/Exchange radio buttons
+│   │   │       │   ├── MedicalPersonalForm.tsx        # Medical/personal LOA form
+│   │   │       │   ├── ExchangeStudentForm.tsx        # Exchange student LOA form
+│   │   │       │   ├── RequirementsUpload.tsx         # Multiple file uploads
+│   │   │       │   └── SubmissionReview.tsx           # View/Edit response
+│   │   │       │
+│   │   │       └── SupportFeedback/
+│   │   │           ├── SupportFeedbackPanel.tsx
+│   │   │           ├── SupportFeedbackModal.tsx       # Submission modal
+│   │   │           ├── CategorySelector.tsx           # Dropdown for feedback types
+│   │   │           ├── FeedbackForm.tsx               # Brief reason textarea
+│   │   │           └── FeedbackHistory.tsx            # Recent feedback submissions
+│   │   │
+│   │   ├── admin/
+│   │   │   ├── layout/
+│   │   │   │   ├── AdminSidebar.tsx           # Collapsible sidebar navigation
+│   │   │   │   ├── AdminHeader.tsx            # Top header with user menu
+│   │   │   │   ├── SidebarToggle.tsx          # Hamburger toggle button
+│   │   │   │   └── AdminNav.tsx               # Navigation links
+│   │   │   │
+│   │   │   ├── dashboard/
+│   │   │   │   ├── DashboardStats.tsx         # Top stat cards
+│   │   │   │   ├── ProvinceDistribution.tsx   # Bar/pie chart by province
+│   │   │   │   ├── ScholarshipTypeChart.tsx   # Donut chart by type
+│   │   │   │   ├── StatusOverview.tsx         # Active/Graduated/Terminated breakdown
+│   │   │   │   ├── StipendReleased.tsx        # Stipend release chart
+│   │   │   │   ├── UniversityBreakdown.tsx    # University distribution
+│   │   │   │   └── ReportGenerator.tsx        # Export report controls
+│   │   │   │
+│   │   │   ├── scholars/
+│   │   │   │   ├── ScholarTable.tsx           # Main table with filters
+│   │   │   │   ├── ScholarFilters.tsx         # Type/School/Status/Year/Course filters
+│   │   │   │   ├── ScholarRow.tsx             # Individual table row
+│   │   │   │   ├── ScholarActions.tsx         # View/Edit/Delete dropdown
+│   │   │   │   ├── AddScholarModal.tsx        # Add new scholar form
+│   │   │   │   ├── EditScholarModal.tsx       # Edit scholar form
+│   │   │   │   ├── ScholarDetailsModal.tsx    # View full scholar details
+│   │   │   │   ├── ScholarHistory.tsx         # Service submission history
+│   │   │   │   └── DeleteScholarDialog.tsx    # Confirmation dialog
+│   │   │   │
+│   │   │   ├── verification/
+│   │   │   │   ├── VerificationTable.tsx      # Pending accounts table
+│   │   │   │   ├── VerificationRow.tsx        # Individual verification row
+│   │   │   │   ├── VerificationModal.tsx      # View account details
+│   │   │   │   ├── AccountInfo.tsx            # Scholar info display
+│   │   │   │   ├── CurriculumInfo.tsx         # Curriculum details display
+│   │   │   │   ├── VerifyButton.tsx           # Approve action (sends email)
+│   │   │   │   └── RejectButton.tsx           # Reject action (sends email)
+│   │   │   │
+│   │   │   ├── events/
+│   │   │   │   ├── EventManagement.tsx        # Main event management page
+│   │   │   │   ├── BannerUpload.tsx           # Upload new banner form
+│   │   │   │   ├── BannerList.tsx             # List of current banners
+│   │   │   │   ├── BannerItem.tsx             # Individual banner with edit/delete
+│   │   │   │   ├── EditBannerModal.tsx        # Edit banner details & link
+│   │   │   │   └── CarouselSettings.tsx       # Auto-advance timer, transitions
+│   │   │   │
+│   │   │   └── tables/                        # Service-specific admin tables
+│   │   │       ├── GradeSubmissions/
+│   │   │       │   ├── GradeSubmissionsTable.tsx
+│   │   │       │   ├── GradeSubmissionFilters.tsx
+│   │   │       │   ├── GradeSubmissionRow.tsx
+│   │   │       │   ├── GradeSubmissionModal.tsx      # View submission details
+│   │   │       │   ├── DocumentViewer.tsx            # PDF viewer
+│   │   │       │   ├── ApproveButton.tsx             # Approve action
+│   │   │       │   ├── RequestResubmissionButton.tsx # Request changes
+│   │   │       │   └── CommentSection.tsx            # Add admin comments
+│   │   │       │
+│   │   │       ├── StipendTracking/
+│   │   │       │   ├── StipendTrackingTable.tsx
+│   │   │       │   ├── StipendFilters.tsx
+│   │   │       │   ├── StipendRow.tsx
+│   │   │       │   ├── StipendDetailsModal.tsx
+│   │   │       │   ├── UpdateStipendModal.tsx        # Update release status
+│   │   │       │   └── AllowanceCheckboxes.tsx       # Select allowances to release
+│   │   │       │
+│   │   │       ├── PracticalTraining/
+│   │   │       │   ├── PTPTable.tsx                  # Combined referral + completion
+│   │   │       │   ├── PTPFilters.tsx
+│   │   │       │   ├── PTPReferralModal.tsx          # View referral details
+│   │   │       │   ├── PTPCompletionModal.tsx        # View completion details
+│   │   │       │   ├── ApproveButton.tsx
+│   │   │       │   ├── RequestResubmissionButton.tsx
+│   │   │       │   └── CommentSection.tsx
+│   │   │       │
+│   │   │       ├── ThesisAllowance/
+│   │   │       │   ├── ThesisAllowanceTable.tsx
+│   │   │       │   ├── ThesisFilters.tsx             # Filter by percentage
+│   │   │       │   ├── ThesisAllowanceModal.tsx
+│   │   │       │   ├── DocumentViewer.tsx
+│   │   │       │   ├── ApproveButton.tsx
+│   │   │       │   ├── RequestResubmissionButton.tsx
+│   │   │       │   └── CommentSection.tsx
+│   │   │       │
+│   │   │       ├── TravelClearance/
+│   │   │       │   ├── TravelClearanceTable.tsx
+│   │   │       │   ├── TravelFilters.tsx             # Filter by purpose
+│   │   │       │   ├── TravelClearanceModal.tsx
+│   │   │       │   ├── TravelDetails.tsx             # Destination, dates
+│   │   │       │   ├── DocumentViewer.tsx
+│   │   │       │   ├── ApproveButton.tsx
+│   │   │       │   ├── RequestResubmissionButton.tsx
+│   │   │       │   └── CommentSection.tsx
+│   │   │       │
+│   │   │       ├── ShiftingTransferring/
+│   │   │       │   ├── ShiftingTransferringTable.tsx
+│   │   │       │   ├── ShiftingFilters.tsx           # Filter by application type
+│   │   │       │   ├── ShiftingTransferringModal.tsx
+│   │   │       │   ├── ApplicationDetails.tsx        # New school/course info
+│   │   │       │   ├── DocumentViewer.tsx
+│   │   │       │   ├── ApproveButton.tsx
+│   │   │       │   ├── RequestResubmissionButton.tsx
+│   │   │       │   └── CommentSection.tsx
+│   │   │       │
+│   │   │       ├── Reimbursement/
+│   │   │       │   ├── ReimbursementTable.tsx
+│   │   │       │   ├── ReimbursementFilters.tsx      # Filter by type
+│   │   │       │   ├── ReimbursementModal.tsx
+│   │   │       │   ├── ReceiptViewer.tsx
+│   │   │       │   ├── ApproveButton.tsx
+│   │   │       │   ├── RequestResubmissionButton.tsx
+│   │   │       │   └── CommentSection.tsx
+│   │   │       │
+│   │   │       ├── LeaveOfAbsence/
+│   │   │       │   ├── LeaveOfAbsenceTable.tsx
+│   │   │       │   ├── LOAFilters.tsx                # Filter by reason
+│   │   │       │   ├── LeaveOfAbsenceModal.tsx
+│   │   │       │   ├── LOADetails.tsx                # Reason, duration
+│   │   │       │   ├── DocumentViewer.tsx
+│   │   │       │   ├── ApproveButton.tsx
+│   │   │       │   ├── RequestResubmissionButton.tsx
+│   │   │       │   └── CommentSection.tsx
+│   │   │       │
+│   │   │       ├── RequestForms/
+│   │   │       │   ├── RequestFormsTable.tsx
+│   │   │       │   ├── RequestFormFilters.tsx        # Filter by form type
+│   │   │       │   ├── RequestFormModal.tsx
+│   │   │       │   ├── RequestDetails.tsx            # Form type + reason
+│   │   │       │   ├── ApproveButton.tsx
+│   │   │       │   ├── RequestResubmissionButton.tsx
+│   │   │       │   └── CommentSection.tsx
+│   │   │       │
+│   │   │       ├── SupportFeedback/
+│   │   │       │   ├── SupportFeedbackTable.tsx
+│   │   │       │   ├── FeedbackFilters.tsx           # Filter by category
+│   │   │       │   ├── FeedbackModal.tsx
+│   │   │       │   ├── FeedbackDetails.tsx           # Category + message
+│   │   │       │   ├── ApproveButton.tsx             # Mark as resolved
+│   │   │       │   └── CommentSection.tsx            # Add admin response
+│   │   │       │
+│   │   │       └── shared/
+│   │   │           ├── TableWrapper.tsx              # Reusable table layout
+│   │   │           ├── TablePagination.tsx
+│   │   │           ├── ExportButton.tsx              # Export to CSV/PDF
+│   │   │           ├── StatusBadge.tsx               # Pending/Approved/Resubmit badges
+│   │   │           └── DateRangeFilter.tsx
+│   │   │
+│   │   └── shared/
+│   │       ├── FileUpload.tsx                        # Drag & drop file upload
+│   │       ├── FilePreview.tsx                       # Preview uploaded files
+│   │       ├── StatusBadge.tsx                       # Status indicators
+│   │       ├── LoadingSpinner.tsx
+│   │       ├── EmptyState.tsx                        # No data state
+│   │       ├── ErrorBoundary.tsx
+│   │       ├── ConfirmDialog.tsx                     # Confirmation modal
+│   │       ├── DatePicker.tsx
+│   │       ├── SearchInput.tsx
+│   │       ├── Pagination.tsx
+│   │       ├── FilterDropdown.tsx
+│   │       ├── CopyButton.tsx                        # Copy text functionality
+│   │       └── InfoTooltip.tsx                       # Info icon with tooltip
+│   │
+│   ├── lib/
+│   │   ├── supabase/
+│   │   │   ├── client.ts                     # Client-side Supabase client
+│   │   │   ├── server.ts                     # Server-side Supabase client
+│   │   │   ├── middleware.ts                 # Auth middleware
+│   │   │   └── types.ts                      # Database types
+│   │   │
+│   │   ├── validations/
+│   │   │   ├── auth.ts                       # Zod schemas for auth
+│   │   │   ├── scholar.ts                    # Scholar data validation
+│   │   │   ├── grade-submission.ts
+│   │   │   ├── ptp.ts
+│   │   │   ├── thesis.ts
+│   │   │   ├── travel-clearance.ts
+│   │   │   ├── shifting-transferring.ts
+│   │   │   ├── reimbursement.ts
+│   │   │   ├── leave-of-absence.ts
+│   │   │   ├── request-forms.ts
+│   │   │   └── support-feedback.ts
+│   │   │
+│   │   ├── utils/
+│   │   │   ├── cn.ts                         # Class name utility (clsx + tailwind-merge)
+│   │   │   ├── date.ts                       # Date formatting utilities
+│   │   │   ├── file.ts                       # File handling utilities
+│   │   │   ├── format.ts                     # Text formatting utilities
+│   │   │   ├── constants.ts                  # App constants
+│   │   │   └── curriculum.ts                 # Curriculum configuration helpers
+│   │   │
+│   │   ├── actions/
+│   │   │   ├── auth.ts                       # Server actions for authentication
+│   │   │   ├── scholars.ts                   # CRUD operations for scholars
+│   │   │   ├── grade-submission.ts
+│   │   │   ├── stipend-tracking.ts
+│   │   │   ├── ptp.ts
+│   │   │   ├── thesis.ts
+│   │   │   ├── travel-clearance.ts
+│   │   │   ├── shifting-transferring.ts
+│   │   │   ├── reimbursement.ts
+│   │   │   ├── leave-of-absence.ts
+│   │   │   ├── request-forms.ts
+│   │   │   ├── support-feedback.ts
+│   │   │   └── email.ts                      # Email notification actions
+│   │   │
+│   │   └── email/
+│   │       ├── templates/
+│   │       │   ├── verification-success.tsx  # Account verified email
+│   │       │   ├── verification-rejected.tsx # Account rejected email
+│   │       │   ├── submission-received.tsx   # Submission confirmation
+│   │       │   ├── submission-approved.tsx   # Approval notification
+│   │       │   └── resubmission-required.tsx # Resubmission request
+│   │       └── send-email.ts                 # Email sending utility
+│   │
+│   ├── hooks/
+│   │   ├── useAuth.ts                        # Authentication hook
+│   │   ├── useScholar.ts                     # Scholar data hook
+│   │   ├── useAdmin.ts                       # Admin operations hook
+│   │   ├── useToast.ts                       # Toast notifications hook
+│   │   ├── useFileUpload.ts                  # File upload hook
+│   │   ├── useModal.ts                       # Modal state management
+│   │   ├── useServicePanel.ts                # Service panel state (open/close)
+│   │   ├── useRecentActivity.ts              # Recent activity updates
+│   │   ├── useCopyToClipboard.ts             # Copy functionality
+│   │   └── useDebounce.ts                    # Debounce utility
+│   │
+│   ├── types/
+│   │   ├── index.ts                          # Main type exports
+│   │   ├── scholar.ts                        # Scholar types
+│   │   ├── admin.ts                          # Admin types
+│   │   ├── supabase.ts                       # Supabase types
+│   │   ├── services.ts                       # Service types
+│   │   ├── grade-submission.ts
+│   │   ├── stipend-tracking.ts
+│   │   ├── ptp.ts
+│   │   ├── thesis.ts
+│   │   ├── travel-clearance.ts
+│   │   ├── shifting-transferring.ts
+│   │   ├── reimbursement.ts
+│   │   ├── leave-of-absence.ts
+│   │   ├── request-forms.ts
+│   │   ├── support-feedback.ts
+│   │   └── curriculum.ts                     # Curriculum configuration types
+│   │
+│   ├── context/
+│   │   ├── AuthContext.tsx                   # Authentication state
+│   │   ├── ScholarContext.tsx                # Scholar data & profile state
+│   │   ├── AdminContext.tsx                  # Admin operations state
+│   │   └── ServicePanelContext.tsx           # Active service panel state
+│   │
+│   ├── config/
+│   │   ├── site.ts                           # Site-wide configuration
+│   │   ├── navigation.ts                     # Navigation links
+│   │   ├── services.ts                       # Service configurations
+│   │   ├── faqs.ts                           # FAQ data by category
+│   │   ├── directories.ts                    # Regional offices & associations
+│   │   └── downloadables.ts                  # Downloadable files configuration
+│   │
+│   └── styles/
+│       └── globals.css                       # Global styles + Tailwind
+│
+├── supabase/
+│   ├── migrations/
+│   │   ├── 001_create_scholars_table.sql
+│   │   ├── 002_create_profiles_table.sql
+│   │   ├── 003_create_grade_submissions_table.sql
+│   │   ├── 004_create_stipend_tracking_table.sql
+│   │   ├── 005_create_ptp_referral_table.sql
+│   │   ├── 006_create_ptp_completion_table.sql
+│   │   ├── 007_create_thesis_allowance_table.sql
+│   │   ├── 008_create_travel_clearance_table.sql
+│   │   ├── 009_create_shifting_transferring_table.sql
+│   │   ├── 010_create_reimbursement_table.sql
+│   │   ├── 011_create_leave_of_absence_table.sql
+│   │   ├── 012_create_request_forms_table.sql
+│   │   ├── 013_create_support_feedback_table.sql
+│   │   ├── 014_create_event_banners_table.sql
+│   │   ├── 015_create_storage_buckets.sql
+│   │   ├── 016_create_admin_comments_table.sql
+│   │   └── 017_create_rls_policies.sql
+│   │
+│   ├── functions/
+│   │   ├── send-verification-email/
+│   │   │   └── index.ts
+│   │   ├── send-notification-email/
+│   │   │   └── index.ts
+│   │   └── generate-qr-code/
+│   │       └── index.ts
+│   │
+│   └── seed.sql                              # Seed data for development
+│
+├── .env.local                                # Local environment variables
+├── .env.example                              # Example env file
+├── .gitignore
+├── next.config.js
+├── postcss.config.js
+├── tailwind.config.ts
+├── tsconfig.json
+├── package.json
+├── README.md
+└── .eslintrc.json
+```		
