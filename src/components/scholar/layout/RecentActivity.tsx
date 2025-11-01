@@ -5,10 +5,9 @@ import { getStatusColor } from '@/lib/utils/constants';
 import { cn } from '@/lib/utils/cn';
 import { formatRelativeTime } from '@/lib/utils/date';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
 import { toast } from '@/components/ui/toaster';
 
-// Mock data for recent activities
+// Mock data updated to include "Rejected"
 const mockActivities = [
   {
     id: 1,
@@ -18,80 +17,72 @@ const mockActivities = [
   },
   {
     id: 2,
-    title: 'Travel Clearance - Brunei',
+    title: 'Travel Clearance - Brunei Exchange Program',
     status: 'Processing',
     timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
   },
   {
     id: 3,
-    title: 'Thesis Allowance - 90%',
+    title: 'Thesis Allowance Request',
     status: 'Resubmit',
     timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
   },
   {
     id: 4,
+    title: 'Reimbursement - OJT Fare',
+    status: 'Rejected', // 
+    timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(), // 6 days ago
+  },
+  {
+    id: 5,
     title: 'Request Form - Letter of Endorsement',
-    status: 'Closed',
+    status: 'Pending',
     timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week ago
   },
 ];
 
 export function RecentActivity() {
   return (
-    <Card className="h-full shadow-md">
+    <Card className="h-full shadow-md bg-white">
       <CardHeader>
-        <CardTitle><h2 className="text-2xl text-center font-bold text-dost-title mb-4">
-          Recent Activities
-        </h2></CardTitle>
+        {/* Title uses the consistent dost-title color */}
+        <CardTitle className="text-2xl text-center font-bold text-dost-title mb-4">Recent Activities</CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-4">
+        <div className="space-y-2">
           {mockActivities.map((activity) => (
-            <li key={activity.id}>
+            <li key={activity.id} className="list-none">
               <Button
                 variant="ghost"
-                className="flex h-auto w-full items-start justify-between p-2 text-left"
+                className="flex h-auto w-full items-center justify-between p-3 text-left rounded-lg"
                 onClick={() =>
                   toast.info(`Navigating to ${activity.title}... (not built)`)
                 }
               >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={cn(
-                      'mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full',
-                      getStatusColor(activity.status).replace(
-                        /text-\w+-\d+/,
-                        ''
-                      )
-                    )}
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-800">
-                      {activity.title}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={cn(
-                          'text-xs font-semibold',
-                          getStatusColor(activity.status).replace(
-                            /bg-\w+-\d+/,
-                            ''
-                          )
-                        )}
-                      >
-                        {activity.status}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        • {formatRelativeTime(activity.timestamp)}
-                      </span>
-                    </div>
-                  </div>
+                {/* Left side: Title and Time */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {activity.title}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Submitted {formatRelativeTime(activity.timestamp)}
+                  </p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-gray-400" />
+
+                {/* Right side: Status Badge (Pill) */}
+                <span
+                  className={cn(
+                    'ml-2 shrink-0 rounded-full px-3 py-1 text-xs font-medium',
+                    // This function correctly pulls the colors from constants.ts
+                    getStatusColor(activity.status)
+                  )}
+                >
+                  {activity.status}
+                </span>
               </Button>
             </li>
           ))}
-        </ul>
+        </div>
       </CardContent>
     </Card>
   );

@@ -7,6 +7,30 @@ const config = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+
+  // --- ADD THIS SAFELIST PROPERTY ---
+  safelist: [
+    // For RecentActivity pills (light bg)
+    'bg-green-100', 'text-green-800',
+    'bg-yellow-100', 'text-yellow-800',
+    'bg-orange-100', 'text-orange-800',
+    'bg-red-100', 'text-red-800',
+    'bg-blue-100', 'text-blue-800',
+    'bg-gray-100', 'text-gray-800',
+    'bg-purple-100', 'text-purple-800',
+    'bg-gray-100', 'text-gray-500',
+    
+    // For Tooltip legend (light text on dark bg)
+    'text-green-300',
+    'text-yellow-300',
+    'text-orange-300',
+    'text-red-300',
+    'text-blue-300',
+    'text-gray-400',
+    'text-purple-300',
+  ],
+  // ---------------------------------
+  
   theme: {
     container: {
       center: true,
@@ -53,12 +77,12 @@ const config = {
         // Custom DOST colors
         dost: {
           blue: "#003DA5",
-          lightblue: "#0066CC", // <-- ADD THIS
+          lightblue: "#0066CC",
           green: "#00A859",
           orange: "#FF6B35",
-          title: "#0f7cbf",     // <-- ADD THIS
-          bgstart: "#5de0e6",  // <-- ADD THIS
-          bgend: "#004aad",    // <-- ADD THIS
+          title: "#0f7cbf",
+          bgstart: "#5de0e6",
+          bgend: "#004aad",
         },
       },
       borderRadius: {
