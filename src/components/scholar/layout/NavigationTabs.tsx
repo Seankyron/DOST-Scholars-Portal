@@ -46,7 +46,7 @@ export function NavigationTabs() {
 
       {/* Content panes */}
       <TabsContent value="home" className="mt-6">
-        <h2 className="text-2xl font-semibold text-dost-title mb-4">
+        <h2 className="text-2xl text-center font-bold text-dost-title mb-4">
           Scholar Services
         </h2>
         <ServiceTilesGrid />

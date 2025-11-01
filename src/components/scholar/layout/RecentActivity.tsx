@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { toast } from '@/components/ui/toaster';
 
-// Mock data based on your PDF
+// Mock data for recent activities
 const mockActivities = [
   {
     id: 1,
@@ -40,7 +40,9 @@ export function RecentActivity() {
   return (
     <Card className="h-full shadow-md">
       <CardHeader>
-        <CardTitle>Recent Activities</CardTitle>
+        <CardTitle><h2 className="text-2xl text-center font-bold text-dost-title mb-4">
+          Recent Activities
+        </h2></CardTitle>
       </CardHeader>
       <CardContent>
         <ul className="space-y-4">

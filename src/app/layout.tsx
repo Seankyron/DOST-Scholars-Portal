@@ -14,9 +14,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      {/* Apply the gradient to the main <body> tag.
-        This will cover the entire application.
-      */}
       <body className="min-h-screen w-full bg-auth-gradient">
         <Providers>{children}</Providers>
       </body>
