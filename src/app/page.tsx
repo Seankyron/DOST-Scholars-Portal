@@ -1,17 +1,29 @@
 // src/app/page.tsx
-import Link from 'next/link';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function LandingPage() {
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+        router.push('/scholar/dashboard');
+      } else {
+        router.push('/login');
+      }
+    }
+  }, [user, loading, router]);
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-2xl font-bold">Welcome to the DOST-SEI Scholars Portal</h1>
-      <div className="flex gap-4 mt-6">
-        <Link href="/login" className="px-4 py-2 text-white bg-blue-600 rounded-md">
-          Login
-        </Link>
-        <Link href="/signup" className="px-4 py-2 bg-gray-200 rounded-md">
-          Sign Up
-        </Link>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <div className="spinner mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading...</p>
       </div>
     </div>
   );
