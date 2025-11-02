@@ -37,17 +37,23 @@ export default function LoginPage() {
 
       // Check user role and redirect accordingly
       const { data: scholarData } = await supabase
-        .from('scholars')
+        .from('User')
         .select('*')
         .eq('email', formData.email)
         .single();
 
+      console.log(scholarData);
       if (scholarData) {
-        router.push('/scholar/dashboard');
+        if(scholarData.is_verified == true) {
+          router.push('/scholar/dashboard');
+        }
+        else {
+          setErrorMessage('Account not verified by the admins yet.');
+        }
       } else {
         // Check if admin
         const { data: adminData } = await supabase
-          .from('admins')
+          .from('Admin')
           .select('*')
           .eq('email', formData.email)
           .single();
