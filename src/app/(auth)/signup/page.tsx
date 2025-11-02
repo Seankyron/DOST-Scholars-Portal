@@ -226,19 +226,21 @@ export default function SignupPage() {
     try {
       // Upload curriculum file first
       let curriculumUrl = '';
+      console.log(formData);
       if (formData.curriculumFile) {
         const fileExt = formData.curriculumFile.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('curricula')
+          .from('signup')
           .upload(fileName, formData.curriculumFile);
 
         if (uploadError) throw uploadError;
         
         const { data: { publicUrl } } = supabase.storage
-          .from('curricula')
+          .from('signup')
           .getPublicUrl(fileName);
         
+        console.log(curriculumUrl);
         curriculumUrl = publicUrl;
       }
 
@@ -253,14 +255,11 @@ export default function SignupPage() {
                         formData.thesis2ndYear ? 2 :
                         formData.thesis3rdYear ? 3 : 4;
 
-      const curriculumConfig = {
-        midyearYears,
-        thesisYear,
+      const ojtInfo = {
         ojtYear: parseInt(formData.ojtYear),
         ojtSemester: formData.ojtSemester,
-        courseDuration: parseInt(formData.courseDuration) as 4 | 5,
-        curriculumFile: curriculumUrl,
       };
+      console.log(ojtInfo);
 
       // Create account in pending verification
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -280,28 +279,33 @@ export default function SignupPage() {
 
       const completeAddress = `${formData.addressBrgy}, ${formData.addressCity}, ${formData.addressProvince}`;
 
-      // Insert into pending_accounts table
       const { error: insertError } = await supabase
-        .from('pending_accounts')
+        .from('User')
         .insert([
           {
-            // --- ADDED ---
-            scholar_id: formData.scholarId,
+            spas_id: formData.scholarId,
             email: formData.email,
+            password: formData.password,  //to be encrypted
             first_name: formData.firstName,
             middle_name: formData.middleName,
-            surname: formData.surname,
+            last_name: formData.surname,
             suffix: formData.suffix,
             date_of_birth: formData.dateOfBirth,
             contact_number: formData.contactNumber,
-            complete_address: completeAddress,
-            // province: formData.addressProvince, // Add this if your table has a separate province column
+            address: completeAddress,
+            municipality_city: formData.addressCity,
+            province: formData.addressProvince,
             scholarship_type: formData.scholarshipType,
             year_awarded: parseInt(formData.yearAwarded),
             university: formData.university,
-            program: formData.program,
-            curriculum_config: curriculumConfig,
-            status: 'pending',
+            program_course: formData.program,
+            midyear_classes: midyearYears,
+            thesis_year: thesisYear,
+            ojt: ojtInfo,
+            course_duration: parseInt(formData.courseDuration) as 4 | 5,
+            curriculum_file_key: curriculumUrl,
+            is_verified: false,
+            scholarship_status: 'active',
           },
         ]);
 
