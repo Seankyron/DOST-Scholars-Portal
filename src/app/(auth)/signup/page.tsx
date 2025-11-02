@@ -285,7 +285,6 @@ export default function SignupPage() {
           {
             spas_id: formData.scholarId,
             email: formData.email,
-            password: formData.password,  //to be encrypted
             first_name: formData.firstName,
             middle_name: formData.middleName,
             last_name: formData.surname,
