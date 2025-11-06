@@ -1,9 +1,9 @@
-// src/app/page.tsx
 'use client';
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner'; 
 
 export default function LandingPage() {
   const router = useRouter();
@@ -12,7 +12,7 @@ export default function LandingPage() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        router.push('/scholar/dashboard');
+        router.push('/dashboard'); 
       } else {
         router.push('/login');
       }
@@ -20,11 +20,9 @@ export default function LandingPage() {
   }, [user, loading, router]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <div className="spinner mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading...</p>
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <LoadingSpinner size="lg" />
+      <p className="text-white text-lg mt-4">Loading..</p>
     </div>
   );
 }

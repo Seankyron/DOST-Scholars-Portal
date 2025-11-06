@@ -12,7 +12,7 @@ import {
   DollarSign,
   FileX,
   MessageSquare,
-  HelpCircle
+  FileEdit 
 } from 'lucide-react';
 
 export const scholarNavigation = [
@@ -45,18 +45,19 @@ export const adminNavigation = [
   },
   {
     label: 'Services',
-    icon: FileText,
+    icon: FileText, 
+
     children: [
-      { label: 'Grade Submissions', href: '/admin/grade-submissions' },
-      { label: 'Stipend Tracking', href: '/admin/stipend-tracking' },
-      { label: 'Practical Training', href: '/admin/practical-training' },
-      { label: 'Thesis Allowance', href: '/admin/thesis-allowance' },
-      { label: 'Travel Clearance', href: '/admin/travel-clearance' },
-      { label: 'Shifting/Transferring', href: '/admin/shifting-transferring' },
-      { label: 'Reimbursement', href: '/admin/reimbursement' },
-      { label: 'Leave of Absence', href: '/admin/leave-of-absence' },
-      { label: 'Request Forms', href: '/admin/request-forms' },
-      { label: 'Support & Feedback', href: '/admin/support-feedback' },
+      { label: 'Grade Submissions', href: '/admin/grade-submissions', icon: FileText },
+      { label: 'Stipend Tracking', href: '/admin/stipend-tracking', icon: CreditCard },
+      { label: 'Practical Training', href: '/admin/practical-training', icon: Briefcase },
+      { label: 'Thesis Allowance', href: '/admin/thesis-allowance', icon: GraduationCap },
+      { label: 'Travel Clearance', href: '/admin/travel-clearance', icon: Plane },
+      { label: 'Shifting/Transferring', href: '/admin/shifting-transferring', icon: RefreshCw },
+      { label: 'Reimbursement', href: '/admin/reimbursement', icon: DollarSign },
+      { label: 'Leave of Absence', href: '/admin/leave-of-absence', icon: FileX },
+      { label: 'Request Forms', href: '/admin/request-forms', icon: FileEdit },
+      { label: 'Support & Feedback', href: '/admin/support-feedback', icon: MessageSquare },
     ],
   },
 ];

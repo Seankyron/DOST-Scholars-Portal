@@ -1,8 +1,7 @@
 'use client';
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { getStatusColor } from '@/lib/utils/constants';
-import { cn } from '@/lib/utils/cn';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatRelativeTime } from '@/lib/utils/date';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
@@ -70,15 +69,10 @@ export function RecentActivity() {
                 </div>
 
                 {/* Right side: Status Badge (Pill) */}
-                <span
-                  className={cn(
-                    'ml-2 shrink-0 rounded-full px-3 py-1 text-xs font-medium',
-                    // This function correctly pulls the colors from constants.ts
-                    getStatusColor(activity.status)
-                  )}
-                >
-                  {activity.status}
-                </span>
+                <StatusBadge 
+                  status={activity.status} 
+                  className="ml-2 shrink-0" 
+                />
               </Button>
             </li>
           ))}
