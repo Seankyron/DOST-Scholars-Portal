@@ -30,7 +30,7 @@ export function AdminHeader({ onMenuOpen }: AdminHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-dost-blue border-b">
+    <header className="sticky top-0 z-30 bg-dost-title border-b">
       <div className="container mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Mobile menu button */}
         <Button

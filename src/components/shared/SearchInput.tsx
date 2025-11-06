@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; 
 import { Input } from '@/components/ui/input';
 import { Search, X } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -12,23 +12,21 @@ interface SearchInputProps {
   className?: string;
 }
 
-export function SearchInput({ 
-  onSearch, 
-  placeholder = 'Search...', 
+export function SearchInput({
+  onSearch,
+  placeholder = 'Search...',
   debounceMs = 300,
-  className 
+  className,
 }: SearchInputProps) {
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, debounceMs);
 
-  // Call onSearch when debounced query changes
-  useState(() => {
+  useEffect(() => { 
     onSearch(debouncedQuery);
-  });
+  }, [debouncedQuery, onSearch]); 
 
   const handleClear = () => {
     setQuery('');
-    onSearch('');
   };
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react'; 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScholarFilters } from '@/components/admin/scholars/ScholarFilter';
 import { ScholarTable } from '@/components/admin/scholars/ScholarTable';
@@ -8,7 +8,7 @@ import { SearchInput } from '@/components/shared/SearchInput';
 import { Plus, Upload } from 'lucide-react';
 
 export default function ScholarManagementPage() {
-  const [searchTerm, setSearchTerm] = useState(''); 
+  const [searchTerm, setSearchTerm] = useState('');
 
   return (
     <div>
@@ -32,10 +32,8 @@ export default function ScholarManagementPage() {
         </div>
         <SearchInput
           placeholder="Search scholars..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onSearch={() => console.log('Searching for:', searchTerm)} // Placeholder search action
-          className="w-full sm:max-w-xs" // Adjusted width for responsiveness
+          onSearch={(query) => setSearchTerm(query)} 
+          className="w-full sm:max-w-xs" 
         />
       </div>
 

@@ -24,40 +24,31 @@ export function ScholarFilters() {
       <Select
         label="Scholarship Type"
         options={[
-          { value: '', label: 'All Types' },
           ...SCHOLARSHIP_TYPES.map(type => ({ value: type, label: type }))
         ]}
-        placeholder="All Types"
       />
       <Select
         label="Status"
         options={[
-          { value: '', label: 'All Statuses' },
           ...statuses.map(status => ({ value: status, label: status }))
         ]}
-        placeholder="All Statuses"
       />
       <Select
         label="School / University"
         options={[
-          { value: '', label: 'All Universities' },
           ...UNIVERSITIES.map(uni => ({ value: uni, label: uni }))
         ]}
-        placeholder="All Universities"
       />
       <Select
         label="Course"
         options={[{ value: '', label: 'All Courses' }]}
-        placeholder="All Courses"
         disabled
       />
       <Select
         label="Year Level"
         options={[
-          { value: '', label: 'All Years' },
           ...YEAR_LEVELS.map(year => ({ value: year, label: year }))
         ]}
-        placeholder="All Years"
       />
     </div>
   );
