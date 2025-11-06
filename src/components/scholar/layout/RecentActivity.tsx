@@ -5,52 +5,75 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatRelativeTime } from '@/lib/utils/date';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
+import { cn } from '@/lib/utils/cn';
+import type { SubmissionStatus } from '@/types'; // <-- 1. Import the type
 
 // Mock data updated to include "Rejected"
 const mockActivities = [
   {
     id: 1,
     title: 'Grade Submission - 4th Year | 2nd Semester',
-    status: 'Approved',
+    status: 'Approved' as SubmissionStatus, // <-- 2. Cast the status
     timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
   },
   {
     id: 2,
     title: 'Travel Clearance - Brunei Exchange Program',
-    status: 'Processing',
+    status: 'Processing' as SubmissionStatus, // <-- 2. Cast the status
     timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
   },
   {
     id: 3,
     title: 'Thesis Allowance Request',
-    status: 'Resubmit',
+    status: 'Resubmit' as SubmissionStatus, // <-- 2. Cast the status
     timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
   },
   {
     id: 4,
     title: 'Reimbursement - OJT Fare',
-    status: 'Rejected', // 
+    status: 'Rejected' as SubmissionStatus, // <-- 2. Cast the status
     timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(), // 6 days ago
   },
   {
     id: 5,
     title: 'Request Form - Letter of Endorsement',
-    status: 'Pending',
+    status: 'Pending' as SubmissionStatus, // <-- 2. Cast the status
     timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week ago
+  },
+  // Added more mock data to demonstrate scrolling
+  {
+    id: 6,
+    title: 'Grade Submission - 4th Year | 1st Semester',
+    status: 'Approved' as SubmissionStatus, // <-- 2. Cast the status
+    timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 1 month ago
+  },
+  {
+    id: 7,
+    title: 'Practical Training Program - Referral',
+    status: 'Approved' as SubmissionStatus, // <-- 2. Cast the status
+    timestamp: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(), // 40 days ago
   },
 ];
 
 export function RecentActivity() {
   return (
-    <Card className="h-full shadow-md bg-white">
+    // Set h-full and flex properties for the Card to constrain the CardContent
+    <Card className="h-full shadow-md bg-white flex flex-col">
       <CardHeader>
         {/* Title uses the consistent dost-title color */}
-        <CardTitle className="text-2xl text-center font-bold text-dost-title mb-4">Recent Activities</CardTitle>
+        <CardTitle className="text-2xl text-center font-bold text-dost-title mb-4">
+          Recent Activities
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
+
+      <CardContent className="overflow-hidden flex-1">
+
+        <div className="h-full max-h-full overflow-y-auto scrollbar-thin pr-2">
           {mockActivities.map((activity) => (
-            <li key={activity.id} className="list-none">
+            <li
+              key={activity.id}
+              className="list-none border-b border-gray-200 last:border-b-0"
+            >
               <Button
                 variant="ghost"
                 className="flex h-auto w-full items-center justify-between p-3 text-left rounded-lg"
@@ -69,9 +92,9 @@ export function RecentActivity() {
                 </div>
 
                 {/* Right side: Status Badge (Pill) */}
-                <StatusBadge 
+                <StatusBadge
                   status={activity.status} 
-                  className="ml-2 shrink-0" 
+                  className="ml-2 shrink-0"
                 />
               </Button>
             </li>
