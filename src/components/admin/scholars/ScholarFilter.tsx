@@ -1,6 +1,7 @@
 'use client';
 
-import { Select } from '@/components/ui/select';
+import { Select } from '@/components/ui/select'; // Use your existing Select
+
 import { 
   SCHOLARSHIP_TYPES, 
   UNIVERSITIES, 
@@ -8,7 +9,6 @@ import {
 } from '@/lib/utils/constants';
 import type { ScholarStatus } from '@/types/scholar';
 
-// Manually define statuses based on your types
 const statuses: ScholarStatus[] = [
   'Active', 
   'Warning', 
@@ -21,7 +21,7 @@ const statuses: ScholarStatus[] = [
 
 export function ScholarFilters() {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
       <Select
         label="Scholarship Type"
         options={SCHOLARSHIP_TYPES.map(type => ({ value: type, label: type }))}
@@ -36,8 +36,8 @@ export function ScholarFilters() {
       />
       <Select
         label="Course"
-        options={[]} // Add course options later
-        disabled // Disabled for now
+        options={[]}
+        disabled
       />
       <Select
         label="Year Level"

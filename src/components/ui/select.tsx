@@ -6,10 +6,11 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
   options: { value: string; label: string }[];
+  placeholder?: string; // <-- ADD THIS PROP
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, error, options, required, ...props }, ref) => {
+  ({ className, label, error, options, required, placeholder, ...props }, ref) => { // <-- Add placeholder to destructuring
     return (
       <div className="w-full">
         {label && (
@@ -32,7 +33,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             )}
             {...props}
           >
-            <option value="">Select {label}</option>
+            {/* MODIFICATION: Use placeholder prop */}
+            <option value="">{placeholder || `Select ${label}`}</option>
             {options.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
