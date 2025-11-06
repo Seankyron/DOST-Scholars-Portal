@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, UserCircle, Menu } from 'lucide-react'; // Import Menu icon
+import { LogOut, UserCircle, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/toaster';
 
 interface AdminHeaderProps {
-  onMenuOpen: () => void; // Prop to open the sidebar
+  onMenuOpen: () => void;
 }
 
 export function AdminHeader({ onMenuOpen }: AdminHeaderProps) {
@@ -31,19 +31,21 @@ export function AdminHeader({ onMenuOpen }: AdminHeaderProps) {
 
   return (
     <header className="sticky top-0 z-30 bg-dost-blue border-b">
-      {/* MODIFICATION: Changed justify-end to justify-between */}
       <div className="container mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* MODIFICATION: Mobile menu button */}
+        {/* Mobile menu button */}
         <Button
           variant="ghost"
-          size="icon"
-          className="md:hidden text-white hover:bg-white/20"
+          size="sm"
+          className="md:hidden text-white hover:bg-white/20 h-10 w-10 p-0"
           onClick={onMenuOpen}
         >
           <Menu className="h-6 w-6" />
         </Button>
 
-        {/* This div ensures the user icon stays on the right */}
+        {/* Spacer for desktop */}
+        <div className="hidden md:block flex-1" />
+
+        {/* User menu */}
         <div className="flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

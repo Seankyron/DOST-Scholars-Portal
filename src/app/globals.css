@@ -18,7 +18,7 @@
     --muted-foreground: 215.4 16.3% 46.9%;
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
@@ -51,19 +51,21 @@
 
 @layer base {
   * {
-    /* DON'T use @apply border-border; */
     border-color: hsl(var(--border));
   }
   body {
-    /* DON'T use @apply bg-background text-foreground; */
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
 }
 
-
-/* -- CORRECTED UTILITY STYLES -- */
+/* FIXED: Scrollbar utilities without @apply */
 @layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) hsl(var(--muted));
+  }
+  
   .scrollbar-thin::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -71,17 +73,15 @@
 
   .scrollbar-thin::-webkit-scrollbar-track {
     background-color: hsl(var(--muted));
-    border-radius: var(--radius); /* This is OK because rounded-lg is a default utility */
+    border-radius: 0.5rem;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    /* DON'T use @apply bg-muted-foreground/30; */
     background-color: hsl(var(--muted-foreground) / 0.3);
-    border-radius: var(--radius);
+    border-radius: 0.5rem;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    /* DON'T use @apply hover:bg-muted-foreground/50; */
     background-color: hsl(var(--muted-foreground) / 0.5);
   }
 
@@ -95,7 +95,7 @@
   }
 }
 
-/* -- Your other styles are likely fine -- */
+/* Service panel overlay */
 .service-panel-overlay {
   position: fixed;
   top: 0;
@@ -104,17 +104,18 @@
   right: 0;
   z-index: 40;
   background-color: hsl(var(--background) / 0.95);
-  -webkit-backdrop-filter: blur(4px); /* For Safari */
-  backdrop-filter: blur(4px); /* Standard */
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   animation: slide-in 0.3s ease-out;
 }
 
+/* Spinner */
 .spinner {
   display: inline-block;
-  width: 2rem; /* h-8 */
-  height: 2rem; /* w-8 */
+  width: 2rem;
+  height: 2rem;
   animation: spin 1s linear infinite;
-  border-radius: 9999px; /* rounded-full */
+  border-radius: 9999px;
   border-width: 4px;
   border-style: solid;
   border-color: currentColor;

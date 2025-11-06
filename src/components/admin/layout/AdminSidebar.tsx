@@ -6,9 +6,8 @@ import Image from 'next/image';
 import { adminNavigation } from '@/config/navigation';
 import { cn } from '@/lib/utils/cn';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react'; // Import Close icon
+import { X } from 'lucide-react';
 
-// Props to control mobile state
 interface AdminSidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -31,27 +30,31 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
-          isOpen ? "translate-x-0" : "-translate-x-full" // Mobile slide in/out
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex items-center justify-between h-20 bg-dost-blue px-4">
           <div className="flex items-center">
             <Image
-                src="/dost-logo.png"
-                alt="DOST-SEI Logo"
-                width={48}
-                height={48}
-              />
+              src="/dost-logo.png"
+              alt="DOST-SEI Logo"
+              width={48}
+              height={48}
+            />
             <h1 className="ml-3 text-xl font-bold text-white">Admin Portal</h1>
           </div>
-          {/* Mobile Close Button */}
-          <Button variant="ghost" size="icon" onClick={onClose} className="md:hidden text-white hover:bg-white/20">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={onClose} 
+            className="md:hidden text-white hover:bg-white/20 h-8 w-8 p-0"
+          >
             <X className="h-5 w-5" />
           </Button>
         </div>
 
-        {/* MODIFICATION: Changed 'scrollbar-thin' to 'scrollbar-none' */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto scrollbar-none">
+        {/* Navigation with thin scrollbar */}
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto scrollbar-thin">
           {adminNavigation.map((item) => (
             item.children ? (
               <div key={item.label} className="pt-4">
@@ -67,12 +70,12 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                         key={child.href}
                         href={child.href}
                         className={cn(
-                          'flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium',
+                          'flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors',
                           isActive
                             ? 'bg-dost-title text-white'
                             : 'text-gray-700 hover:bg-gray-100'
                         )}
-                        onClick={onClose} // Close sidebar on mobile nav
+                        onClick={onClose}
                       >
                         <Icon className={cn(
                           'h-5 w-5',
@@ -89,12 +92,12 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium',
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors',
                   pathname === item.href
                     ? 'bg-dost-title text-white'
                     : 'text-gray-700 hover:bg-gray-100'
                 )}
-                onClick={onClose} // Close sidebar on mobile nav
+                onClick={onClose}
               >
                 <item.icon className={cn(
                   'h-5 w-5',

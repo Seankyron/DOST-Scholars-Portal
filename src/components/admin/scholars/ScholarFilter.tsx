@@ -1,7 +1,6 @@
 'use client';
 
-import { Select } from '@/components/ui/select'; // Use your existing Select
-
+import { Select } from '@/components/ui/select';
 import { 
   SCHOLARSHIP_TYPES, 
   UNIVERSITIES, 
@@ -24,24 +23,41 @@ export function ScholarFilters() {
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
       <Select
         label="Scholarship Type"
-        options={SCHOLARSHIP_TYPES.map(type => ({ value: type, label: type }))}
+        options={[
+          { value: '', label: 'All Types' },
+          ...SCHOLARSHIP_TYPES.map(type => ({ value: type, label: type }))
+        ]}
+        placeholder="All Types"
       />
       <Select
         label="Status"
-        options={statuses.map(status => ({ value: status, label: status }))}
+        options={[
+          { value: '', label: 'All Statuses' },
+          ...statuses.map(status => ({ value: status, label: status }))
+        ]}
+        placeholder="All Statuses"
       />
       <Select
         label="School / University"
-        options={UNIVERSITIES.map(uni => ({ value: uni, label: uni }))}
+        options={[
+          { value: '', label: 'All Universities' },
+          ...UNIVERSITIES.map(uni => ({ value: uni, label: uni }))
+        ]}
+        placeholder="All Universities"
       />
       <Select
         label="Course"
-        options={[]}
+        options={[{ value: '', label: 'All Courses' }]}
+        placeholder="All Courses"
         disabled
       />
       <Select
         label="Year Level"
-        options={YEAR_LEVELS.map(year => ({ value: year, label: year }))}
+        options={[
+          { value: '', label: 'All Years' },
+          ...YEAR_LEVELS.map(year => ({ value: year, label: year }))
+        ]}
+        placeholder="All Years"
       />
     </div>
   );
