@@ -3,17 +3,18 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Check, X, Eye } from 'lucide-react';
-import { VerificationModal } from './VerificationModal'; // The modal you created
+import { VerificationModal } from './VerificationModal';
 
 // This type should match the data structure from the mock data
 type PendingAccount = {
   id: string;
   name: string;
+  scholarId: string; // <-- ADDED
   scholarshipType: string;
   university: string;
   program: string;
   email: string;
-  fullData: any; // This will hold the detailed data for the modal
+  fullData: any;
 };
 
 interface VerificationRowProps {
@@ -24,12 +25,10 @@ export function VerificationRow({ account }: VerificationRowProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleVerify = () => {
-    // Logic to verify
     alert(`Verifying ${account.name}...`);
   };
 
   const handleReject = () => {
-    // Logic to reject
     alert(`Rejecting ${account.name}...`);
   };
 
@@ -40,7 +39,13 @@ export function VerificationRow({ account }: VerificationRowProps) {
           <input type="checkbox" className="rounded border-gray-300" />
         </td>
         <td className="px-4 py-3 whitespace-nowrap">
-          <div className="text-sm font-medium text-gray-900">{account.name}</div>
+          <div className="text-sm font-medium text-gray-900">
+            {account.name}
+          </div>
+        </td>
+        {/* --- ADDED CELL --- */}
+        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+          {account.scholarId}
         </td>
         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
           {account.scholarshipType}
@@ -48,7 +53,7 @@ export function VerificationRow({ account }: VerificationRowProps) {
         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
           {account.university}
         </td>
-        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+        <td className="px-4 py-3 whitespace-nowrowrap text-sm text-gray-700">
           {account.program}
         </td>
         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
@@ -59,7 +64,7 @@ export function VerificationRow({ account }: VerificationRowProps) {
             variant="outline"
             size="sm"
             className="w-8 h-8 p-0"
-            onClick={() => setIsModalOpen(true)} // Opens the modal
+            onClick={() => setIsModalOpen(true)}
             title="View Details"
           >
             <Eye className="h-4 w-4" />
@@ -85,9 +90,6 @@ export function VerificationRow({ account }: VerificationRowProps) {
         </td>
       </tr>
 
-      {/* This renders the modal but keeps it hidden.
-        It's controlled by the `isModalOpen` state.
-      */}
       <VerificationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

@@ -5,16 +5,16 @@ import { VerificationRow } from './VerificationRow';
 import type { ScholarshipType } from '@/types';
 
 // This mock data is based on your PDF mockup
-// The `fullData` object mimics the FormData from your signup page
 const mockPendingAccounts = [
   {
     id: '1',
     name: 'Andrea Villanueva',
+    scholarId: '2022-0001', // <-- ADDED
     scholarshipType: 'RA 7687' as ScholarshipType,
     university: 'Cavite State University - Indan...',
     program: 'BS Electronics Engineeri...',
     email: 'andreavillanueva@cvsu...',
-    fullData: { 
+    fullData: {
       scholarId: '2022-0001',
       email: 'andreavillanueva@cvsu.edu.ph',
       firstName: 'Andrea',
@@ -33,17 +33,18 @@ const mockPendingAccounts = [
       courseDuration: '4',
       ojtYear: '3',
       ojtSemester: '2nd Semester',
-      curriculumFile: { name: 'Villanueva_Curriculum.pdf', url: '#' }
-    }
+      curriculumFile: { name: 'Villanueva_Curriculum.pdf', url: '#' },
+    },
   },
   {
     id: '2',
     name: 'Jericho Dela Cruz',
+    scholarId: '2022-0002', // <-- ADDED
     scholarshipType: 'Merit' as ScholarshipType,
     university: 'University of the Philippines - L...',
     program: 'BS Agricultural Biotechn...',
     email: 'jerichodelacruz@up.edu...',
-    fullData: { 
+    fullData: {
       scholarId: '2022-0002',
       email: 'jerichodelacruz@up.edu.ph',
       firstName: 'Jericho',
@@ -62,12 +63,13 @@ const mockPendingAccounts = [
       courseDuration: '4',
       ojtYear: '4',
       ojtSemester: '1st Semester',
-      curriculumFile: { name: 'DelaCruz_Curriculum.pdf', url: '#' }
-    }
+      curriculumFile: { name: 'DelaCruz_Curriculum.pdf', url: '#' },
+    },
   },
   {
     id: '3',
     name: 'Aldrich Arenas',
+    scholarId: '2022-0003', // <-- ADDED
     scholarshipType: 'RA 7687' as ScholarshipType,
     university: 'Batangas State University - Ma...',
     program: 'BS Computer Science',
@@ -93,25 +95,23 @@ const mockPendingAccounts = [
       courseDuration: '4',
       ojtYear: '3',
       ojtSemester: 'Midyear',
-      curriculumFile: { name: 'Arenas_Curriculum.pdf', url: '#' } // Mock URL
-    }
+      curriculumFile: { name: 'Arenas_Curriculum.pdf', url: '#' }, // Mock URL
+    },
   },
 ];
 
 interface VerificationTableProps {
   searchTerm: string;
-  // TODO: Add props for filters
 }
 
 export function VerificationTable({ searchTerm }: VerificationTableProps) {
-  // TODO: Replace mock data with a data-fetching hook
-  // const { data, isLoading } = usePendingAccounts(searchTerm, filters);
-
-  const filteredAccounts = mockPendingAccounts.filter((account) =>
-    account.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredAccounts = mockPendingAccounts.filter(
+    (account) =>
+      account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (account.scholarId && account.scholarId.includes(searchTerm)) // Also filter by scholarId
   );
-  
-  const paginatedAccounts = filteredAccounts; // TODO: Paginate this
+
+  const paginatedAccounts = filteredAccounts;
   const totalAccounts = filteredAccounts.length;
 
   return (
@@ -132,6 +132,13 @@ export function VerificationTable({ searchTerm }: VerificationTableProps) {
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   Scholar
+                </th>
+                {/* --- ADDED HEADER --- */}
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  SPAS ID
                 </th>
                 <th
                   scope="col"
@@ -174,14 +181,14 @@ export function VerificationTable({ searchTerm }: VerificationTableProps) {
         </div>
       </div>
 
-      {/* Pagination */}
       <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
         <p className="text-sm text-gray-700">
-          Showing 1-{paginatedAccounts.length} of {totalAccounts} pending accounts
+          Showing 1-{paginatedAccounts.length} of {totalAccounts} pending
+          accounts
         </p>
         <Pagination
           currentPage={1}
-          totalPages={1} // Static for mock
+          totalPages={1}
           onPageChange={() => {}}
         />
       </div>

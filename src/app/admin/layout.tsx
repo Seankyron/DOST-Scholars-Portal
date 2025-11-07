@@ -12,8 +12,7 @@ export default function AdminLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-
-    <div className="h-full overflow-hidden bg-gray-50">
+    <div className="h-screen w-full overflow-hidden bg-gray-50">
       <AdminSidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}

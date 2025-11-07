@@ -1,14 +1,7 @@
 'use client';
 
-import Image from 'next/image';
-import { MoreHorizontal } from 'lucide-react';
+import { Eye, Pencil, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { ScholarStatus } from '@/types/scholar';
 
@@ -16,6 +9,7 @@ import type { ScholarStatus } from '@/types/scholar';
 interface Scholar {
   id: string;
   name: string;
+  scholarId: string;
   scholarshipType: string;
   university: string;
   yearLevel: string;
@@ -32,30 +26,14 @@ interface ScholarRowProps {
 export function ScholarRow({ scholar }: ScholarRowProps) {
   return (
     <tr className="hover:bg-gray-50 transition-colors">
+      {/* --- MODIFIED: Profile Picture Removed --- */}
       <td className="px-4 py-3 whitespace-nowrap">
-        <div className="flex items-center">
-          <div className="flex-shrink-0 h-9 w-9">
-            <Image
-              className="h-9 w-9 rounded-full object-cover"
-              src={
-                scholar.profileImage ||
-                '/images/placeholders/avatar-placeholder.png'
-              }
-              alt={`${scholar.name}'s profile`}
-              width={36}
-              height={36}
-              onError={(e) => {
-                e.currentTarget.src =
-                  '/images/placeholders/avatar-placeholder.png';
-              }}
-            />
-          </div>
-          <div className="ml-3">
-            <div className="text-sm font-medium text-gray-900">
-              {scholar.name}
-            </div>
-          </div>
+        <div className="text-sm font-medium text-gray-900">
+          {scholar.name}
         </div>
+      </td>
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+        {scholar.scholarId}
       </td>
       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
         {scholar.scholarshipType}
@@ -75,32 +53,35 @@ export function ScholarRow({ scholar }: ScholarRowProps) {
       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
         {scholar.email}
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => alert(`Viewing details for ${scholar.name}`)}
-            >
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => alert(`Editing scholar ${scholar.name}`)}
-            >
-              Edit Scholar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => alert(`Viewing history for ${scholar.name}`)}
-            >
-              Scholar History
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      {/* --- MODIFIED: Actions updated to icon buttons --- */}
+      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium space-x-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-8 h-8 p-0"
+          onClick={() => alert(`Viewing details for ${scholar.name}`)}
+          title="View Details"
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-8 h-8 p-0"
+          onClick={() => alert(`Editing scholar ${scholar.name}`)}
+          title="Edit Scholar"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-8 h-8 p-0"
+          onClick={() => alert(`Viewing history for ${scholar.name}`)}
+          title="Scholar History"
+        >
+          <History className="h-4 w-4" />
+        </Button>
       </td>
     </tr>
   );

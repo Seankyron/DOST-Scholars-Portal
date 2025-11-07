@@ -9,6 +9,7 @@ import type { ScholarStatus } from '@/types/scholar';
 interface MockScholar {
   id: string;
   name: string;
+  scholarId: string; // <-- ADDED
   scholarshipType: string;
   university: string;
   yearLevel: string;
@@ -23,6 +24,7 @@ const mockScholars: MockScholar[] = [
   {
     id: '1',
     name: 'Joshua De Larosa',
+    scholarId: '2021-00123', // <-- ADDED
     scholarshipType: 'RA 7687',
     university: 'Laguna State Polytechnic...',
     yearLevel: '4th Year',
@@ -34,6 +36,7 @@ const mockScholars: MockScholar[] = [
   {
     id: '2',
     name: 'Maloi Ricalde',
+    scholarId: '2022-00456', // <-- ADDED
     scholarshipType: 'Merit',
     university: 'Batangas State University...',
     yearLevel: '3rd Year',
@@ -45,6 +48,7 @@ const mockScholars: MockScholar[] = [
   {
     id: '3',
     name: 'Aiah Arceta',
+    scholarId: '2021-00789', // <-- ADDED
     scholarshipType: 'JLSS, Merit',
     university: 'De La Salle University - Li...',
     yearLevel: '4th Year',
@@ -56,6 +60,7 @@ const mockScholars: MockScholar[] = [
   {
     id: '4',
     name: 'John Cruz',
+    scholarId: '2024-00111', // <-- ADDED
     scholarshipType: 'RA 7687',
     university: 'Cavite State University',
     yearLevel: '1st Year',
@@ -67,6 +72,7 @@ const mockScholars: MockScholar[] = [
   {
     id: '5',
     name: 'Luis Garcia',
+    scholarId: '2021-00222', // <-- ADDED
     scholarshipType: 'Merit',
     university: 'Batangas State University ...',
     yearLevel: '4th Year',
@@ -78,6 +84,7 @@ const mockScholars: MockScholar[] = [
   {
     id: '6',
     name: 'Vanessa De Guzman',
+    scholarId: '2022-00333', // <-- ADDED
     scholarshipType: 'JLSS, Merit',
     university: 'Lyceum of the Philippines ...',
     yearLevel: '3rd Year',
@@ -89,6 +96,7 @@ const mockScholars: MockScholar[] = [
   {
     id: '7',
     name: 'Maria Santos',
+    scholarId: '2020-00444', // <-- ADDED
     scholarshipType: 'RA 7687',
     university: 'Polytechnic University of t...',
     yearLevel: 'Graduated', // Custom year level from PDF
@@ -108,11 +116,7 @@ export function ScholarTable({ searchTerm }: ScholarTableProps) {
     s.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // --- FIX: Base total count on the mock data array ---
   const totalScholars = mockScholars.length;
-  
-  // --- FIX: Calculate total pages based on mock data count ---
-  // (Assuming 7 items per page as per your mock data)
   const itemsPerPage = 7;
   const totalPages = Math.ceil(totalScholars / itemsPerPage);
 
@@ -128,6 +132,13 @@ export function ScholarTable({ searchTerm }: ScholarTableProps) {
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   Scholar
+                </th>
+                {/* --- ADDED HEADER --- */}
+                <th
+                  scope="col"
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  SPAS ID
                 </th>
                 <th
                   scope="col"
@@ -174,7 +185,6 @@ export function ScholarTable({ searchTerm }: ScholarTableProps) {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {/* Use ScholarRow component */}
               {filteredScholars.map((scholar) => (
                 <ScholarRow key={scholar.id} scholar={scholar} />
               ))}
@@ -184,12 +194,11 @@ export function ScholarTable({ searchTerm }: ScholarTableProps) {
       </div>
       <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
         <p className="text-sm text-gray-700">
-          {/* --- FIX: Dynamic count text --- */}
           Showing 1-{filteredScholars.length} of {totalScholars} scholars
         </p>
         <Pagination
           currentPage={1}
-          totalPages={totalPages} // --- FIX: Use calculated total pages ---
+          totalPages={totalPages}
           onPageChange={() => {}}
         />
       </div>
