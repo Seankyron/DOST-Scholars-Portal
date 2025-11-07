@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { ScholarFilters } from '@/components/admin/scholars/ScholarFilter';
 import { ScholarTable } from '@/components/admin/scholars/ScholarTable';
 import { SearchInput } from '@/components/shared/SearchInput';
-import { Plus, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
+import { AddScholarModal } from '@/components/admin/scholars/AddScholarModal';
 
 export default function ScholarManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,29 +17,34 @@ export default function ScholarManagementPage() {
         Scholar Management
       </h1>
 
-      {/* Filters Section */}
+      {/* Filters Section - This component is now correct */}
       <ScholarFilters />
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-        <div className="flex flex-wrap gap-2"> {/* Use flex-wrap for buttons */}
-          <Button variant="outline" size="sm"> {/* Smaller buttons */}
+        <div className="flex flex-wrap gap-2">
+          {/* Standalone Export button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => alert('Export logic not yet implemented.')}
+          >
             <Upload className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button variant="primary" size="sm"> {/* Smaller buttons */}
-            <Plus className="h-4 w-4 mr-2" />
-            Add Scholar
-          </Button>
+
+          {/* Add Scholar Modal Trigger */}
+          <AddScholarModal />
         </div>
+
         <SearchInput
-          placeholder="Search scholars..."
-          onSearch={(query) => setSearchTerm(query)} 
-          className="w-full sm:max-w-xs" 
+          placeholder="Search Scholars...."
+          onSearch={(query: string) => setSearchTerm(query)}
+          className="w-full sm:max-w-xs"
         />
       </div>
 
-      {/* Table Section */}
-      <ScholarTable />
+      {/* Table Section - This component is now correct */}
+      <ScholarTable searchTerm={searchTerm} />
     </div>
   );
 }

@@ -1,3 +1,5 @@
+// src/app/layout.tsx
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from './providers';
@@ -14,7 +16,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen w-full bg-auth-gradient">
+
+      <body className="h-full w-full bg-auth-gradient overflow-hidden">
         <Providers>{children}</Providers>
       </body>
     </html>

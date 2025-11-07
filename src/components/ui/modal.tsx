@@ -1,128 +1,92 @@
-'use client';
+"use client"
 
-import { useEffect } from 'react';
-import { cn } from '@/lib/utils/cn';
-import { X } from 'lucide-react';
+import * as React from "react"
+import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogClose,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog" // Using your robust dialog.tsx as the base
+import { cn } from "@/lib/utils/cn"
 
-interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
-  showClose?: boolean;
-  closeOnBackdrop?: boolean;
+// --- Re-exporting the base components ---
+const Modal = Dialog
+const ModalTrigger = DialogTrigger
+const ModalClose = DialogClose
+const ModalHeader = DialogHeader
+const ModalFooter = DialogFooter
+const ModalTitle = DialogTitle
+const ModalDescription = DialogDescription
+
+// --- New ModalBody component for scrollable content ---
+const ModalBody = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("px-6 py-4 flex-1", className)} // Added p-6 for default padding
+    {...props}
+  />
+))
+ModalBody.displayName = "ModalBody"
+
+// --- Upgraded ModalContent with size props ---
+interface ModalContentProps
+  extends React.ComponentPropsWithoutRef<typeof DialogContent> {
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "full"
 }
 
-export function Modal({
-  isOpen,
-  onClose,
-  children,
-  size = 'md',
-  showClose = true,
-  closeOnBackdrop = true,
-}: ModalProps) {
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
+const ModalContent = React.forwardRef<
+  React.ElementRef<typeof DialogContent>,
+  ModalContentProps
+>(({ className, children, size = "md", ...props }, ref) => {
   const sizes = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
-    full: 'max-w-7xl',
-  };
+    sm: "sm:max-w-lg",
+    md: "sm:max-w-xl",
+    lg: "sm:max-w-2xl",
+    xl: "sm:max-w-4xl", // 56rem
+    "2xl": "sm:max-w-5xl", // 64rem
+    "3xl": "sm:max-w-6xl", // 72rem
+    "4xl": "sm:max-w-7xl", // 80rem (approx 1280px)
+    full: "sm:max-w-[calc(100%-2rem)]",
+  }
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 z-50 animate-in fade-in"
-        onClick={closeOnBackdrop ? onClose : undefined}
-      />
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogContent
+        ref={ref}
+        className={cn(
+          "grid w-full max-h-[calc(100vh-4rem)]", // Make modal height responsive
+          "grid-rows-[auto,1fr,auto]", // Header, Body (scrolling), Footer
+          sizes[size], // Apply dynamic size
+          className
+        )}
+        {...props}
+      >
+        {children}
+        {/* We keep the X close button from dialog.tsx */}
+      </DialogContent>
+    </DialogPortal>
+  )
+})
+ModalContent.displayName = "ModalContent"
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div
-          className={cn(
-            'relative bg-white rounded-xl shadow-2xl w-full my-8',
-            'animate-in zoom-in-95 fade-in duration-200',
-            sizes[size]
-          )}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {showClose && (
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 transition-colors z-10"
-            >
-              <X className="h-5 w-5 text-gray-500" />
-            </button>
-          )}
-          {children}
-        </div>
-      </div>
-    </>
-  );
-}
-
-export function ModalHeader({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={cn('px-6 py-5 border-b border-gray-200', className)}>
-      {children}
-    </div>
-  );
-}
-
-export function ModalTitle({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <h2 className={cn('text-xl font-semibold text-gray-900 pr-8', className)}>
-      {children}
-    </h2>
-  );
-}
-
-export function ModalDescription({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <p className={cn('text-sm text-gray-500 mt-1', className)}>
-      {children}
-    </p>
-  );
-}
-
-export function ModalBody({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={cn('px-6 py-5', className)}>
-      {children}
-    </div>
-  );
-}
-
-export function ModalFooter({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={cn('px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-3', className)}>
-      {children}
-    </div>
-  );
+export {
+  Modal,
+  ModalTrigger,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalTitle,
+  ModalDescription,
+  ModalClose,
+  ModalBody, // Exporting the new ModalBody
 }
