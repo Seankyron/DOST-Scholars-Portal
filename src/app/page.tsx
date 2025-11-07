@@ -12,7 +12,7 @@ export default function LandingPage() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        router.push('/dashboard'); 
+        router.push('/login'); 
       } else {
         router.push('/login');
       }
