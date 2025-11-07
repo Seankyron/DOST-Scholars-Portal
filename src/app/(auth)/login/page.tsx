@@ -28,18 +28,20 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
       if (error) throw error;
 
+      const userID = authData.user.id;
+
       // Check user role and redirect accordingly
       const { data: scholarData } = await supabase
         .from('User')
         .select('*')
-        .eq('email', formData.email)
+        .eq('id', userID)
         .single();
 
       console.log(scholarData);
@@ -55,8 +57,10 @@ export default function LoginPage() {
         const { data: adminData } = await supabase
           .from('Admin')
           .select('*')
-          .eq('email', formData.email)
+          .eq('id', userID)
           .single();
+        console.log(userID);
+        console.log(adminData);
 
         if (adminData) {
           router.push('/admin/dashboard');

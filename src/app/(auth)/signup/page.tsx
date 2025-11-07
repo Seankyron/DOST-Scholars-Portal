@@ -261,54 +261,47 @@ export default function SignupPage() {
       };
       console.log(ojtInfo);
 
-      // Create account in pending verification
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            first_name: formData.firstName,
-            surname: formData.surname,
-            // --- ADDED: Pass scholar_id to auth metadata ---
-            scholar_id: formData.scholarId,
-          },
-        },
-      });
-
-      if (authError) throw authError;
-
       const completeAddress = `${formData.addressBrgy}, ${formData.addressCity}, ${formData.addressProvince}`;
 
-      const { error: insertError } = await supabase
-        .from('User')
-        .insert([
-          {
-            spas_id: formData.scholarId,
+      const { data: authData, error: authError } = await supabase.auth.signUp({
             email: formData.email,
-            first_name: formData.firstName,
-            middle_name: formData.middleName,
-            last_name: formData.surname,
-            suffix: formData.suffix,
-            date_of_birth: formData.dateOfBirth,
-            contact_number: formData.contactNumber,
-            address: completeAddress,
-            municipality_city: formData.addressCity,
-            province: formData.addressProvince,
-            scholarship_type: formData.scholarshipType,
-            year_awarded: parseInt(formData.yearAwarded),
-            university: formData.university,
-            program_course: formData.program,
-            midyear_classes: midyearYears,
-            thesis_year: thesisYear,
-            ojt: ojtInfo,
-            course_duration: parseInt(formData.courseDuration) as 4 | 5,
-            curriculum_file_key: curriculumUrl,
-            is_verified: false,
-            scholarship_status: 'active',
-          },
-        ]);
+            password: formData.password,
+            options: {
+              data: {
+                // --- Personal Info ---
+                spas_id: formData.scholarId,
+                first_name: formData.firstName,
+                middle_name: formData.middleName,
+                last_name: formData.surname,
+                suffix: formData.suffix,
+                date_of_birth: formData.dateOfBirth,
+                contact_number: formData.contactNumber,
+                address: completeAddress,
+                municipality_city: formData.addressCity,
+                province: formData.addressProvince,
 
-      if (insertError) throw insertError;
+                // --- Scholarship Info ---
+                scholarship_type: formData.scholarshipType,
+                year_awarded: parseInt(formData.yearAwarded),
+                university: formData.university,
+                program_course: formData.program,
+                
+                // --- Curriculum Info ---
+                midyear_classes: midyearYears,
+                thesis_year: thesisYear,
+                ojt: ojtInfo,
+                course_duration: parseInt(formData.courseDuration),
+                curriculum_file_key: curriculumUrl,
+                
+                // --- Default Statuses ---
+                is_verified: false,
+                scholarship_status: 'pending', // Or 'active' as you have
+              },
+            },
+          });
+
+          console.log(authData);
+    if (authError) throw authError;
 
       // Redirect to success page
       router.push('/signup/success');
