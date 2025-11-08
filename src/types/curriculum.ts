@@ -1,4 +1,5 @@
 import type { Semester } from './scholar';
+import type { SubmissionStatus } from './services';
 
 export interface SemesterAvailability {
   year: number;
@@ -7,4 +8,5 @@ export interface SemesterAvailability {
   isCurrent: boolean;
   isPast: boolean;
   isFuture: boolean;
+  status: SubmissionStatus;
 }

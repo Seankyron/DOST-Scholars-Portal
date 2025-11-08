@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
 
-      <body className="h-full w-full bg-auth-gradient overflow-hidden">
+      <body className="h-full w-full bg-auth-gradient">
         <Providers>{children}</Providers>
       </body>
     </html>
