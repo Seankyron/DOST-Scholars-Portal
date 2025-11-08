@@ -18,7 +18,6 @@ const statuses: ScholarStatus[] = [
   'On hold',
 ];
 
-// Options for filters
 const scholarshipOptions = [
   { value: 'All', label: 'All Type' },
   ...SCHOLARSHIP_TYPES.map((s) => ({ value: s, label: s })),
@@ -34,42 +33,37 @@ const universityOptions = [
   ...UNIVERSITIES.map((u) => ({ value: u, label: u })),
 ];
 
-const courseOptions = [{ value: 'All', label: 'All Courses' }];
-
 const yearOptions = [
   { value: 'All', label: 'All Year Level' },
   ...YEAR_LEVELS.map((y) => ({ value: y, label: y })),
 ];
 
-export function ScholarFilters() {
+export function ScholarFilters({ filters, onChange }: any) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+    <div className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
       <Select
-        // No label, placeholder is used
         options={scholarshipOptions}
-        defaultValue="All"
-        placeholder="Scholarship Type: All Type"
+        value={filters.type}
+        placeholder="Scholarship Type"
+        onChange={(e) => onChange({ ...filters, type: e.target.value })}
       />
       <Select
         options={statusOptions}
-        defaultValue="All"
-        placeholder="Status: All Status"
+        value={filters.status}
+        placeholder="Status"
+        onChange={(e) => onChange({ ...filters, status: e.target.value })}
       />
       <Select
         options={universityOptions}
-        defaultValue="All"
-        placeholder="School: All Universities"
-      />
-      <Select
-        options={courseOptions}
-        defaultValue="All"
-        placeholder="Course: All Courses"
-        disabled
+        value={filters.university}
+        placeholder="University"
+        onChange={(e) => onChange({ ...filters, university: e.target.value })}
       />
       <Select
         options={yearOptions}
-        defaultValue="All"
-        placeholder="Year Level: All Year Level"
+        value={filters.year}
+        placeholder="Year Level"
+        onChange={(e) => onChange({ ...filters, year: e.target.value })}
       />
     </div>
   );
