@@ -4,30 +4,54 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { GradeSubmission } from '@/types/services';
 import { formatDate } from '@/lib/utils/date';
-import { FileText, Edit, Download } from 'lucide-react';
+import { FileText, Edit, Download, History, CheckCircle } from 'lucide-react';
+import { cn } from '@/lib/utils/cn';
 
 interface SubmissionReviewProps {
   submission: GradeSubmission;
   onEdit: () => void;
 }
 
-// Helper component to display a file
-function FileDisplay({ fileName, fileUrl }: { fileName: string; fileUrl?: string }) {
+function FileDisplay({ 
+  label, 
+  fileName, 
+  fileUrl 
+}: { 
+  label: string; 
+  fileName: string; 
+  fileUrl?: string 
+}) {
   return (
-    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md border">
-      <div className="flex items-center gap-3 min-w-0">
-        <FileText className="h-6 w-6 text-dost-blue flex-shrink-0" />
-        <span className="text-sm font-medium text-gray-800 truncate">{fileName}</span>
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        {label}
+      </label>
+      
+      <div className={cn(
+        'relative border-2 border-dashed rounded-lg p-4 transition-all',
+        'border-gray-300 bg-white' 
+      )}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <FileText className="h-8 w-8 text-dost-blue flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-gray-900 truncate">{fileName}</p>
+              <p className="text-xs text-gray-500">
+                File submitted successfully
+              </p>
+            </div>
+          </div>
+          <a
+            href={fileUrl || '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 text-gray-500 hover:text-dost-blue hover:bg-gray-100 rounded-md"
+            title="Download"
+          >
+            <Download className="h-5 w-5" />
+          </a>
+        </div>
       </div>
-      <a
-        href={fileUrl || '#'}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="p-1.5 text-gray-500 hover:text-dost-blue hover:bg-gray-100 rounded-md"
-        title="Download"
-      >
-        <Download className="h-4 w-4" />
-      </a>
     </div>
   );
 }
@@ -37,24 +61,41 @@ export function SubmissionReview({ submission, onEdit }: SubmissionReviewProps) 
 
   return (
     <div className="space-y-6">
+      
       <div>
-        <h4 className="text-sm font-medium text-gray-500 mb-2">Status</h4>
-        <div className="flex items-center justify-between">
-          <StatusBadge status={submission.status} className="text-base px-4 py-1.5" />
-          <p className="text-sm text-gray-500">
-            Submitted: {formatDate(submission.dateSubmitted)}
-          </p>
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">Status & History</h3>
+        <div className="p-4 bg-white rounded-lg border space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-500">Current Status:</span>
+            <StatusBadge status={submission.status} className="text-sm" />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-500">Submitted:</span>
+            <span className="text-sm font-medium text-gray-700">
+              {formatDate(submission.dateSubmitted)}
+            </span>
+          </div>
+          {submission.dateProcessed && (
+             <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-500">Last Updated:</span>
+              <span className="text-sm font-medium text-gray-700">
+                {formatDate(submission.dateProcessed)}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
       <div>
-        <h4 className="text-sm font-medium text-gray-500 mb-2">Uploaded Documents</h4>
-        <div className="space-y-3">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">Submitted Documents</h3>
+        <div className="space-y-4">
           <FileDisplay 
+            label={`Official Registration Form ${submission.semester}`}
             fileName={submission.registrationForm} 
             // fileUrl={submission.registrationFormUrl} // Use the actual URL
           />
           <FileDisplay 
+            label="Transcript of Records / Certified Complete Grades"
             fileName={submission.copyOfGrades} 
             // fileUrl={submission.copyOfGradesUrl} // Use the actual URL
           />

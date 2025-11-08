@@ -19,7 +19,6 @@ export function SubmissionForm({ semester, onSuccess }: SubmissionFormProps) {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // In a real app, you'd get the scholar ID from useScholar() hook
   const scholarId = 'mock-scholar-id'; 
   const { uploadFile } = useFileUpload('grade-submissions');
 
@@ -66,21 +65,23 @@ export function SubmissionForm({ semester, onSuccess }: SubmissionFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <FileUpload
-        label="Upload Scanned Copy of Registration Form or Form 5"
+        label={`Official Registration Form ${semester.semester}`}
+        helperText="Upload your scanned copy of the official Registration Form (Form 5) for this semester."
         onChange={setRegForm}
         accept="application/pdf"
         maxSizeMB={10}
         required
       />
       <FileUpload
-        label="Upload Complete Copy of Grades"
+        label="Transcript of Records / Certified Complete Grades"
+        helperText="Upload your scanned copy of continues grades from First semester of your 1st year up to current semester."
         onChange={setGradesFile}
         accept="application/pdf"
         maxSizeMB={10}
         required
       />
       <Checkbox
-        label="I confirm that the uploaded documents are correct*"
+        label="I confirm that the uploaded documents are correct and legible."
         checked={isConfirmed}
         onChange={(e) => setIsConfirmed(e.target.checked)}
         required

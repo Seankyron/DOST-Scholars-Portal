@@ -12,8 +12,7 @@ import { hasMidyear } from '@/lib/utils/curriculum';
 
 const requirements = [
   'Scanned copy of 𝐓𝐎𝐑 𝐨𝐫 𝐂𝐞𝐫𝐭𝐢𝐟𝐢𝐞𝐝 𝐂𝐨𝐦𝐩𝐥𝐞𝐭𝐞 𝐆𝐫𝐚𝐝𝐞𝐬 (𝐜𝐨𝐧𝐭𝐢𝐧𝐮𝐞𝐬 𝐠𝐫𝐚𝐝𝐞𝐬 𝐟𝐫𝐨𝐦 𝐅𝐢𝐫𝐬𝐭 𝐬𝐞𝐦𝐞𝐬𝐭𝐞𝐫 𝐨𝐟 𝐲𝐨𝐮𝐫 𝟏𝐬𝐭 𝐲𝐞𝐚𝐫 𝐮𝐩 𝐭𝐨 𝐒𝐞𝐜𝐨𝐧𝐝 𝐬𝐞𝐦𝐞𝐬𝐭𝐞𝐫 𝐨𝐫 𝐌𝐢𝐝𝐲𝐞𝐚𝐫 𝐀𝐘 𝟐𝟎𝟐𝟒-𝟐𝟎𝟐𝟓)', 
-  'Scanned copy of 𝐎𝐟𝐟𝐢𝐜𝐢𝐚𝐥 𝐑𝐞𝐠𝐢𝐬𝐭𝐫𝐚𝐭𝐢𝐨𝐧 𝐅𝐨𝐫𝐦 𝐟𝐨𝐫 𝐅𝐢𝐫𝐬𝐭 𝐬𝐞𝐦𝐞𝐬𝐭𝐞𝐫 𝐀𝐘 𝟐𝟎𝟐𝟓-𝟐𝟎𝟐𝟔',
-  'and other requirements (if applicable)',
+  'Scanned copy of 𝐎𝐟𝐟𝐢𝐜𝐢𝐚𝐥 𝐑𝐞𝐠𝐢𝐬𝐭𝐫𝐚𝐭𝐢𝐨𝐧 𝐅𝐨𝐫𝐦 𝐟𝐨𝐫 𝐅𝐢𝐫𝐬𝐭 𝐬𝐞𝐦𝐞𝐬𝐭𝐞𝐫',
   'Correct and complete details required',
 ];
 
@@ -80,11 +79,11 @@ export function GradeSubmissionPanel() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold text-dost-title">Grade Submission</h2>
+      <h2 className="text-3xl text-center font-bold text-dost-title mb-4">Grade Submission</h2>
       
       <Card>
         <CardHeader>
-          <CardTitle className="text-dost-blue">Grade Submission Requirements</CardTitle>
+          <CardTitle className="text-dost-title">Grade Submission Requirements</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
