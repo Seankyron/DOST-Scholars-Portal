@@ -10,14 +10,14 @@ interface SemesterCardProps {
   onSelect: () => void;
 }
 
+// --- MODIFICATION: Removed 'Rejected' from the config ---
 const statusConfig: Record<string, { icon: React.ElementType, text: string, cta: string, iconColor: string }> = {
   Open: { icon: UploadCloud, text: 'Open for Submission', cta: 'Submit Grades', iconColor: 'text-dost-blue' },
-  Approved: { icon: Check, text: 'Approved', cta: 'Submission Approved', iconColor: 'text-green-600' }, // Changed
+  Approved: { icon: Check, text: 'Approved', cta: 'Submission Approved', iconColor: 'text-green-600' },
   Pending: { icon: Clock, text: 'Pending Review', cta: 'View Submission', iconColor: 'text-blue-600' },
   Resubmit: { icon: RefreshCw, text: 'Resubmission Required', cta: 'Resubmit Grades', iconColor: 'text-orange-600' },
-  Rejected: { icon: X, text: 'Submission Rejected', cta: 'View Details', iconColor: 'text-red-600' },
   'Not Available': { icon: EyeOff, text: 'Not Available', cta: 'Locked', iconColor: 'text-gray-400' },
-  Closed: { icon: Check, text: 'Closed', cta: 'Submission Closed', iconColor: 'text-green-600' }, // Changed
+  Closed: { icon: Check, text: 'Closed', cta: 'Submission Closed', iconColor: 'text-green-600' },
 };
 
 export function SemesterCard({ semester, onSelect }: SemesterCardProps) {
@@ -25,7 +25,8 @@ export function SemesterCard({ semester, onSelect }: SemesterCardProps) {
   const config = statusConfig[status] || { icon: FileText, text: status, cta: 'View', iconColor: 'text-gray-500' };
   const Icon = config.icon;
   
-  const isClickable = status === 'Open' || status === 'Resubmit' || status === 'Pending' || status === 'Rejected';
+  // --- MODIFICATION: Removed 'Rejected' from this logic ---
+  const isClickable = status === 'Open' || status === 'Resubmit' || status === 'Pending';
 
   return (
     <button
@@ -40,11 +41,9 @@ export function SemesterCard({ semester, onSelect }: SemesterCardProps) {
           ? 'hover:shadow-md hover:border-dost-blue/80 cursor-pointer' 
           : 'bg-gray-50 opacity-80 cursor-not-allowed',
         
-        // --- MODIFICATION 2: Added green border for Approved/Closed ---
         (status === 'Approved' || status === 'Closed') && 'border-green-500',
         status === 'Resubmit' && 'border-orange-400',
         status === 'Open' && 'border-dost-blue',
-        status === 'Pending' && 'border-',
       )}
     >
       {/* Top Section: Icon + Status Text */}
@@ -68,7 +67,6 @@ export function SemesterCard({ semester, onSelect }: SemesterCardProps) {
         )}>
           {config.cta}
         </span>
-        {/* This icon will correctly hide itself on non-clickable cards */}
         {isClickable && <Eye className="h-4 w-4 text-gray-400" />}
       </div>
     </button>

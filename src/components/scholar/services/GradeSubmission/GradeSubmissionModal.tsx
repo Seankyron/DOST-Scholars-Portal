@@ -33,6 +33,7 @@ const yearLabels: { [key: number]: YearLevel } = {
 
 export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmissionModalProps) {
   
+  // --- MODIFICATION: Added mock URLs to the data ---
   const mockSubmissionData: GradeSubmission = {
     id: 'sub123',
     scholarId: 'scholar123',
@@ -41,13 +42,16 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
     adminComment: 'Invalid Certificate of Registration. Please upload the certified true copy of the document from the university registrar.',
     yearLevel: yearLabels[semester.year] || '1st Year',
     semester: semester.semester,
-    academicYear: '2023-2024', 
+    academicYear: '2023-2024',
     registrationForm: 'De Larosa_COR.pdf',
+    registrationFormUrl: '#mock-reg-form-url', // <-- Added
     copyOfGrades: 'De Larosa_Grades.pdf',
+    copyOfGradesUrl: '#mock-grades-url', // <-- Added
   };
 
   const [submission, setSubmission] = useState<GradeSubmission | null>(
-    (semester.status === 'Pending' || semester.status === 'Resubmit' || semester.status === 'Rejected') 
+    // --- MODIFICATION: Removed 'Rejected' from this logic ---
+    (semester.status === 'Pending' || semester.status === 'Resubmit') 
     ? mockSubmissionData
     : null
   );
@@ -58,8 +62,9 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
     onClose();
   };
 
+  // --- MODIFICATION: Removed 'Rejected' from this logic ---
+  const showComment = semester.status === 'Resubmit' && submission?.adminComment;
   const showForm = isEditing && (semester.status === 'Open' || semester.status === 'Resubmit');
-  const showComment = (semester.status === 'Resubmit' || semester.status === 'Rejected') && submission?.adminComment;
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
@@ -71,7 +76,8 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
           </ModalTitle>
         </ModalHeader>
         
-        <ModalBody className="space-y-4">
+        {/* --- MODIFICATION: Added overflow-y-auto to fix button cutoff --- */}
+        <ModalBody className="space-y-4 overflow-y-auto scrollbar-thin">
           {showComment && (
             <AdminCommentAlert
               status={semester.status}
@@ -83,6 +89,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
             <SubmissionForm
               semester={semester}
               onSuccess={handleSuccess}
+              submission={submission} // <-- MODIFICATION: Pass submission data
             />
           ) : (
             submission && (
