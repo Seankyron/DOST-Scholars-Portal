@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
   // --- 2a. Admin Routing ---
   if (isAdmin) {
     // If an admin tries to access the scholar dashboard, redirect to admin dashboard
-    if (pathname.startsWith('/dashboard')) {
+    if (pathname.startsWith('/scholar')) {
       return NextResponse.redirect(new URL('/admin/dashboard', request.url))
     }
     // If an admin is on a login/signup page, redirect to admin dashboard
@@ -64,17 +64,8 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
-// Config to specify which routes the middleware should run on.
-// This regex avoids running on static files and API routes.
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to add more paths here (e.g., /api routes)
-     */
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }
