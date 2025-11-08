@@ -2,7 +2,8 @@
 
 import { SemesterCard } from './SemesterCard';
 import type { SemesterAvailability } from '@/types/curriculum';
-import { getAcademicYear } from '@/lib/utils/date'; // Assuming you have this util
+import { getAcademicYear } from '@/lib/utils/date';
+// --- MODIFICATION: Removed Card imports ---
 
 interface SemesterGridProps {
   semesters: SemesterAvailability[];
@@ -17,7 +18,7 @@ export function SemesterGrid({ semesters, onSelectSemester }: SemesterGridProps)
     return acc;
   }, {} as Record<number, SemesterAvailability[]>);
 
-  // Mock academic year for display - you'd likely get this from data
+  // Mock academic year for display
   const mockAcademicYear = '2023-2024';
 
   const yearLabels: { [key: number]: string } = {
@@ -33,9 +34,12 @@ export function SemesterGrid({ semesters, onSelectSemester }: SemesterGridProps)
       {Object.entries(semestersByYear).map(([year, sems]) => (
         <div key={year}>
           <h3 className="text-lg font-semibold text-gray-800 mb-3">
-            {/* Based on PDF Page 11, e.g., "Fourth Year (2023-2024)" */}
-            {yearLabels[Number(year)]} ({mockAcademicYear})
+            {yearLabels[Number(year)]}
+            <span className="ml-2 text-base font-medium text-gray-500">
+              ({mockAcademicYear})
+            </span>
           </h3>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {sems.map((sem) => (
               <SemesterCard 
