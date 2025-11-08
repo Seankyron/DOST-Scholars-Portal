@@ -33,7 +33,6 @@ const yearLabels: { [key: number]: YearLevel } = {
 
 export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmissionModalProps) {
   
-  // Create mock data based on the semester prop to ensure types are correct
   const mockSubmissionData: GradeSubmission = {
     id: 'sub123',
     scholarId: 'scholar123',
@@ -42,7 +41,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
     adminComment: 'Invalid Certificate of Registration. Please upload the certified true copy of the document from the university registrar.',
     yearLevel: yearLabels[semester.year] || '1st Year',
     semester: semester.semester,
-    academicYear: '2023-2024', // This would also come from props/state
+    academicYear: '2023-2024', 
     registrationForm: 'De Larosa_COR.pdf',
     copyOfGrades: 'De Larosa_Grades.pdf',
   };
@@ -56,7 +55,6 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
   const [isEditing, setIsEditing] = useState(semester.status === 'Open' || semester.status === 'Resubmit');
 
   const handleSuccess = () => {
-    // In a real app, this would trigger a refetch and close
     onClose();
   };
 
