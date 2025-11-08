@@ -4,8 +4,19 @@ import { Card } from '@/components/ui/card';
 import { scholarServices } from '@/config/services';
 import { cn } from '@/lib/utils/cn';
 import { toast } from '@/components/ui/toaster';
+import { useServicePanelContext } from '@/context/ServicePanelContext'; 
 
 export function ServiceTilesGrid() {
+  const { openPanel } = useServicePanelContext(); 
+
+  const handleServiceClick = (serviceId: string, serviceTitle: string) => {
+    if (serviceId === 'grade-submission') {
+      openPanel('grade-submission'); 
+    } else {
+      toast.info(`${serviceTitle} service is not yet built!`);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-5">
       {scholarServices.map((service) => (
@@ -13,15 +24,13 @@ export function ServiceTilesGrid() {
         <Card
           key={service.id}
           variant="service" 
-          onClick={() =>
-            toast.info(`${service.title} service is not yet built!`)
-          }
+          onClick={() => handleServiceClick(service.id, service.title)}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              toast.info(`${service.title} service is not yet built!`);
+              handleServiceClick(service.id, service.title);
             }
           }}
           className={cn(
