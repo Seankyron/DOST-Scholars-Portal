@@ -1,124 +1,56 @@
 'use client';
 
-import Image from 'next/image';
 import { ScholarRow } from './ScholarRow';
 import { Pagination } from '@/components/shared/Pagination';
 import type { ScholarStatus } from '@/types/scholar';
 
-// This interface matches the data structure in the PDF
-interface MockScholar {
+// --- NEW: Export a data-shape interface for the parent ---
+// This is the "View Model" that the parent page must provide.
+export interface ScholarRowData {
   id: string;
   name: string;
-  scholarId: string; // <-- ADDED
+  scholarId: string;
   scholarshipType: string;
   university: string;
   yearLevel: string;
   program: string;
   status: ScholarStatus;
   email: string;
-  profileImage: string;
+  profileImage: string; // ScholarRow expects this in its prop type
 }
 
-// --- MOCK DATA MATCHING PDF PAGE 4 ---
-const mockScholars: MockScholar[] = [
-  {
-    id: '1',
-    name: 'Joshua De Larosa',
-    scholarId: '2021-00123', // <-- ADDED
-    scholarshipType: 'RA 7687',
-    university: 'Laguna State Polytechnic...',
-    yearLevel: '4th Year',
-    program: 'BS Electronics',
-    status: 'Active',
-    email: 'joshuadelarosa@lspu.ed...',
-    profileImage: '/images/placeholders/avatar-placeholder.png',
-  },
-  {
-    id: '2',
-    name: 'Maloi Ricalde',
-    scholarId: '2022-00456', // <-- ADDED
-    scholarshipType: 'Merit',
-    university: 'Batangas State University...',
-    yearLevel: '3rd Year',
-    program: 'BS Information ...',
-    status: 'Warning',
-    email: 'maloi.ricalde@g.batstat...',
-    profileImage: '', // Will use placeholder
-  },
-  {
-    id: '3',
-    name: 'Aiah Arceta',
-    scholarId: '2021-00789', // <-- ADDED
-    scholarshipType: 'JLSS, Merit',
-    university: 'De La Salle University - Li...',
-    yearLevel: '4th Year',
-    program: 'BS Aeronautica...',
-    status: 'Active',
-    email: 'aiah.arceta@dlsu.edu.ph',
-    profileImage: '', // Will use placeholder
-  },
-  {
-    id: '4',
-    name: 'John Cruz',
-    scholarId: '2024-00111', // <-- ADDED
-    scholarshipType: 'RA 7687',
-    university: 'Cavite State University',
-    yearLevel: '1st Year',
-    program: 'BS Electronics',
-    status: 'On hold',
-    email: 'johncruz@cvsu.edu.ph',
-    profileImage: '', // Will use placeholder
-  },
-  {
-    id: '5',
-    name: 'Luis Garcia',
-    scholarId: '2021-00222', // <-- ADDED
-    scholarshipType: 'Merit',
-    university: 'Batangas State University ...',
-    yearLevel: '4th Year',
-    program: 'BS Biology',
-    status: 'Active',
-    email: 'luis.garcia@g.batstate-...',
-    profileImage: '', // Will use placeholder
-  },
-  {
-    id: '6',
-    name: 'Vanessa De Guzman',
-    scholarId: '2022-00333', // <-- ADDED
-    scholarshipType: 'JLSS, Merit',
-    university: 'Lyceum of the Philippines ...',
-    yearLevel: '3rd Year',
-    program: 'BS Nursing',
-    status: 'Active',
-    email: 'vanessa.deguzman@lpu...',
-    profileImage: '', // Will use placeholder
-  },
-  {
-    id: '7',
-    name: 'Maria Santos',
-    scholarId: '2020-00444', // <-- ADDED
-    scholarshipType: 'RA 7687',
-    university: 'Polytechnic University of t...',
-    yearLevel: 'Graduated', // Custom year level from PDF
-    program: 'BS Applied Mat...',
-    status: 'Graduated',
-    email: 'maria.santos@pup.edu.ph',
-    profileImage: '', // Will use placeholder
-  },
-];
-
+// --- NEW: Props are simplified and controlled by parent ---
 interface ScholarTableProps {
-  searchTerm: string;
+  scholars: ScholarRowData[]; // Data for *this page* only
+  totalScholars: number; // Total count of *all* filtered items
+  page: number; // The current page number
+  itemsPerPage: number;
+  onPageChange: (newPage: number) => void;
 }
 
-export function ScholarTable({ searchTerm }: ScholarTableProps) {
-  const filteredScholars = mockScholars.filter((s) =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+export function ScholarTable({
+  scholars,
+  totalScholars,
+  page,
+  itemsPerPage,
+  onPageChange,
+}: ScholarTableProps) {
+  // All fetching, filtering, and state logic has been removed.
 
-  const totalScholars = mockScholars.length;
-  const itemsPerPage = 7;
+  if (totalScholars === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-500">No scholars found.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate pagination details
   const totalPages = Math.ceil(totalScholars / itemsPerPage);
+  const startItem = (page - 1) * itemsPerPage + 1;
+  const endItem = Math.min(page * itemsPerPage, totalScholars);
 
   return (
     <>
@@ -127,13 +59,13 @@ export function ScholarTable({ searchTerm }: ScholarTableProps) {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                {/* --- Headers (no change) --- */}
                 <th
                   scope="col"
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   Scholar
                 </th>
-                {/* --- ADDED HEADER --- */}
                 <th
                   scope="col"
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -185,21 +117,23 @@ export function ScholarTable({ searchTerm }: ScholarTableProps) {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredScholars.map((scholar) => (
+              {/* Renders only the scholars it's given */}
+              {scholars.map((scholar) => (
                 <ScholarRow key={scholar.id} scholar={scholar} />
               ))}
             </tbody>
           </table>
         </div>
       </div>
+      {/* --- Pagination is now fully controlled --- */}
       <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
         <p className="text-sm text-gray-700">
-          Showing 1-{filteredScholars.length} of {totalScholars} scholars
+          Showing {startItem}-{endItem} of {totalScholars} scholars
         </p>
         <Pagination
-          currentPage={1}
+          currentPage={page}
           totalPages={totalPages}
-          onPageChange={() => {}}
+          onPageChange={onPageChange}
         />
       </div>
     </>

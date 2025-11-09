@@ -1,11 +1,12 @@
 'use client';
 
+// Assuming this is your custom Select component
 import { Select } from '@/components/ui/select';
 import {
   SCHOLARSHIP_TYPES,
   UNIVERSITIES,
   YEAR_LEVELS,
-} from '@/lib/utils/constants';
+} from '@/lib/utils/constants'; // Using the constants path from your project
 import type { ScholarStatus } from '@/types/scholar';
 
 const statuses: ScholarStatus[] = [
@@ -41,34 +42,69 @@ const yearOptions = [
   ...YEAR_LEVELS.map((y) => ({ value: y, label: y })),
 ];
 
-export function ScholarFilters() {
+export interface ScholarFiltersState {
+  scholarshipType: string;
+  status: string;
+  university: string;
+  course: string;
+  yearLevel: string;
+}
+
+interface ScholarFiltersProps {
+  filters: ScholarFiltersState;
+  onFilterChange: (
+    filterName: keyof ScholarFiltersState,
+    value: string
+  ) => void;
+}
+
+export function ScholarFilters({ filters, onFilterChange }: ScholarFiltersProps) {
+  // --- NEW: Define the change handler for a native <select> ---
+  const handleChange =
+    (filterName: keyof ScholarFiltersState) =>
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      onFilterChange(filterName, e.target.value);
+    };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
       <Select
-        // No label, placeholder is used
         options={scholarshipOptions}
-        defaultValue="All"
+        value={filters.scholarshipType}
+        // --- CHANGED ---
+        // 'onValueChange' is now 'onChange'
+        // The handler now expects an event object
+        onChange={handleChange('scholarshipType')}
+        // Using placeholder as a label, based on AddScholarModal
         placeholder="Scholarship Type: All Type"
       />
       <Select
         options={statusOptions}
-        defaultValue="All"
+        value={filters.status}
+        // --- CHANGED ---
+        onChange={handleChange('status')}
         placeholder="Status: All Status"
       />
       <Select
         options={universityOptions}
-        defaultValue="All"
+        value={filters.university}
+        // --- CHANGED ---
+        onChange={handleChange('university')}
         placeholder="School: All Universities"
       />
       <Select
         options={courseOptions}
-        defaultValue="All"
+        value={filters.course}
+        // --- CHANGED ---
+        onChange={handleChange('course')}
         placeholder="Course: All Courses"
         disabled
       />
       <Select
         options={yearOptions}
-        defaultValue="All"
+        value={filters.yearLevel}
+        // --- CHANGED ---
+        onChange={handleChange('yearLevel')}
         placeholder="Year Level: All Year Level"
       />
     </div>
