@@ -11,9 +11,10 @@ import type { SubmissionStatus, CurriculumConfig, Semester } from '@/types';
 import { hasMidyear } from '@/lib/utils/curriculum'; 
 
 const requirements = [
-  'Scanned copy of 𝐓𝐎𝐑 𝐨𝐫 𝐂𝐞𝐫𝐭𝐢𝐟𝐢𝐞𝐝 𝐂𝐨𝐦𝐩𝐥𝐞𝐭𝐞 𝐆𝐫𝐚𝐝𝐞𝐬 (𝐜𝐨𝐧𝐭𝐢𝐧𝐮𝐞𝐬 𝐠𝐫𝐚𝐝𝐞𝐬 𝐟𝐫𝐨𝐦 𝐅𝐢𝐫𝐬𝐭 𝐬𝐞𝐦𝐞𝐬𝐭𝐞𝐫 𝐨𝐟 𝐲𝐨𝐮𝐫 𝟏𝐬𝐭 𝐲𝐞𝐚𝐫 𝐮𝐩 𝐭𝐨 𝐒𝐞𝐜𝐨𝐧𝐝 𝐬𝐞𝐦𝐞𝐬𝐭𝐞𝐫 𝐨𝐫 𝐌𝐢𝐝𝐲𝐞𝐚𝐫 𝐀𝐘 𝟐𝟎𝟐𝟒-𝟐𝟎𝟐𝟓)', 
-  'Scanned copy of 𝐎𝐟𝐟𝐢𝐜𝐢𝐚𝐥 𝐑𝐞𝐠𝐢𝐬𝐭𝐫𝐚𝐭𝐢𝐨𝐧 𝐅𝐨𝐫𝐦 𝐟𝐨𝐫 𝐅𝐢𝐫𝐬𝐭 𝐬𝐞𝐦𝐞𝐬𝐭𝐞𝐫',
-  'Correct and complete details required',
+  'Certified True Copy of complete grades and certificate of registration from University Registrar',
+  'Clear scanned copy or high-quality photo',
+  'All subjects and grades clearly visible',
+  'Registrar\'s official seal and signature present',
 ];
 
 const mockCurriculum: CurriculumConfig = {
@@ -24,22 +25,22 @@ const mockCurriculum: CurriculumConfig = {
   duration: 4, 
 };
 
-
+// --- MODIFICATION: Synced this data to match RecentSubmissions ---
 const submissionStatuses: Record<string, SubmissionStatus> = {
   '1-1st Semester': 'Approved',
   '1-2nd Semester': 'Approved',
   '1-Midyear': 'Approved', 
   '2-1st Semester': 'Approved',
-  '2-2nd Semester': 'Pending',
-  '3-1st Semester': 'Approved',
-  '3-2nd Semester': 'Resubmit',
+  '2-2nd Semester': 'Pending', // <-- Matches recent activity
+  '3-1st Semester': 'Approved', // <-- Matches recent activity
+  '3-2nd Semester': 'Resubmit', // <-- Matches recent activity
   '3-Midyear': 'Open', 
   '4-1st Semester': 'Not Available',
   '4-2nd Semester': 'Not Available',
 };
 
 const generatedSemesters: SemesterAvailability[] = [];
-const courseDuration = mockCurriculum.duration; // 4 years
+const courseDuration = mockCurriculum.duration; 
 
 for (let year = 1; year <= courseDuration; year++) {
   const semesters: Semester[] = ['1st Semester', '2nd Semester'];
@@ -57,9 +58,10 @@ for (let year = 1; year <= courseDuration; year++) {
       semester: sem,
       status: status,
       isAvailable: status !== 'Not Available',
-      isCurrent: false, 
-      isPast: false, 
-      isFuture: false,
+      // (Mock data for other flags)
+      isCurrent: (year === 3 && sem === '2nd Semester'), 
+      isPast: year < 3 || (year === 3 && sem === '1st Semester'), 
+      isFuture: year > 3,
     });
   }
 }
@@ -79,11 +81,13 @@ export function GradeSubmissionPanel() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl text-center font-bold text-dost-title mb-4">Grade Submission</h2>
+      <h2 className="text-2xl text-center font-bold text-dost-title mb-4">
+        Grade Submission
+      </h2>
       
       <Card>
         <CardHeader>
-          <CardTitle className="text-dost-title">Grade Submission Requirements</CardTitle>
+          <CardTitle className="text-dost-blue">Grade Submission Requirements</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
@@ -97,13 +101,13 @@ export function GradeSubmissionPanel() {
         </CardContent>
       </Card>
 
-      {/* Semester Grid */}
       <SemesterGrid 
         semesters={generatedSemesters} 
         onSelectSemester={handleOpenModal} 
       />
 
-      <RecentSubmissions />
+      {/* --- MODIFICATION: Pass handleOpenModal to the component --- */}
+      <RecentSubmissions onSelectSubmission={handleOpenModal} />
 
       {/* Submission Modal */}
       {selectedSemester && (

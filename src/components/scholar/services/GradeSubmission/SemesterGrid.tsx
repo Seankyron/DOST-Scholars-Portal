@@ -33,7 +33,7 @@ export function SemesterGrid({ semesters, onSelectSemester }: SemesterGridProps)
     <div className="space-y-6">
       {Object.entries(semestersByYear).map(([year, sems]) => (
         <div key={year}>
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+          <h3 className="text-lg font-semibold text-dost-title   mb-3">
             {yearLabels[Number(year)]}
             <span className="ml-2 text-base font-medium text-gray-500">
               ({mockAcademicYear})

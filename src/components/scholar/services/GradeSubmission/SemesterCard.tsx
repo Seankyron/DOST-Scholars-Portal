@@ -3,30 +3,28 @@
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { cn } from '@/lib/utils/cn';
 import type { SemesterAvailability } from '@/types/curriculum';
-import { FileText, Check, Clock, RefreshCw, X, EyeOff, Eye, UploadCloud } from 'lucide-react';
+import { FileText, Check, Clock, RefreshCw, X, EyeOff, UploadCloud } from 'lucide-react';
 
 interface SemesterCardProps {
   semester: SemesterAvailability;
   onSelect: () => void;
 }
 
-// --- MODIFICATION: Removed 'Rejected' from the config ---
-const statusConfig: Record<string, { icon: React.ElementType, text: string, cta: string, iconColor: string }> = {
-  Open: { icon: UploadCloud, text: 'Open for Submission', cta: 'Submit Grades', iconColor: 'text-dost-blue' },
-  Approved: { icon: Check, text: 'Approved', cta: 'Submission Approved', iconColor: 'text-green-600' },
-  Pending: { icon: Clock, text: 'Pending Review', cta: 'View Submission', iconColor: 'text-blue-600' },
-  Resubmit: { icon: RefreshCw, text: 'Resubmission Required', cta: 'Resubmit Grades', iconColor: 'text-orange-600' },
-  'Not Available': { icon: EyeOff, text: 'Not Available', cta: 'Locked', iconColor: 'text-gray-400' },
-  Closed: { icon: Check, text: 'Closed', cta: 'Submission Closed', iconColor: 'text-green-600' },
+const statusConfig: Record<string, { icon: React.ElementType, cta: string, iconColor: string }> = {
+  Open: { icon: UploadCloud, cta: 'Submit Requirements', iconColor: 'text-dost-blue' },
+  Approved: { icon: Check, cta: 'View Submission', iconColor: 'text-green-600' },
+  Pending: { icon: Clock, cta: 'View Submission', iconColor: 'text-yellow-800' },
+  Resubmit: { icon: RefreshCw, cta: 'Resubmission Required', iconColor: 'text-orange-600' },
+  'Not Available': { icon: EyeOff, cta: 'Locked', iconColor: 'text-gray-400' },
+  Closed: { icon: Check, cta: 'View Submission', iconColor: 'text-green-600' },
 };
 
 export function SemesterCard({ semester, onSelect }: SemesterCardProps) {
   const { status, semester: semesterName } = semester;
-  const config = statusConfig[status] || { icon: FileText, text: status, cta: 'View', iconColor: 'text-gray-500' };
+  const config = statusConfig[status] || { icon: FileText, cta: 'View', iconColor: 'text-gray-500' };
   const Icon = config.icon;
   
-  // --- MODIFICATION: Removed 'Rejected' from this logic ---
-  const isClickable = status === 'Open' || status === 'Resubmit' || status === 'Pending';
+  const isClickable = status !== 'Not Available';
 
   return (
     <button
@@ -34,24 +32,25 @@ export function SemesterCard({ semester, onSelect }: SemesterCardProps) {
       onClick={onSelect}
       disabled={!isClickable}
       className={cn(
-        'rounded-xl border shadow-sm',
+        'rounded-xl border bg-white shadow-md', 
         'p-4 text-left transition-all duration-200 w-full flex flex-col h-full justify-between',
-        'bg-white',
         isClickable 
-          ? 'hover:shadow-md hover:border-dost-blue/80 cursor-pointer' 
+          ? 'hover:shadow-lg cursor-pointer' 
           : 'bg-gray-50 opacity-80 cursor-not-allowed',
         
-        (status === 'Approved' || status === 'Closed') && 'border-green-500',
-        status === 'Resubmit' && 'border-orange-400',
-        status === 'Open' && 'border-dost-blue',
       )}
     >
-      {/* Top Section: Icon + Status Text */}
+      {/* Top Section: Icon + Status Badge */}
       <div className="flex items-center gap-3">
-        <div className={cn('flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center', 'bg-gray-100 border', config.iconColor)}>
+        <div className={cn(
+          'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center', 
+          'bg-gray-100', 
+          config.iconColor
+        )}>
           <Icon className={cn('h-5 w-5', config.iconColor)} />
         </div>
-        <p className="text-sm font-semibold text-gray-700">{config.text}</p>
+        
+        <StatusBadge status={status} />
       </div>
       
       {/* Middle Section: Semester Name */}
@@ -60,14 +59,13 @@ export function SemesterCard({ semester, onSelect }: SemesterCardProps) {
       </div>
 
       {/* Bottom Section: Call to Action */}
-      <div className="flex items-center justify-between text-xs font-medium">
+      <div className="flex items-center justify-end text-xs font-medium">
         <span className={cn(
           'font-semibold',
           isClickable ? 'text-dost-blue' : 'text-gray-500'
         )}>
           {config.cta}
         </span>
-        {isClickable && <Eye className="h-4 w-4 text-gray-400" />}
       </div>
     </button>
   );

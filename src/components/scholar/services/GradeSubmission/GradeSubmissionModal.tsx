@@ -15,7 +15,7 @@ import { SubmissionForm } from './SubmissionForm';
 import { SubmissionReview } from './SubmissionReview';
 import { AdminCommentAlert } from './AdminCommenAlert';
 import type { SemesterAvailability } from '@/types/curriculum';
-import type { GradeSubmission, YearLevel } from '@/types'; // 
+import type { GradeSubmission, YearLevel } from '@/types'; 
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;
@@ -31,39 +31,51 @@ const yearLabels: { [key: number]: YearLevel } = {
   5: '5th Year',
 };
 
+// --- MODIFICATION: This is your custom approved message ---
+const APPROVED_MESSAGE = 'Your submission is approved. Please wait for your stipend to be processed. You can check the status in the Stipend Tracking service.';
+
 export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmissionModalProps) {
   
-  // --- MODIFICATION: Added mock URLs to the data ---
   const mockSubmissionData: GradeSubmission = {
     id: 'sub123',
     scholarId: 'scholar123',
     status: semester.status,
     dateSubmitted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    adminComment: 'Invalid Certificate of Registration. Please upload the certified true copy of the document from the university registrar.',
+    // --- MODIFICATION: Use real comment only for resubmit ---
+    adminComment: semester.status === 'Resubmit' 
+      ? 'Invalid Certificate of Registration. Please upload the certified true copy of the document from the university registrar.'
+      : undefined,
     yearLevel: yearLabels[semester.year] || '1st Year',
     semester: semester.semester,
     academicYear: '2023-2024',
     registrationForm: 'De Larosa_COR.pdf',
-    registrationFormUrl: '#mock-reg-form-url', // <-- Added
+    registrationFormUrl: '#mock-reg-form-url',
     copyOfGrades: 'De Larosa_Grades.pdf',
-    copyOfGradesUrl: '#mock-grades-url', // <-- Added
+    copyOfGradesUrl: '#mock-grades-url',
   };
 
   const [submission, setSubmission] = useState<GradeSubmission | null>(
-    // --- MODIFICATION: Removed 'Rejected' from this logic ---
-    (semester.status === 'Pending' || semester.status === 'Resubmit') 
+    // --- MODIFICATION: Load data for all viewable statuses ---
+    (semester.status === 'Pending' || semester.status === 'Resubmit' || semester.status === 'Approved' || semester.status === 'Closed') 
     ? mockSubmissionData
     : null
   );
 
+  // --- MODIFICATION: Only "edit" for Open or Resubmit ---
   const [isEditing, setIsEditing] = useState(semester.status === 'Open' || semester.status === 'Resubmit');
 
   const handleSuccess = () => {
     onClose();
   };
 
-  // --- MODIFICATION: Removed 'Rejected' from this logic ---
-  const showComment = semester.status === 'Resubmit' && submission?.adminComment;
+  // --- MODIFICATION: Logic to determine what comment to show ---
+  let commentToShow: string | undefined = undefined;
+  if (semester.status === 'Resubmit' && submission?.adminComment) {
+    commentToShow = submission.adminComment;
+  } else if (semester.status === 'Approved') {
+    commentToShow = APPROVED_MESSAGE;
+  }
+  
   const showForm = isEditing && (semester.status === 'Open' || semester.status === 'Resubmit');
 
   return (
@@ -76,12 +88,12 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
           </ModalTitle>
         </ModalHeader>
         
-        {/* --- MODIFICATION: Added overflow-y-auto to fix button cutoff --- */}
         <ModalBody className="space-y-4 overflow-y-auto scrollbar-thin">
-          {showComment && (
+          {/* --- MODIFICATION: Use the new commentToShow variable --- */}
+          {commentToShow && (
             <AdminCommentAlert
               status={semester.status}
-              comment={submission.adminComment!}
+              comment={commentToShow}
             />
           )}
 
@@ -89,7 +101,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
             <SubmissionForm
               semester={semester}
               onSuccess={handleSuccess}
-              submission={submission} // <-- MODIFICATION: Pass submission data
+              submission={submission} 
             />
           ) : (
             submission && (
