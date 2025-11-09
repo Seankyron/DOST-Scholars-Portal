@@ -1,25 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, ChangeEvent, FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export function BannerUpload({ onAddBanner }) {
+interface Banner {
+  title: string;
+  link: string;
+  image: string;
+}
+
+interface BannerUploadProps {
+  onAddBanner: (banner: Banner) => void;
+}
+
+export function BannerUpload({ onAddBanner }: BannerUploadProps) {
   const [title, setTitle] = useState('');
   const [link, setLink] = useState('');
   const [file, setFile] = useState<File | null>(null);
 
-  const handleSubmit = (e) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFile(e.target.files?.[0] ?? null);
+  };
+
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!file || !title || !link) return;
 
-    const newBanner = {
+    const newBanner: Banner = {
       title,
       link,
       image: URL.createObjectURL(file),
     };
 
     onAddBanner(newBanner);
+
+    // Reset form
     setTitle('');
     setLink('');
     setFile(null);
@@ -31,7 +47,7 @@ export function BannerUpload({ onAddBanner }) {
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          onChange={handleFileChange}
           className="hidden"
           id="upload-banner"
         />

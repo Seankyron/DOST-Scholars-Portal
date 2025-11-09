@@ -29,17 +29,26 @@ export function DeleteBannerModal({
                 <ModalHeader>
                     <ModalTitle>Confirm Deletion</ModalTitle>
                 </ModalHeader>
+
                 <ModalBody>
-                    <p>
+                    <p className="text-gray-700">
                         Are you sure you want to delete{' '}
                         <strong>{bannerTitle || 'this banner'}</strong>? This action cannot be undone.
                     </p>
                 </ModalBody>
+
                 <ModalFooter className="flex justify-end gap-2">
                     <Button variant="outline" onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button variant="destructive" onClick={onConfirm}>
+                    <Button
+                    variant="outline"
+                    className="bg-red-500 text-white hover:bg-red-600"
+                    onClick={() => {
+                        onConfirm();
+                        onClose();
+                    }}
+                    >
                         Delete
                     </Button>
                 </ModalFooter>

@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { BannerUpload } from '@/components/admin/event/BannerUpload';
-import { BannerList } from '@/components/admin/event/BannerList';
+import { BannerList, Banner } from '@/components/admin/event/BannerList';
 import { CarouselSettings } from '@/components/admin/event/CarouselSettings';
 import { EditBannerModal } from '@/components/admin/event/EditBannerModal';
 
 export default function EventBannerManagementPage() {
-    const [banners, setBanners] = useState([
+    const [banners, setBanners] = useState<Banner[]>([
         {
             id: 1,
             title: 'Scholars Leadership Camp',
@@ -22,24 +22,26 @@ export default function EventBannerManagementPage() {
         },
     ]);
 
-    const [selectedBanner, setSelectedBanner] = useState(null);
+    const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
 
-    const handleAddBanner = (newBanner) => {
+    const handleAddBanner = (newBanner: Omit<Banner, 'id'>) => {
         setBanners([...banners, { id: Date.now(), ...newBanner }]);
     };
 
-    const handleDeleteBanner = (id) => {
+    const handleDeleteBanner = (id: number) => {
         setBanners(banners.filter((b) => b.id !== id));
     };
 
-    const handleUpdateBanner = (id, updatedData) => {
+    const handleUpdateBanner = (id: number, updatedData: Partial<Banner>) => {
         setBanners(banners.map((b) => (b.id === id ? { ...b, ...updatedData } : b)));
     };
 
-    const openEditModal = (banner) => {
-        setSelectedBanner(banner);
-        setIsEditOpen(true);
+    const openEditModal = (banner: Banner | undefined) => {
+        if (banner) {
+            setSelectedBanner(banner);
+            setIsEditOpen(true);
+        }
     };
 
     return (
@@ -55,7 +57,7 @@ export default function EventBannerManagementPage() {
 
                     <BannerList
                         banners={banners}
-                        onEdit={(id) => openEditModal(banners.find((b) => b.id === id))}
+                        onEdit={(banner: Banner) => openEditModal(banner)}
                         onDelete={handleDeleteBanner}
                     />
                 </div>

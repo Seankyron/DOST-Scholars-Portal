@@ -4,11 +4,24 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DeleteBannerModal } from '@/components/admin/event/DeleteBannerModal';
 
-export function BannerList({ banners, onEdit, onDelete }) {
-    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-    const [selectedBanner, setSelectedBanner] = useState(null);
+export interface Banner {
+    id: number;
+    title: string;
+    link: string;
+    image: string;
+}
 
-    const openDeleteModal = (banner) => {
+interface BannerListProps {
+    banners: Banner[];
+    onEdit: (banner: Banner) => void;
+    onDelete: (id: number) => void;
+}
+
+export function BannerList({ banners, onEdit, onDelete }: BannerListProps) {
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
+
+    const openDeleteModal = (banner: Banner) => {
         setSelectedBanner(banner);
         setIsDeleteOpen(true);
     };
@@ -40,12 +53,17 @@ export function BannerList({ banners, onEdit, onDelete }) {
                         </div>
 
                         <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => onEdit(banner.id)}>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => onEdit(banner)}
+                            >
                                 Edit
                             </Button>
                             <Button
-                                variant="destructive"
+                                variant="outline" // <-- Use outline + custom class instead of "destructive"
                                 size="sm"
+                                className="bg-red-500 text-white hover:bg-red-600"
                                 onClick={() => openDeleteModal(banner)}
                             >
                                 Delete
