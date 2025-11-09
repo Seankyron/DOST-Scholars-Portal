@@ -26,20 +26,26 @@ interface EditBannerModalProps {
     onUpdate: (id: number, updatedData: Partial<Banner>) => void;
 }
 
-export function EditBannerModal({
-    banner,
-    open,
-    onClose,
-    onUpdate,
-}: EditBannerModalProps) {
+export function EditBannerModal({ banner, open, onClose, onUpdate }: EditBannerModalProps) {
     const [formData, setFormData] = useState<Partial<Banner>>({ ...banner });
+    const [preview, setPreview] = useState<string>(banner.image);
 
     useEffect(() => {
         setFormData({ ...banner });
+        setPreview(banner.image);
     }, [banner]);
 
     const handleChange = (field: keyof Banner, value: any) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const objectUrl = URL.createObjectURL(file);
+            setPreview(objectUrl);
+            handleChange('image', objectUrl);
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -80,11 +86,11 @@ export function EditBannerModal({
                             <input
                                 type="file"
                                 accept="image/*"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleChange('image', URL.createObjectURL(file));
-                                }}
+                                onChange={handleFileChange}
                             />
+                            {preview && (
+                                <img src={preview} alt="Preview" className="mt-2 h-24 object-contain" />
+                            )}
                         </div>
                     </ModalBody>
 

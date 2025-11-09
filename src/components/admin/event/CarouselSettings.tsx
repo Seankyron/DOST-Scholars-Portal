@@ -20,7 +20,6 @@ export function CarouselSettings() {
         alert('Settings saved!');
     };
 
-    // ✅ Prepare options for your custom Select component
     const timerOptions = [
         { label: '3 seconds', value: '3 seconds' },
         { label: '5 seconds', value: '5 seconds' },
@@ -41,7 +40,7 @@ export function CarouselSettings() {
                     <Label>Auto-advance Timer</Label>
                     <Select
                     value={timer}
-                    onChange={(e) => setTimer(e.target.value)} // use onChange
+                    onChange={(e) => setTimer(e.target.value)} 
                     options={timerOptions}
                     placeholder="Select timer"
                     />
@@ -51,7 +50,7 @@ export function CarouselSettings() {
                     <Label>Transition Effect</Label>
                     <Select
                     value={effect}
-                    onChange={(e) => setEffect(e.target.value)} // use onChange
+                    onChange={(e) => setEffect(e.target.value)}
                     options={effectOptions}
                     placeholder="Select effect"
                     />
