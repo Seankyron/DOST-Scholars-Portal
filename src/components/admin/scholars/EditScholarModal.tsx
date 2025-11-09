@@ -23,7 +23,7 @@ interface EditScholarModalProps {
     open: boolean;
 }
 
-export function EditScholarModal({ scholar, onUpdate, onClose }: EditScholarModalProps) {
+export function EditScholarModal({ scholar, onUpdate, onClose, open }: EditScholarModalProps) {
     const [formData, setFormData] = useState<Scholar>({ ...scholar });
 
     useEffect(() => {
@@ -47,7 +47,7 @@ export function EditScholarModal({ scholar, onUpdate, onClose }: EditScholarModa
     const semesterOptions = SEMESTERS.map(s => ({ value: s, label: s }));
 
     return (
-        <Modal open={true} onOpenChange={onClose}>
+        <Modal open={open} onOpenChange={onClose}>
             <ModalContent size="4xl">
                 <form onSubmit={handleSubmit}>
                     <ModalHeader>

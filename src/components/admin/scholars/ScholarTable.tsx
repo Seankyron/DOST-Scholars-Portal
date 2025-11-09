@@ -102,8 +102,17 @@ export function ScholarTable({ searchTerm, filters }: ScholarTableProps) {
             </div>
 
             {viewScholar && <ViewScholarModal scholar={viewScholar} onClose={() => setViewScholar(null)} />}
-            {editScholar && <EditScholarModal scholar={editScholar} onUpdate={handleUpdateScholar} />}
-            {historyScholar && <HistoryScholarModal scholar={historyScholar} onClose={() => setHistoryScholar(null)} />}
+
+                {editScholar && (
+                    <EditScholarModal
+                        scholar={editScholar}
+                        open={!!editScholar}
+                        onClose={() => setEditScholar(null)}
+                        onUpdate={handleUpdateScholar}
+                    />
+                )}
+
+                {historyScholar && <HistoryScholarModal scholar={historyScholar} onClose={() => setHistoryScholar(null)} />}
 
             <div className="flex justify-between items-center mt-4">
                 <p>Showing {filteredScholars.length} of {scholars.length} scholars</p>
