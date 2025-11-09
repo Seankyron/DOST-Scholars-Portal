@@ -8,6 +8,7 @@ import { SearchInput } from '@/components/shared/SearchInput';
 import Export from '@/components/admin/scholars/Export';
 import { Upload } from 'lucide-react';
 import { AddScholarModal } from '@/components/admin/scholars/AddScholarModal';
+import { EditScholarModal } from '@/components/admin/scholars/EditScholarModal';
 
 export default function ScholarManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
