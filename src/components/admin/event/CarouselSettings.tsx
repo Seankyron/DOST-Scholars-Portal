@@ -40,20 +40,20 @@ export function CarouselSettings() {
                 <div>
                     <Label>Auto-advance Timer</Label>
                     <Select
-                        value={timer}
-                        onValueChange={setTimer}
-                        options={timerOptions}
-                        placeholder="Select timer"
+                    value={timer}
+                    onChange={(e) => setTimer(e.target.value)} // use onChange
+                    options={timerOptions}
+                    placeholder="Select timer"
                     />
                 </div>
 
                 <div>
                     <Label>Transition Effect</Label>
                     <Select
-                        value={effect}
-                        onValueChange={setEffect}
-                        options={effectOptions}
-                        placeholder="Select effect"
+                    value={effect}
+                    onChange={(e) => setEffect(e.target.value)} // use onChange
+                    options={effectOptions}
+                    placeholder="Select effect"
                     />
                 </div>
 
