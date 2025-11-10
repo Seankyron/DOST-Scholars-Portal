@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react'; // <-- Import useState
-import { Eye, Pencil, History, Trash2 } from 'lucide-react'; // <-- Import Trash2
+import { useState } from 'react'; 
+import { Eye, Pencil, History, Trash2 } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { ScholarStatus } from '@/types/scholar';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'; // <-- Import ConfirmDialog
-import { toast } from '@/components/ui/toaster'; // <-- Import toast
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'; 
+import { toast } from '@/components/ui/toaster'; 
 
 export interface Scholar {
     id: string;

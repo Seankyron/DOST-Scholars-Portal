@@ -3,10 +3,9 @@
 import { ScholarRow } from './ScholarRow';
 import { Pagination } from '@/components/shared/Pagination';
 import type { ScholarStatus } from '@/types/scholar';
-import { Button } from '@/components/ui/button'; // <-- ADDED
-import { Download} from 'lucide-react'; // <-- ADDED
+import { Button } from '@/components/ui/button'; 
+import { Download} from 'lucide-react'; 
 
-// (ScholarRowData interface remains the same)
 export interface ScholarRowData {
   id: string;
   name: string;
@@ -35,6 +34,22 @@ export function ScholarTable({
   itemsPerPage,
   onPageChange,
 }: ScholarTableProps) {
+  // --- ADDED HANDLERS ---
+  // These props are required by ScholarRow.
+  // You can implement modals or other logic here later.
+  const handleView = (scholar: ScholarRowData) => {
+    alert(`Viewing: ${scholar.name}`);
+  };
+
+  const handleEdit = (scholar: ScholarRowData) => {
+    alert(`Editing: ${scholar.name}`);
+  };
+
+  const handleHistory = (scholar: ScholarRowData) => {
+    alert(`Viewing history for: ${scholar.name}`);
+  };
+  // -------------------------
+
   if (totalScholars === 0) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -112,13 +127,21 @@ export function ScholarTable({
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {scholars.map((scholar) => (
-              <ScholarRow key={scholar.id} scholar={scholar} />
+              <ScholarRow 
+                key={scholar.id} 
+                scholar={scholar} 
+                // --- PASS PROPS ---
+                onView={handleView}
+                onEdit={handleEdit}
+                onHistory={handleHistory}
+                // ------------------
+              />
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* --- MODIFIED: Pagination and Export layout --- */}
+      {/* (Pagination section remains the same) */}
       <div className="p-4 grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
         <p className="text-sm text-gray-700 sm:justify-self-start sm:text-left">
           Showing {startItem}-{endItem} of {totalScholars} scholars
@@ -127,9 +150,9 @@ export function ScholarTable({
           currentPage={page}
           totalPages={totalPages}
           onPageChange={onPageChange}
-          className="sm:justify-self-center" // <-- Center pagination
+          className="sm:justify-self-center"
         />
-        <div className="flex sm:justify-end"> {/* <-- Right-align export */}
+        <div className="flex sm:justify-end">
           <Button
             variant="outline"
             size="sm"

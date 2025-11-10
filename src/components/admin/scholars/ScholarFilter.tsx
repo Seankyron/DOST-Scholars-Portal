@@ -34,6 +34,13 @@ const universityOptions = [
   ...UNIVERSITIES.map((u) => ({ value: u, label: u })),
 ];
 
+// --- ADDED THIS ---
+const courseOptions = [
+  { value: 'All', label: 'All Courses' },
+  // You can populate this dynamically later
+];
+// ------------------
+
 const yearOptions = [
   { value: 'All', label: 'All Year Level' },
   ...YEAR_LEVELS.map((y) => ({ value: y, label: y })),
@@ -69,7 +76,7 @@ export function ScholarFilters({ filters, onFilterChange }: ScholarFiltersProps)
         options={scholarshipOptions}
         value={filters.scholarshipType}
         // --- CHANGED ---
-        // 'onValueChange' is now 'onChange'
+        // 'onValueValueChange' is now 'onChange'
         // The handler now expects an event object
         onChange={handleChange('scholarshipType')}
         // Using placeholder as a label, based on AddScholarModal
