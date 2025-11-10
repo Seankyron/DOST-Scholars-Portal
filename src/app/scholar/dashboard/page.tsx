@@ -1,6 +1,6 @@
+// src/app/scholar/dashboard/page.tsx
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
 import { ProfileSection } from '@/components/scholar/profile/ProfileSection';
 import { EventBannerSection } from '@/components/scholar/event-banner/EventBannerSection';
 import { NavigationTabs } from '@/components/scholar/layout/NavigationTabs';
@@ -12,64 +12,64 @@ import {
   useServicePanelContext,
 } from '@/context/ServicePanelContext';
 import { ServicePanelOverlay } from '@/components/scholar/layout/ServicePanelOverlay';
-
+import { cn } from '@/lib/utils/cn';
+  
+// --- MODIFIED: Removed Framer Motion animation ---
 function DashboardContentWrapper() {
   const { isOpen } = useServicePanelContext();
 
-  const variants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10 },
-  };
+  if (isOpen) {
+    // This line is now valid
+    return <ServicePanelOverlay className="-mt-2" />;
+  }
 
   return (
-    <AnimatePresence mode="wait">
-      {isOpen ? (
-        <motion.div
-          key="service-panel"
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          variants={variants}
-          transition={{ duration: 0.2 }}
+    <div className="space-y-6">
+      <NavigationTabs />
+      <RecentActivity />
+    </div>
+  );
+}
+
+// --- NEW: Inner component to access context for layout ---
+function DashboardPageContent() {
+  const { isOpen } = useServicePanelContext();
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8">
+      <Card className="mx-auto max-w-7xl bg-[#f4f6fc] shadow-xl">
+        <div
+          className={cn(
+            'p-6 sm:p-8',
+            // --- MODIFIED: Only apply spacing when panel is closed ---
+            !isOpen && 'space-y-6'
+          )}
         >
-          <ServicePanelOverlay className="-mt-2" />
-        </motion.div>
-      ) : (
-        <motion.div
-          key="default-content"
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          variants={variants}
-          transition={{ duration: 0.2 }}
-        >
-          <div className="space-y-6">
-            <NavigationTabs />
-            <RecentActivity />
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          <WelcomeHeader />
+          {/* --- MODIFIED: Add manual margin if panel is open --- */}
+          {isOpen && <div className="mt-6" />}
+          
+          <ProfileSection />
+          {/* --- MODIFIED: Add manual margin if panel is open --- */}
+          {isOpen && <div className="mt-6" />}
+
+          <EventBannerSection />
+
+          {/* --- MODIFIED: Apply smaller margin before service panel --- */}
+          <div className={cn(isOpen ? 'mt-2' : 'mt-6')} />
+          
+          <DashboardContentWrapper />
+        </div>
+      </Card>
+    </div>
   );
 }
 
 export default function ScholarDashboardPage() {
   return (
     <ServicePanelProvider>
-      <div className="p-4 sm:p-6 lg:p-8">
-        <Card className="mx-auto max-w-7xl bg-[#f4f6fc] shadow-xl">
-          <div className="p-6 sm:p-8 space-y-6">
-            <WelcomeHeader />
-
-            <ProfileSection />
-
-            <EventBannerSection />
-
-            <DashboardContentWrapper />
-          </div>
-        </Card>
-      </div>
+      {/* --- MODIFIED: Use new inner component --- */}
+      <DashboardPageContent />
     </ServicePanelProvider>
   );
 }

@@ -1,3 +1,4 @@
+// src/components/scholar/layout/ServicePanelOverlay.tsx
 'use client';
 
 import { useServicePanelContext } from '@/context/ServicePanelContext';
@@ -5,6 +6,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { GradeSubmissionPanel } from '../services/GradeSubmission/GradeSubmissionPanel';
+import { cn } from '@/lib/utils/cn'; // <-- 1. Import cn
 
 // Placeholder for services that are not yet built
 const MockServicePanel = ({ title }: { title: string }) => (
@@ -18,7 +20,8 @@ const MockServicePanel = ({ title }: { title: string }) => (
   </div>
 );
 
-export function ServicePanelOverlay() {
+// --- 2. MODIFICATION: Accept className prop ---
+export function ServicePanelOverlay({ className }: { className?: string }) {
   const { closePanel, activeService } = useServicePanelContext();
 
   const renderService = () => {
@@ -38,7 +41,11 @@ export function ServicePanelOverlay() {
 
   return (
     <div
-      className="relative w-full bg-[#f4f6fc] rounded-lg"
+      // --- 3. MODIFICATION: Merge passed className ---
+      className={cn(
+        "relative w-full bg-[#f4f6fc] rounded-lg", 
+        className // This now correctly applies "-mt-2"
+      )}
     >
       <Button
         variant="ghost"

@@ -1,3 +1,4 @@
+// src/components/ui/modal.tsx
 "use client"
 
 import * as React from "react"
@@ -7,7 +8,7 @@ import {
   DialogOverlay,
   DialogClose,
   DialogTrigger,
-  DialogContent,
+  DialogContent, // This is the base Radix component
   DialogHeader,
   DialogFooter,
   DialogTitle,
@@ -24,14 +25,13 @@ const ModalFooter = DialogFooter
 const ModalTitle = DialogTitle
 const ModalDescription = DialogDescription
 
-// --- New ModalBody component for scrollable content ---
 const ModalBody = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("px-6 py-4 flex-1", className)} // Added p-6 for default padding
+    className={cn("px-6 py-4", className)} // Reverted to simple padding
     {...props}
   />
 ))
@@ -61,17 +61,16 @@ const ModalContent = React.forwardRef<
   return (
     <DialogPortal>
       <DialogOverlay />
-      <DialogContent
+      <DialogContent // This is the base Radix DialogContent
         ref={ref}
         className={cn(
-          "grid w-full max-h-[calc(100vh-4rem)]", // Make modal height responsive
-          "grid-rows-[auto,1fr,auto]", // Header, Body (scrolling), Footer
-          sizes[size], // Apply dynamic size
+          "w-full", 
+          sizes[size], 
           className
         )}
         {...props}
       >
-        {children}
+        {children} 
         {/* We keep the X close button from dialog.tsx */}
       </DialogContent>
     </DialogPortal>
@@ -88,5 +87,5 @@ export {
   ModalTitle,
   ModalDescription,
   ModalClose,
-  ModalBody, // Exporting the new ModalBody
+  ModalBody,
 }
