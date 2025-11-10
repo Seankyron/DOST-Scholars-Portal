@@ -7,74 +7,96 @@ import { CarouselSettings } from '@/components/admin/events/CarouselSettings';
 import { EditBannerModal } from '@/components/admin/events/EditBannerModal';
 
 export default function EventBannerManagementPage() {
-    const [banners, setBanners] = useState<Banner[]>([
-        {
-            id: 1,
-            title: 'Scholars Leadership Camp',
-            link: 'https://patriot.science-scholarships.ph/',
-            image: '/placeholder1.png',
-        },
-        {
-            id: 2,
-            title: 'YUGTO 2025',
-            link: 'https://facebook.com/DOST.RPCA4A/',
-            image: '/placeholder2.png',
-        },
-    ]);
+  const [banners, setBanners] = useState<Banner[]>([
+    {
+      id: 1,
+      title: 'Scholars Leadership Camp',
+      link: 'https://patriot.science-scholarships.ph/',
+      image: '/images/banners/banner-1.jpg', // Using a real placeholder
+    },
+    {
+      id: 2,
+      title: 'YUGTO 2025',
+      link: 'https://facebook.com/DOST.RPCA4A/',
+      image: '/images/placeholders/avatar-placeholder.png', // Using a real placeholder
+    },
+  ]);
 
-    const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
-    const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
-    const handleAddBanner = (newBanner: Omit<Banner, 'id'>) => {
-        setBanners([...banners, { id: Date.now(), ...newBanner }]);
-    };
+  const handleAddBanner = (newBanner: Omit<Banner, 'id'>) => {
+    setBanners([...banners, { id: Date.now(), ...newBanner }]);
+  };
 
-    const handleDeleteBanner = (id: number) => {
-        setBanners(banners.filter((b) => b.id !== id));
-    };
+  const handleDeleteBanner = (id: number) => {
+    setBanners(banners.filter((b) => b.id !== id));
+  };
 
-    const handleUpdateBanner = (id: number, updatedData: Partial<Banner>) => {
-        setBanners(banners.map((b) => (b.id === id ? { ...b, ...updatedData } : b)));
-    };
-
-    const openEditModal = (banner: Banner | undefined) => {
-        if (banner) {
-            setSelectedBanner(banner);
-            setIsEditOpen(true);
-        }
-    };
-
-    return (
-        <div className="p-6">
-            <h1 className="text-3xl font-bold mb-6 text-dost-title">Event Banner Management</h1>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-4">
-                    <div className="border rounded-lg p-4 bg-white shadow-sm">
-                        <h2 className="text-lg font-semibold mb-3">Banner Images</h2>
-                        <BannerUpload onAddBanner={handleAddBanner} />
-                    </div>
-
-                    <BannerList
-                        banners={banners}
-                        onEdit={(banner: Banner) => openEditModal(banner)}
-                        onDelete={handleDeleteBanner}
-                    />
-                </div>
-
-                <div>
-                    <CarouselSettings />
-                </div>
-            </div>
-
-            {selectedBanner && (
-                <EditBannerModal
-                    banner={selectedBanner}
-                    open={isEditOpen}
-                    onClose={() => setIsEditOpen(false)}
-                    onUpdate={handleUpdateBanner}
-                />
-            )}
-        </div>
+  const handleUpdateBanner = (id: number, updatedData: Partial<Banner>) => {
+    setBanners(
+      banners.map((b) => (b.id === id ? { ...b, ...updatedData } : b))
     );
+  };
+
+  const openEditModal = (banner: Banner | undefined) => {
+    if (banner) {
+      setSelectedBanner(banner);
+      setIsEditOpen(true);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold text-dost-title">
+        Event Banner Management
+      </h1>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          {/* --- Card 1: Banner Upload --- */}
+          <div className="bg-white rounded-lg shadow-md">
+            <div className="p-4 border-b">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Upload New Banner
+              </h2>
+            </div>
+            <div className="p-4">
+              <BannerUpload onAddBanner={handleAddBanner} />
+            </div>
+          </div>
+
+          {/* --- Card 2: Banner List --- */}
+          <div className="bg-white rounded-lg shadow-md">
+            <div className="p-4 border-b">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Current Banners
+              </h2>
+            </div>
+            <div className="p-4">
+              <BannerList
+                banners={banners}
+                onEdit={(banner: Banner) => openEditModal(banner)}
+                onDelete={handleDeleteBanner}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* --- Card 3: Settings --- */}
+        <div className="lg:col-span-1">
+          <CarouselSettings />
+        </div>
+      </div>
+
+      {selectedBanner && (
+        <EditBannerModal
+          banner={selectedBanner}
+          open={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          onUpdate={handleUpdateBanner}
+        />
+      )}
+    </div>
+  );
 }

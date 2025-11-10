@@ -64,7 +64,7 @@ export function EditBannerModal({ banner, open, onClose, onUpdate }: EditBannerM
 
                     <ModalBody className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Title</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
                             <Input
                                 value={formData.title || ''}
                                 onChange={(e) => handleChange('title', e.target.value)}
@@ -73,7 +73,7 @@ export function EditBannerModal({ banner, open, onClose, onUpdate }: EditBannerM
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Address Link</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Address Link</label>
                             <Input
                                 value={formData.link || ''}
                                 onChange={(e) => handleChange('link', e.target.value)}
@@ -82,7 +82,7 @@ export function EditBannerModal({ banner, open, onClose, onUpdate }: EditBannerM
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Replace Image</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Replace Image</label>
                             <input
                                 type="file"
                                 accept="image/*"
