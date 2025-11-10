@@ -110,7 +110,8 @@
   background-color: hsl(var(--background) / 0.95);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
-  animation: slide-in 0.3s ease-out;
+  /* --- MODIFICATION: Removed animation --- */
+  /* animation: slide-in 0.3s ease-out; */
 }
 
 /* Spinner */
@@ -141,3 +142,5 @@
     transform: rotate(360deg);
   }
 }
+
+/* --- MODIFICATION: Removed @keyframes slide-in --- */

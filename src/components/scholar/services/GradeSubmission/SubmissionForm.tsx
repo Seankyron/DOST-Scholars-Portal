@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FileUpload } from '@/components/ui/file-upload';
 import { useFileUpload } from '@/hooks/useFileUpload';
-import type { SemesterAvailability, GradeSubmission } from '@/types'; // <-- Import GradeSubmission
+import type { SemesterAvailability, GradeSubmission } from '@/types'; 
 import { toast } from '@/components/ui/toaster';
 import { CheckCircle, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
