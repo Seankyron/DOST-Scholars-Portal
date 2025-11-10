@@ -3,11 +3,9 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatRelativeTime } from '@/lib/utils/date';
-// --- MODIFICATION: Import SemesterAvailability and Button ---
 import type { SubmissionStatus, Semester, SemesterAvailability } from '@/types';
 import { Button } from '@/components/ui/button';
 
-// --- MODIFICATION: Expanded mock data to be compatible with SemesterAvailability ---
 const mockActivities: (SemesterAvailability & { id: number; title: string; timestamp: string })[] = [
   {
     id: 1,

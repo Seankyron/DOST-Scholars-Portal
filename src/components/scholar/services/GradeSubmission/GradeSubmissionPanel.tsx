@@ -25,15 +25,14 @@ const mockCurriculum: CurriculumConfig = {
   duration: 4, 
 };
 
-// --- MODIFICATION: Synced this data to match RecentSubmissions ---
 const submissionStatuses: Record<string, SubmissionStatus> = {
   '1-1st Semester': 'Approved',
   '1-2nd Semester': 'Approved',
   '1-Midyear': 'Approved', 
   '2-1st Semester': 'Approved',
-  '2-2nd Semester': 'Pending', // <-- Matches recent activity
-  '3-1st Semester': 'Approved', // <-- Matches recent activity
-  '3-2nd Semester': 'Resubmit', // <-- Matches recent activity
+  '2-2nd Semester': 'Pending', 
+  '3-1st Semester': 'Approved',
+  '3-2nd Semester': 'Resubmit', 
   '3-Midyear': 'Open', 
   '4-1st Semester': 'Not Available',
   '4-2nd Semester': 'Not Available',
@@ -58,7 +57,6 @@ for (let year = 1; year <= courseDuration; year++) {
       semester: sem,
       status: status,
       isAvailable: status !== 'Not Available',
-      // (Mock data for other flags)
       isCurrent: (year === 3 && sem === '2nd Semester'), 
       isPast: year < 3 || (year === 3 && sem === '1st Semester'), 
       isFuture: year > 3,
@@ -68,17 +66,22 @@ for (let year = 1; year <= courseDuration; year++) {
 
 export function GradeSubmissionPanel() {
   const [selectedSemester, setSelectedSemester] = useState<SemesterAvailability | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
 
   const handleOpenModal = (semester: SemesterAvailability) => {
     if (semester.status !== 'Not Available') {
       setSelectedSemester(semester);
+      setIsClosing(false);
     }
   };
 
   const handleCloseModal = () => {
-    setSelectedSemester(null);
+    setIsClosing(true);
+    setTimeout(() => {
+      setSelectedSemester(null);
+      setIsClosing(false);
+    }, 250);
   };
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl text-center font-bold text-dost-title mb-4">
@@ -106,15 +109,13 @@ export function GradeSubmissionPanel() {
         onSelectSemester={handleOpenModal} 
       />
 
-      {/* --- MODIFICATION: Pass handleOpenModal to the component --- */}
       <RecentSubmissions onSelectSubmission={handleOpenModal} />
 
-      {/* Submission Modal */}
-      {selectedSemester && (
+      {(selectedSemester || isClosing) && (
         <GradeSubmissionModal
-          isOpen={!!selectedSemester}
+          isOpen={!!selectedSemester && !isClosing}
           onClose={handleCloseModal}
-          semester={selectedSemester}
+          semester={selectedSemester!}
         />
       )}
     </div>

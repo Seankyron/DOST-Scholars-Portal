@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { cn } from '@/lib/utils/cn';
-import { Upload, File, X } from 'lucide-react';
+import { Upload, FileText, X } from 'lucide-react';
 
 interface FileUploadProps {
   label?: string;
@@ -96,7 +96,7 @@ export function FileUpload({
         ) : (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <File className="h-8 w-8 text-dost-blue" />
+              <FileText className="h-8 w-8 text-dost-blue" />
               <div>
                 <p className="text-sm font-medium text-gray-900">{file.name}</p>
                 <p className="text-xs text-gray-500">

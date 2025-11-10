@@ -1,13 +1,11 @@
-// src/components/scholar/services/GradeSubmission/SubmissionForm.tsx
 'use client';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { FileUpload } from '@/components/ui/file-upload';
 import type { SemesterAvailability, GradeSubmission } from '@/types'; 
-import { CheckCircle, FileText } from 'lucide-react';
+import { CheckCircle} from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
-// --- Read-only component for valid files ---
 function FileDisplayReadOnly({ label, fileName }: { label: string; fileName: string; }) {
   return (
     <div>
@@ -32,11 +30,9 @@ function FileDisplayReadOnly({ label, fileName }: { label: string; fileName: str
   );
 }
 
-// --- MODIFICATION: Update props to pass form state up ---
 interface SubmissionFormProps {
   semester: SemesterAvailability;
   submission: GradeSubmission | null;
-  // --- Props for controlling state in parent ---
   regForm: File | null;
   setRegForm: (file: File | null) => void;
   gradesFile: File | null;
@@ -56,7 +52,6 @@ export function SubmissionForm({
   setIsConfirmed,
 }: SubmissionFormProps) {
   
-  // --- MODIFICATION: All state logic is now moved to the parent modal ---
 
   const isResubmit = submission && submission.status === 'Resubmit';
   const comment = submission?.adminComment?.toLowerCase() || '';
@@ -64,15 +59,13 @@ export function SubmissionForm({
   const showRegForm = !isResubmit || (isResubmit && (comment.includes('registration') || comment.includes('form 5')));
   const showGradesForm = !isResubmit || (isResubmit && (comment.includes('grades') || comment.includes('tor')));
 
-  // --- MODIFICATION: handleSubmit is removed from here ---
 
   return (
-    // --- MODIFICATION: Change from <form> to <div> ---
     <div className="space-y-6">
       
       {showRegForm ? (
         <FileUpload
-          label={`𝐎𝐟𝐟𝐢𝐜𝐢𝐚𝐥 𝐑𝐞𝐠𝐢𝐬𝐭𝐫𝐚𝐭𝐢𝐨𝐧 𝐅𝐨𝐫𝐦 𝐟𝐨𝐫 (${semester.semester})`}
+          label={`Official Registration From for ${semester.semester}`}
           helperText="Upload your scanned copy of the official Registration Form (Form 5) for this semester."
           onChange={setRegForm} // Use prop
           accept="application/pdf"
@@ -81,15 +74,15 @@ export function SubmissionForm({
         />
       ) : (
         <FileDisplayReadOnly 
-          label={`𝐎𝐟𝐟𝐢𝐜𝐢𝐚𝐥 𝐑𝐞𝐠𝐢𝐬𝐭𝐫𝐚𝐭𝐢𝐨𝐧 𝐅𝐨𝐫𝐦 𝐟𝐨𝐫 (${semester.semester})`}
+          label={`Official Registration From for ${semester.semester}`}
           fileName={submission?.registrationForm || 'File Approved'}
         />
       )}
 
       {showGradesForm ? (
         <FileUpload
-          label="𝐓𝐎𝐑 𝐨𝐫 𝐂𝐞𝐫𝐭𝐢𝐟𝐢𝐞𝐝 𝐂𝐨𝐦𝐩𝐥𝐞𝐭𝐞 𝐆𝐫𝐚𝐝𝐞𝐬"
-          helperText="(continues grades from First semester of your 1st year up to Second semester or Midyear AY 2024-2025)"
+          label="TOR or Certified Complete Grades"
+          helperText="Upload your scanned copy of your continues grades from First semester of your 1st year up to current semester."
           onChange={setGradesFile} // Use prop
           accept="application/pdf"
           maxSizeMB={10}
@@ -97,7 +90,7 @@ export function SubmissionForm({
         />
       ) : (
          <FileDisplayReadOnly 
-          label="𝐓𝐎𝐑 𝐨𝐫 𝐂𝐞𝐫𝐭𝐢𝐟𝐢𝐞𝐝 𝐂𝐨𝐦𝐩𝐥𝐞𝐭𝐞 𝐆𝐫𝐚𝐝𝐞𝐬"
+          label="TOR or Certified Complete Grades"
           fileName={submission?.copyOfGrades || 'File Approved'}
         />
       )}
@@ -107,10 +100,7 @@ export function SubmissionForm({
         checked={isConfirmed} // Use prop
         onChange={(e) => setIsConfirmed(e.target.checked)} // Use prop
         required
-      />
-      
-      {/* --- MODIFICATION: Submit button div is REMOVED from here --- */}
-      
+      />      
     </div>
   );
 }

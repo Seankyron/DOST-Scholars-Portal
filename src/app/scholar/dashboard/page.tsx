@@ -13,7 +13,7 @@ import {
 } from '@/context/ServicePanelContext';
 import { ServicePanelOverlay } from '@/components/scholar/layout/ServicePanelOverlay';
 import { cn } from '@/lib/utils/cn';
-  
+
 // --- MODIFIED: Removed Framer Motion animation ---
 function DashboardContentWrapper() {
   const { isOpen } = useServicePanelContext();
@@ -41,21 +41,16 @@ function DashboardPageContent() {
         <div
           className={cn(
             'p-6 sm:p-8',
-            // --- MODIFIED: Only apply spacing when panel is closed ---
             !isOpen && 'space-y-6'
           )}
         >
           <WelcomeHeader />
-          {/* --- MODIFIED: Add manual margin if panel is open --- */}
           {isOpen && <div className="mt-6" />}
           
           <ProfileSection />
-          {/* --- MODIFIED: Add manual margin if panel is open --- */}
           {isOpen && <div className="mt-6" />}
 
           <EventBannerSection />
-
-          {/* --- MODIFIED: Apply smaller margin before service panel --- */}
           <div className={cn(isOpen ? 'mt-2' : 'mt-6')} />
           
           <DashboardContentWrapper />
@@ -68,7 +63,6 @@ function DashboardPageContent() {
 export default function ScholarDashboardPage() {
   return (
     <ServicePanelProvider>
-      {/* --- MODIFIED: Use new inner component --- */}
       <DashboardPageContent />
     </ServicePanelProvider>
   );

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { GradeSubmission } from '@/types/services';
 import { formatDate } from '@/lib/utils/date';
-import { FileText, Edit, Download, History, CheckCircle } from 'lucide-react';
+import { FileText, Edit, Download} from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 interface SubmissionReviewProps {

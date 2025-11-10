@@ -16,7 +16,6 @@ import { SubmissionReview } from './SubmissionReview';
 import { AdminCommentAlert } from './AdminCommenAlert';
 import type { SemesterAvailability } from '@/types/curriculum';
 import type { GradeSubmission, YearLevel } from '@/types'; 
-// --- MODIFICATION: Import new hooks/components ---
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { toast } from '@/components/ui/toaster';
 
