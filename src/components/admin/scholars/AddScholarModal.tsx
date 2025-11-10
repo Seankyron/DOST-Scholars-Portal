@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import {
   Modal,
   ModalTrigger,
@@ -25,23 +25,115 @@ import {
   PROVINCES,
 } from '@/lib/utils/constants';
 
+const initialState = {
+  scholarId: '',
+  email: '',
+  password: '',
+  firstName: '',
+  middleName: '',
+  surname: '',
+  suffix: '',
+  contactNumber: '+63',
+  dateOfBirth: '',
+  addressProvince: '',
+  addressCity: '',
+  addressBarangay: '',
+  scholarshipType: '',
+  yearAwarded: '',
+  university: '',
+  program: '',
+  courseDuration: '4',
+  midyearClasses: { '1': false, '2': false, '3': false, '4': false },
+  thesisYear: '',
+  ojtYear: '',
+  ojtSemester: '',
+  scholarship_status: 'Active',
+};
+
 export function AddScholarModal() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState(initialState);
+  const [curriculumFile, setCurriculumFile] = useState<File | null>(null);
+
+
+  // --- Generic Change Handlers (Unchanged) ---
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleMidyearChange = (year: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      midyearClasses: {
+        ...prev.midyearClasses,
+        [year]: !prev.midyearClasses[year as keyof typeof prev.midyearClasses],
+      },
+    }));
+  };
 
   const handleFileChange = (file: File | null) => {
     if (file) {
-      // Handle file state here, e.g., setFormData
-      console.log(file.name);
+      setCurriculumFile(file);
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  // --- MODIFIED: Form Submission Logic ---
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Logic to submit form data
-    alert('Scholar added!');
-    setIsModalOpen(false);
+    if (!curriculumFile) {
+      setError('Course Curriculum (PDF) is required.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 1. Create a FormData object to send file + JSON
+      const submissionData = new FormData();
+      submissionData.append('curriculumFile', curriculumFile);
+      // Send all other form data as a JSON string
+      submissionData.append('scholarData', JSON.stringify(formData));
+
+      // 2. Send data to your new API route
+      const response = await fetch('/api/admin/create-scholar', {
+        method: 'POST',
+        body: submissionData,
+        // Don't set Content-Type; browser does it for FormData
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create scholar');
+      }
+
+      // 3. Success
+      alert('Scholar added successfully!');
+      setFormData(initialState); // Reset form
+      setCurriculumFile(null);
+      setIsModalOpen(false);
+      // TODO: Re-fetch or update the scholar list on the page
+      // (e.g., by calling a prop function or using router.refresh())
+      window.location.reload(); // Simple way to refresh data
+      
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'An unknown error occurred.');
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // --- Options (Unchanged) ---
   const statusOptions = [
     { value: 'Active', label: 'Active' },
     { value: 'Warning', label: 'Warning' },
@@ -51,8 +143,6 @@ export function AddScholarModal() {
     { value: 'Terminated', label: 'Terminated' },
     { value: 'On hold', label: 'On hold' },
   ];
-
-  // --- Options based on constants.ts ---
   const provinceOptions = PROVINCES.map((p) => ({ value: p, label: p }));
   const scholarshipOptions = SCHOLARSHIP_TYPES.map((s) => ({
     value: s,
@@ -61,6 +151,13 @@ export function AddScholarModal() {
   const universityOptions = UNIVERSITIES.map((u) => ({ value: u, label: u }));
   const yearOptions = YEAR_LEVELS.map((y) => ({ value: y, label: y }));
   const semesterOptions = SEMESTERS.map((s) => ({ value: s, label: s }));
+  const thesisYearOptions = [
+    { value: '1', label: '1st Year' },
+    { value: '2', label: '2nd Year' },
+    { value: '3', label: '3rd Year' },
+    { value: '4', label: '4th Year' },
+    { value: '5', label: '5th Year' },
+  ];
 
   return (
     <Modal open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -78,6 +175,16 @@ export function AddScholarModal() {
           </ModalHeader>
 
           <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
+            {error && (
+              <div
+                className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+                role="alert"
+              >
+                <strong className="font-bold">Error: </strong>
+                <span className="block sm:inline">{error}</span>
+              </div>
+            )}
+
             {/* --- Account Information --- */}
             <fieldset className="space-y-4 p-4 border rounded-md">
               <legend className="text-lg font-medium text-dost-title px-1">
@@ -86,12 +193,25 @@ export function AddScholarModal() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Input
                   label="SPAS ID / Scholar ID"
+                  name="scholarId"
+                  value={formData.scholarId}
+                  onChange={handleChange}
                   placeholder="YYYY-XXXX"
                   required
                 />
-                <Input label="Email" type="email" required />
+                <Input
+                  label="Email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  type="email"
+                  required
+                />
                 <Input
                   label="Password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   type="password"
                   placeholder="Min. 8 characters"
                   required
@@ -105,32 +225,76 @@ export function AddScholarModal() {
                 Personal Information
               </legend>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Input label="First Name" required />
-                <Input label="Middle Name" />
-                <Input label="Surname" required />
-                <Input label="Suffix" placeholder="e.g. Jr., III" />
+                <Input
+                  label="First Name"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  required
+                />
+                <Input
+                  label="Middle Name"
+                  name="middleName"
+                  value={formData.middleName}
+                  onChange={handleChange}
+                />
+                <Input
+                  label="Surname"
+                  name="surname"
+                  value={formData.surname}
+                  onChange={handleChange}
+                  required
+                />
+                <Input
+                  label="Suffix"
+                  name="suffix"
+                  value={formData.suffix}
+                  onChange={handleChange}
+                  placeholder="e.g. Jr., III"
+                />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Input
                   label="Contact Number"
+                  name="contactNumber"
+                  value={formData.contactNumber}
+                  onChange={handleChange}
                   type="tel"
                   placeholder="+63"
                   required
                 />
-                <Input label="Date of Birth" type="date" required />
+                <Input
+                  label="Date of Birth"
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
+                  onChange={handleChange}
+                  type="date"
+                  required
+                />
               </div>
-              {/* --- Address Fields from Signup --- */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Select
                   label="Province"
+                  name="addressProvince"
+                  value={formData.addressProvince}
+                  onChange={handleChange}
                   options={provinceOptions}
                   placeholder="Select Province"
                   required
                 />
-                <Input label="City / Municipality" required />
+                <Input
+                  label="City / Municipality"
+                  name="addressCity"
+                  value={formData.addressCity}
+                  onChange={handleChange}
+                  required
+                />
               </div>
               <Input
                 label="Barangay, Street, House/Unit No."
+                name="addressBarangay"
+                value={formData.addressBarangay}
+                onChange={handleChange}
                 placeholder="e.g., Brgy. San Juan, 123 Rizal St."
                 required
               />
@@ -144,18 +308,27 @@ export function AddScholarModal() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Select
                   label="Scholarship Type"
+                  name="scholarshipType"
+                  value={formData.scholarshipType}
+                  onChange={handleChange}
                   options={scholarshipOptions}
                   placeholder="Select Scholarship Type"
                   required
                 />
                 <Input
                   label="Year Awarded"
+                  name="yearAwarded"
+                  value={formData.yearAwarded}
+                  onChange={handleChange}
                   type="number"
                   placeholder="YYYY"
                   required
                 />
                 <Select
                   label="School / University"
+                  name="university"
+                  value={formData.university}
+                  onChange={handleChange}
                   options={universityOptions}
                   placeholder="Select University"
                   required
@@ -163,9 +336,18 @@ export function AddScholarModal() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input label="Program / Course" required />
+                <Input
+                  label="Program / Course"
+                  name="program"
+                  value={formData.program}
+                  onChange={handleChange}
+                  required
+                />
                 <Select
                   label="Duration of Course"
+                  name="courseDuration"
+                  value={formData.courseDuration}
+                  onChange={handleChange}
                   options={[
                     { value: '4', label: '4 Years' },
                     { value: '5', label: '5 Years' },
@@ -175,42 +357,62 @@ export function AddScholarModal() {
                 />
               </div>
 
-              {/* --- MODIFIED GRID --- */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
                 <div>
                   <Label className="block text-sm font-medium text-gray-700 mb-2">
                     Midyear Classes
                   </Label>
                   <div className="flex flex-col gap-2">
-                    <Checkbox label="1st Year" />
-                    <Checkbox label="2nd Year" />
-                    <Checkbox label="3rd Year" />
-                    <Checkbox label="4th Year" />
+                    <Checkbox
+                      label="1st Year"
+                      checked={formData.midyearClasses['1']}
+                      onChange={() => handleMidyearChange('1')}
+                    />
+                    <Checkbox
+                      label="2nd Year"
+                      checked={formData.midyearClasses['2']}
+                      onChange={() => handleMidyearChange('2')}
+                    />
+                    <Checkbox
+                      label="3rd Year"
+                      checked={formData.midyearClasses['3']}
+                      onChange={() => handleMidyearChange('3')}
+                    />
+                    <Checkbox
+                      label="4th Year"
+                      checked={formData.midyearClasses['4']}
+                      onChange={() => handleMidyearChange('4')}
+                    />
                   </div>
                 </div>
                 <div>
-                  <Label className="block text-sm font-medium text-gray-700 mb-2">
-                    Thesis in Curriculum
-                  </Label>
-                  <div className="flex flex-col gap-2">
-                    <Checkbox label="1st Year" />
-                    <Checkbox label="2nd Year" />
-                    <Checkbox label="3rd Year" />
-                    <Checkbox label="4th Year" />
-                  </div>
+                  <Select
+                    label="Thesis in Curriculum"
+                    name="thesisYear"
+                    value={formData.thesisYear}
+                    onChange={handleChange}
+                    options={thesisYearOptions}
+                    placeholder="Select Thesis Year"
+                    required
+                  />
                 </div>
               </div>
 
-              {/* --- NEW GRID FOR OJT --- */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Select
                   label="OJT Year"
-                  options={yearOptions.slice(0, 4)} // Only 1st-4th Year
+                  name="ojtYear"
+                  value={formData.ojtYear}
+                  onChange={handleChange}
+                  options={yearOptions.slice(0, 5)}
                   placeholder="Select OJT Year"
                   required
                 />
                 <Select
                   label="OJT Semester"
+                  name="ojtSemester"
+                  value={formData.ojtSemester}
+                  onChange={handleChange}
                   options={semesterOptions}
                   placeholder="Select OJT Semester"
                   required
@@ -226,6 +428,9 @@ export function AddScholarModal() {
 
               <Select
                 label="Initial Status"
+                name="scholarship_status"
+                value={formData.scholarship_status}
+                onChange={handleChange}
                 options={statusOptions}
                 placeholder="Select Status"
                 required
@@ -238,11 +443,19 @@ export function AddScholarModal() {
               type="button"
               variant="outline"
               onClick={() => setIsModalOpen(false)}
+              disabled={loading}
             >
               Cancel
             </Button>
-            <Button type="submit" variant="primary">
-              ADD SCHOLAR
+            <Button type="submit" variant="primary" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'ADD SCHOLAR'
+              )}
             </Button>
           </ModalFooter>
         </form>
