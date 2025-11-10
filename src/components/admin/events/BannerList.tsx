@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { DeleteBannerModal } from '@/components/admin/event/DeleteBannerModal';
+import { DeleteBannerModal } from '@/components/admin/events/DeleteBannerModal';
 
 export interface Banner {
     id: number;

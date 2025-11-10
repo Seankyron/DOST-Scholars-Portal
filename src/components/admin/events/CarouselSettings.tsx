@@ -61,28 +61,28 @@ export function CarouselSettings() {
                         Show Navigation Dots
                         <Switch
                             checked={settings.showDots}
-                            onCheckedChange={(val) => setSettings({ ...settings, showDots: val })}
+                            onCheckedChange={(val: boolean) => setSettings({ ...settings, showDots: val })}
                         />
                     </Label>
                     <Label className="flex justify-between">
                         Show Arrow Controls
                         <Switch
                             checked={settings.showArrows}
-                            onCheckedChange={(val) => setSettings({ ...settings, showArrows: val })}
+                            onCheckedChange={(val: boolean) => setSettings({ ...settings, showArrows: val })}
                         />
                     </Label>
                     <Label className="flex justify-between">
                         Infinite Loop
                         <Switch
                             checked={settings.infiniteLoop}
-                            onCheckedChange={(val) => setSettings({ ...settings, infiniteLoop: val })}
+                            onCheckedChange={(val: boolean) => setSettings({ ...settings, infiniteLoop: val })}
                         />
                     </Label>
                     <Label className="flex justify-between">
                         Pause on Hover
                         <Switch
                             checked={settings.pauseOnHover}
-                            onCheckedChange={(val) => setSettings({ ...settings, pauseOnHover: val })}
+                            onCheckedChange={(val: boolean) => setSettings({ ...settings, pauseOnHover: val })}
                         />
                     </Label>
                 </div>
