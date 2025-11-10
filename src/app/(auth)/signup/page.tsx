@@ -20,6 +20,7 @@ import {
 } from '@/lib/utils/constants';
 import { isValidScholarId } from '@/lib/utils/validation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { signupAction } from '@lib/actions/auth';
 
 type SignupStep = 1 | 2 | 3 | 4;
 
@@ -224,87 +225,38 @@ export default function SignupPage() {
     setErrorMessage('');
 
     try {
-      // Upload curriculum file first
-      let curriculumUrl = '';
-      console.log(formData);
-      if (formData.curriculumFile) {
-        const fileExt = formData.curriculumFile.name.split('.').pop();
-        const fileName = `${Date.now()}.${fileExt}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('signup')
-          .upload(fileName, formData.curriculumFile);
+      // 1. Create a FormData object to send
+      const formDataToSubmit = new FormData();
 
-        if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('signup')
-          .getPublicUrl(fileName);
-        
-        console.log(curriculumUrl);
-        curriculumUrl = publicUrl;
+      // 2. Append the file
+      if (formData.curriculumFile) {
+        formDataToSubmit.append('curriculumFile', formData.curriculumFile);
+      } else {
+        // This should be caught by validation, but it's a good safeguard
+        throw new Error('Curriculum file is missing.');
       }
 
-      // Create curriculum config
-      const midyearYears = [];
-      if (formData.midyear1stYear) midyearYears.push(1);
-      if (formData.midyear2ndYear) midyearYears.push(2);
-      if (formData.midyear3rdYear) midyearYears.push(3);
-      if (formData.midyear4thYear) midyearYears.push(4);
+      // 3. Append the rest of the form data as a JSON string
+      // We do this because FormData can't handle nested objects/arrays
+      formDataToSubmit.append('data', JSON.stringify(formData));
 
-      const thesisYear = formData.thesis1stYear ? 1 :
-                        formData.thesis2ndYear ? 2 :
-                        formData.thesis3rdYear ? 3 : 4;
+      // 4. Call the Server Action
+      const { data, error } = await signupAction(formDataToSubmit);
 
-      const ojtInfo = {
-        ojtYear: parseInt(formData.ojtYear),
-        ojtSemester: formData.ojtSemester,
-      };
-      console.log(ojtInfo);
+      if (error) {
+        // Handle specific errors, e.g., user already exists
+        if (error.message.includes('User already registered')) {
+          setErrorMessage(
+            'This email is already registered. Please use a different email or log in.'
+          );
+        } else {
+          throw error; // Throw other errors to be caught below
+        }
+      } else {
+        // Redirect to success page
+        router.push('/signup/success');
+      }
 
-      const completeAddress = `${formData.addressBrgy}, ${formData.addressCity}, ${formData.addressProvince}`;
-
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-            email: formData.email,
-            password: formData.password,
-            options: {
-              data: {
-                // --- Personal Info ---
-                spas_id: formData.scholarId,
-                first_name: formData.firstName,
-                middle_name: formData.middleName,
-                last_name: formData.surname,
-                suffix: formData.suffix,
-                date_of_birth: formData.dateOfBirth,
-                contact_number: formData.contactNumber,
-                address: completeAddress,
-                municipality_city: formData.addressCity,
-                province: formData.addressProvince,
-
-                // --- Scholarship Info ---
-                scholarship_type: formData.scholarshipType,
-                year_awarded: parseInt(formData.yearAwarded),
-                university: formData.university,
-                program_course: formData.program,
-                
-                // --- Curriculum Info ---
-                midyear_classes: midyearYears,
-                thesis_year: thesisYear,
-                ojt: ojtInfo,
-                course_duration: parseInt(formData.courseDuration),
-                curriculum_file_key: curriculumUrl,
-                
-                // --- Default Statuses ---
-                is_verified: false,
-                scholarship_status: 'pending', // Or 'active' as you have
-              },
-            },
-          });
-
-          console.log(authData);
-    if (authError) throw authError;
-
-      // Redirect to success page
-      router.push('/signup/success');
     } catch (error: any) {
       console.error('Signup error:', error);
       setErrorMessage(error.message || 'Failed to create account');
