@@ -1,17 +1,31 @@
 'use client';
 
-import { Scholar } from './ScholarRow';
+// --- MODIFICATION: Import the correct type ---
+import { type ScholarRowData } from './ScholarRow';
 import { Button } from '@/components/ui/button';
-import { Modal, ModalContent, ModalHeader, ModalTitle, ModalFooter } from '@/components/ui/modal';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalFooter,
+} from '@/components/ui/modal';
 
 interface HistoryScholarModalProps {
-  scholar: Scholar;
+  scholar: ScholarRowData; // <-- Use ScholarRowData
   onClose: () => void;
+  open: boolean; // <-- 1. Add open prop
 }
 
-export function HistoryScholarModal({ scholar, onClose }: HistoryScholarModalProps) {
+export function HistoryScholarModal({
+  scholar,
+  onClose,
+  open, // <-- 2. Accept open prop
+}: HistoryScholarModalProps) {
   return (
-    <Modal open={true} onOpenChange={onClose}>
+    <Modal open={open} onOpenChange={onClose}>
+      {' '}
+      {/* <-- 3. Use open prop */}
       <ModalContent size="2xl">
         <ModalHeader>
           <ModalTitle>Scholar History</ModalTitle>
@@ -21,7 +35,9 @@ export function HistoryScholarModal({ scholar, onClose }: HistoryScholarModalPro
           <p>No history data available for {scholar.name}.</p>
         </div>
         <ModalFooter>
-          <Button variant="outline" onClick={onClose}>Close</Button>
+          <Button variant="outline" onClick={onClose}>
+            Close
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

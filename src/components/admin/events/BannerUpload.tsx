@@ -3,13 +3,14 @@
 import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload } from 'lucide-react'; // <-- Import icon
-import Image from 'next/image'; // <-- Import Image
+import { Upload, Plus } from 'lucide-react';
+import Image from 'next/image';
+import { toast } from '@/components/ui/toaster'; 
 
 interface Banner {
   title: string;
   link: string;
-  image: string; // This will be the object URL for preview
+  image: string; 
 }
 
 interface BannerUploadProps {
@@ -39,7 +40,11 @@ export function BannerUpload({ onAddBanner }: BannerUploadProps) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!file || !title || !link || !preview) return;
+    if (!file || !title || !link || !preview) {
+      // --- 2a. Add error toast ---
+      toast.error('Please fill all fields and upload an image.');
+      return;
+    }
 
     const newBanner: Banner = {
       title,
@@ -48,13 +53,16 @@ export function BannerUpload({ onAddBanner }: BannerUploadProps) {
     };
 
     onAddBanner(newBanner);
+    toast.success('Banner added successfully!'); // <-- 2b. Add success toast
 
     setTitle('');
     setLink('');
     setFile(null);
     setPreview('');
     // Reset file input
-    const fileInput = document.getElementById('upload-banner') as HTMLInputElement;
+    const fileInput = document.getElementById(
+      'upload-banner'
+    ) as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   };
 
@@ -110,8 +118,9 @@ export function BannerUpload({ onAddBanner }: BannerUploadProps) {
           onChange={(e) => setLink(e.target.value)}
           required
         />
+        {/* --- 3. Fix the button --- */}
         <Button type="submit" className="sm:self-end" variant="primary">
-          + Add Banner
+          <Plus/>
         </Button>
       </div>
     </form>
