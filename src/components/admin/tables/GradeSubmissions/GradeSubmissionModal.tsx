@@ -16,6 +16,8 @@ import { Label } from '@/components/ui/label';
 import { Eye, Download, MessageSquarePlus } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import type { GradeSubmissionDetails } from './GradeSubmissionsTable';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'; // <-- IMPORT
+import { toast } from '@/components/ui/toaster'; // <-- IMPORT
 
 // --- Helper Component for info pairs ---
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
@@ -107,6 +109,10 @@ export function GradeSubmissionModal({
   const [scholarStatusState, setScholarStatusState] = useState(scholarStatus);
   const [adminComment, setAdminComment] = useState(submissionInfo.adminComment || '');
 
+  // --- ADDED: State for confirmation dialogs ---
+  const [isApproveOpen, setIsApproveOpen] = useState(false);
+  const [isResubmitOpen, setIsResubmitOpen] = useState(false);
+
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {
       if (prev.trim() === '') return commentText;
@@ -114,8 +120,8 @@ export function GradeSubmissionModal({
     });
   };
 
+  // --- MODIFIED: This is now the CONFIRMED action ---
   const handleApprove = () => {
-    // This will be saved to the DB.
     const finalComment = adminComment.trim() === '' ? APPROVED_MESSAGE : adminComment;
     
     // In a real app, you would save:
@@ -123,18 +129,30 @@ export function GradeSubmissionModal({
     // 2. adminComment: finalComment
     // 3. scholarStatus: scholarStatusState
     
-    alert(`Approving ${scholarInfo.name} with comment: ${finalComment}`);
-    onClose();
+    console.log(`Approving ${scholarInfo.name} with comment: ${finalComment}`);
+    toast.success('Submission Approved', { description: `${scholarInfo.name} has been notified.` });
+    
+    setIsApproveOpen(false); // Close dialog
+    onClose(); // Close modal
   };
 
+  // --- MODIFIED: This is now the CONFIRMED action ---
   const handleResubmit = () => {
+    if (adminComment.trim() === '') {
+      toast.error('Please provide a comment before requesting resubmission.');
+      return;
+    }
+    
     // In a real app, you would save:
     // 1. status: "Resubmit"
     // 2. adminComment: adminComment
     // 3. scholarStatus: scholarStatusState
     
-    alert(`Requesting resubmission from ${scholarInfo.name} with comment: ${adminComment}`);
-    onClose();
+    console.log(`Requesting resubmission from ${scholarInfo.name} with comment: ${adminComment}`);
+    toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
+    
+    setIsResubmitOpen(false); // Close dialog
+    onClose(); // Close modal
   };
 
   const comment = adminComment.toLowerCase();
@@ -143,157 +161,181 @@ export function GradeSubmissionModal({
   const showCurriculumResubmit = comment.includes('curriculum'); // For future use
 
   return (
-    <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="4xl">
-        <ModalHeader>
-          <ModalTitle>Grade Submission Details</ModalTitle>
-        </ModalHeader>
+    <>
+      <Modal open={isOpen} onOpenChange={onClose}>
+        <ModalContent size="4xl">
+          <ModalHeader>
+            <ModalTitle>Grade Submission Details</ModalTitle>
+          </ModalHeader>
 
-        <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
             
-            {/* === COLUMN 1 === */}
-            <div className="space-y-6">
-              <section className="space-y-3">
-                <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                  Scholar Information
-                </h2>
-                <InfoItem label="Name" value={scholarInfo.name} />
-                <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
-                <InfoItem label="Date of Birth" value={scholarInfo.dateOfBirth} />
-                <InfoItem label="Complete Address" value={scholarInfo.completeAddress} />
-              </section>
-
-              <section className="space-y-3">
-                <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                  Submission Details
-                </h2>
-                <InfoItem label="Year & Semester" value={`${submissionInfo.year}, ${submissionInfo.semester}`} />
-                <InfoItem label="Academic Year" value={submissionInfo.academicYear} />
-                <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
-              </section>
-            </div>
-
-            {/* === COLUMN 2 === */}
-            <div className="space-y-6">
-              <section className="space-y-3">
-                <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                  Year of Award and Study Placement
-                </h2>
-                <InfoItem label="Scholarship Type" value={placementInfo.scholarshipType} />
-                <InfoItem label="Batch / Year Awarded" value={placementInfo.batch} />
-                <InfoItem label="School / University" value={placementInfo.university} />
-                <InfoItem label="Program / Course" value={placementInfo.program} />
-              </section>
-
-              <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                  Submitted Documents
-                </h2>
-                <FileDisplay
-                  label="Course Curriculum:"
-                  fileName={files.curriculumFile}
-                  needsResubmit={showCurriculumResubmit} // <-- Now dynamic
-                />
-                <FileDisplay
-                  label="Registration Form or Form 5:"
-                  fileName={files.registrationForm}
-                  needsResubmit={showCorResubmit} // <-- Now dynamic
-                />
-                <FileDisplay
-                  label="Copy of Grades:"
-                  fileName={files.copyOfGrades}
-                  needsResubmit={showGradesResubmit} // <-- Now dynamic
-                />
-              </section>
-            </div>
-          </div>
-
-          {/* --- FULL WIDTH SECTION (Comments & Status) --- */}
-          <section className="pt-4 border-t">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              <section>
-                <Label className="block text-sm font-medium text-gray-700 mb-2">
-                  Scholar Status
-                </Label>
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                  {/* ... radio buttons ... */}
-                  <div className="flex items-center gap-2">
-                    <input type="radio" id="status-active" name="scholarStatus" value="Active" checked={scholarStatusState === 'Active'} onChange={() => setScholarStatusState('Active')} />
-                    <Label htmlFor="status-active">Active</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="radio" id="status-warning" name="scholarStatus" value="Warning" checked={scholarStatusState === 'Warning'} onChange={() => setScholarStatusState('Warning')} />
-                    <Label htmlFor="status-warning">Warning</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="radio" id="status-2ndwarning" name="scholarStatus" value="2nd Warning" checked={scholarStatusState === '2nd Warning'} onChange={() => setScholarStatusState('2nd Warning')} />
-                    <Label htmlFor="status-2ndwarning">2nd Warning</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="radio" id="status-suspended" name="scholarStatus" value="Suspended" checked={scholarStatusState === 'Suspended'} onChange={() => setScholarStatusState('Suspended')} />
-                    <Label htmlFor="status-suspended">Suspended</Label>
-                  </div>
-                </div>
-              </section>
+              
+              {/* === COLUMN 1 === */}
+              <div className="space-y-6">
+                <section className="space-y-3">
+                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
+                    Scholar Information
+                  </h2>
+                  <InfoItem label="Name" value={scholarInfo.name} />
+                  {/* ... other InfoItems ... */}
+                  <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
+                  <InfoItem label="Date of Birth" value={scholarInfo.dateOfBirth} />
+                  <InfoItem label="Complete Address" value={scholarInfo.completeAddress} />
+                </section>
 
-              <section className="space-y-2">
-                <Label htmlFor="admin-comment" className="block text-sm font-medium text-gray-700">
-                  Comments
-                </Label>
-                <Textarea
-                  id="admin-comment"
-                  placeholder="Add comments for the scholar... (e.g., 'Invalid COR')"
-                  className="min-h-[100px]"
-                  value={adminComment}
-                  onChange={(e) => setAdminComment(e.target.value)}
-                />
-                <div className="flex flex-wrap gap-1.5">
-                  {PREBUILT_COMMENTS.map((comment) => (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      key={comment.key}
-                      onClick={() => handleAddComment(comment.text)}
-                      className="text-xs h-auto py-1 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
-                    >
-                      <MessageSquarePlus className="h-3 w-3 mr-1.5" />
-                      {comment.short}
-                    </Button>
-                  ))}
-                </div>
-              </section>
+                <section className="space-y-3">
+                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
+                    Submission Details
+                  </h2>
+                  <InfoItem label="Year & Semester" value={`${submissionInfo.year}, ${submissionInfo.semester}`} />
+                  <InfoItem label="Academic Year" value={submissionInfo.academicYear} />
+                  <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
+                </section>
+              </div>
+
+              {/* === COLUMN 2 === */}
+              <div className="space-y-6">
+                <section className="space-y-3">
+                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
+                    Year of Award and Study Placement
+                  </h2>
+                  <InfoItem label="Scholarship Type" value={placementInfo.scholarshipType} />
+                  <InfoItem label="Batch / Year Awarded" value={placementInfo.batch} />
+                  <InfoItem label="School / University" value={placementInfo.university} />
+                  <InfoItem label="Program / Course" value={placementInfo.program} />
+                </section>
+
+                <section className="space-y-4">
+                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
+                    Submitted Documents
+                  </h2>
+                  <FileDisplay
+                    label="Course Curriculum:"
+                    fileName={files.curriculumFile}
+                    needsResubmit={showCurriculumResubmit}
+                  />
+                  <FileDisplay
+                    label="Registration Form or Form 5:"
+                    fileName={files.registrationForm}
+                    needsResubmit={showCorResubmit}
+                  />
+                  <FileDisplay
+                    label="Copy of Grades:"
+                    fileName={files.copyOfGrades}
+                    needsResubmit={showGradesResubmit}
+                  />
+                </section>
+              </div>
             </div>
-          </section>
 
-        </ModalBody>
+            {/* --- FULL WIDTH SECTION (Comments & Status) --- */}
+            <section className="pt-4 border-t">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <section>
+                  <Label className="block text-sm font-medium text-gray-700 mb-2">
+                    Scholar Status
+                  </Label>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                    {/* ... radio buttons ... */}
+                    <div className="flex items-center gap-2">
+                      <input type="radio" id="status-active" name="scholarStatus" value="Active" checked={scholarStatusState === 'Active'} onChange={() => setScholarStatusState('Active')} />
+                      <Label htmlFor="status-active">Active</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input type="radio" id="status-warning" name="scholarStatus" value="Warning" checked={scholarStatusState === 'Warning'} onChange={() => setScholarStatusState('Warning')} />
+                      <Label htmlFor="status-warning">Warning</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input type="radio" id="status-2ndwarning" name="scholarStatus" value="2nd Warning" checked={scholarStatusState === '2nd Warning'} onChange={() => setScholarStatusState('2nd Warning')} />
+                      <Label htmlFor="status-2ndwarning">2nd Warning</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input type="radio" id="status-suspended" name="scholarStatus" value="Suspended" checked={scholarStatusState === 'Suspended'} onChange={() => setScholarStatusState('Suspended')} />
+                      <Label htmlFor="status-suspended">Suspended</Label>
+                    </div>
+                  </div>
+                </section>
 
-        <ModalFooter>
-          <ModalClose asChild>
-            <Button type="button" variant="outline">
-              Cancel
+                <section className="space-y-2">
+                  <Label htmlFor="admin-comment" className="block text-sm font-medium text-gray-700">
+                    Comments
+                  </Label>
+                  <Textarea
+                    id="admin-comment"
+                    placeholder="Add comments for the scholar... (e.g., 'Invalid COR')"
+                    className="min-h-[100px]"
+                    value={adminComment}
+                    onChange={(e) => setAdminComment(e.target.value)}
+                  />
+                  <div className="flex flex-wrap gap-1.5">
+                    {PREBUILT_COMMENTS.map((comment) => (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        key={comment.key}
+                        onClick={() => handleAddComment(comment.text)}
+                        className="text-xs h-auto py-1 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                      >
+                        <MessageSquarePlus className="h-3 w-3 mr-1.5" />
+                        {comment.short}
+                      </Button>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            </section>
+
+          </ModalBody>
+
+          <ModalFooter>
+            <ModalClose asChild>
+              <Button type="button" variant="outline">
+                Cancel
+              </Button>
+            </ModalClose>
+            <Button
+              type="button"
+              variant="primary"
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => setIsResubmitOpen(true)} // <-- MODIFIED
+            >
+              REQUEST RESUBMISSION
             </Button>
-          </ModalClose>
-          <Button
-            type="button"
-            variant="primary"
-            className="bg-red-600 hover:bg-red-700"
-            onClick={handleResubmit}
-          >
-            REQUEST RESUBMISSION
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            className="bg-green-600 hover:bg-green-700"
-            onClick={handleApprove}
-          >
-            APPROVE
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+            <Button
+              type="button"
+              variant="primary"
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => setIsApproveOpen(true)} // <-- MODIFIED
+            >
+              APPROVE
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* --- ADDED: Confirmation Dialogs --- */}
+      <ConfirmDialog
+        isOpen={isApproveOpen}
+        onClose={() => setIsApproveOpen(false)}
+        onConfirm={handleApprove}
+        title="Approve Submission"
+        description={`Are you sure you want to approve this submission for ${scholarInfo.name}?`}
+        variant="info"
+        confirmText="Yes, approve"
+      />
+      
+      <ConfirmDialog
+        isOpen={isResubmitOpen}
+        onClose={() => setIsResubmitOpen(false)}
+        onConfirm={handleResubmit}
+        title="Request Resubmission"
+        description={`Are you sure you want to request resubmission from ${scholarInfo.name}? Make sure you have added a clear comment.`}
+        variant="danger"
+        confirmText="Yes, request resubmission"
+      />
+    </>
   );
 }

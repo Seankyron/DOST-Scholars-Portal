@@ -1,5 +1,4 @@
 'use client';
-'use client';
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -11,16 +10,14 @@ import {
 } from '@/components/admin/scholars/ScholarFilter';
 import {
   ScholarTable,
-  type ScholarRowData, // Import the data type
+  type ScholarRowData,
 } from '@/components/admin/scholars/ScholarTable';
 import { SearchInput } from '@/components/shared/SearchInput';
-import { Button } from '@/components/ui/button';
-import { Upload } from 'lucide-react';
+// --- Button and Upload removed, they are now in the table component ---
 import type { ScholarStatus } from '@/types/scholar';
-// Assuming you have this hook from your file list.
-// If not, you can just use the 'searchTerm' directly inside the useEffect.
 import { useDebounce } from '@/hooks/useDebounce';
 
+// (Helper functions formatYear, getYearLevelNumber, ITEMS_PER_PAGE remain the same)
 // --- Helper Functions ---
 type ScholarViewRow = Database['public']['Views']['admin_scholar_view']['Row'];
 
@@ -43,18 +40,16 @@ const getYearLevelNumber = (yearString: string): number | null => {
   return null;
 };
 
-const ITEMS_PER_PAGE = 7; // As seen in your mock data
+const ITEMS_PER_PAGE = 7;
 
 export default function ScholarManagementPage() {
-  // --- All application state lives here ---
+  // (State and useEffect logic remains the same)
   const [scholars, setScholars] = useState<ScholarRowData[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalScholars, setTotalScholars] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-
-  // Filter & Search State
   const [searchTerm, setSearchTerm] = useState('');
-  const debouncedSearchTerm = useDebounce(searchTerm, 300); // Debounce for search
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [filters, setFilters] = useState<ScholarFiltersState>({
     scholarshipType: 'All',
     status: 'All',
@@ -62,20 +57,15 @@ export default function ScholarManagementPage() {
     course: 'All',
     yearLevel: 'All',
   });
-
   const supabase = createClient();
 
-  // --- Main Data Fetching Effect ---
-  // Re-runs whenever filters, search term, or page changes
   useEffect(() => {
     async function fetchScholars() {
       setLoading(true);
-
       let query = supabase
         .from('admin_scholar_view')
         .select('*', { count: 'exact' });
-
-      // 1. Apply Filters
+      // ... (filtering logic) ...
       if (filters.scholarshipType !== 'All') {
         query = query.eq('scholarship_type', filters.scholarshipType);
       }
@@ -89,30 +79,20 @@ export default function ScholarManagementPage() {
       if (yearLevelNum) {
         query = query.eq('current_scholar_year', yearLevelNum);
       }
-      // Note: 'course' filter is disabled, so we don't add it to the query
-
-      // 2. Apply Debounced Search Term
       if (debouncedSearchTerm) {
         query = query.or(
           `full_name.ilike.%${debouncedSearchTerm}%,spas_id.ilike.%${debouncedSearchTerm}%,email.ilike.%${debouncedSearchTerm}%`
         );
       }
-
-      // 3. Apply Pagination
       const from = (currentPage - 1) * ITEMS_PER_PAGE;
       const to = from + ITEMS_PER_PAGE - 1;
       query = query.range(from, to).order('last_name', { ascending: true });
-
-      // 4. Execute Query
       const { data, error, count } = await query;
-
       if (error) {
         console.error('Error fetching scholars:', error);
         setLoading(false);
         return;
       }
-
-      // 5. Transform data for the "dumb" table component
       const transformedScholars: ScholarRowData[] = data.map(
         (scholar: ScholarViewRow) => ({
           id: scholar.id || '',
@@ -124,31 +104,22 @@ export default function ScholarManagementPage() {
           program: scholar.program_course || 'N/A',
           status: (scholar.scholarship_status || 'N/A') as ScholarStatus,
           email: scholar.email || 'N/A',
-          profileImage: '/images/placeholders/avatar-placeholder.png', // Default
+          profileImage: '/images/placeholders/avatar-placeholder.png',
         })
       );
-
-      // 6. Set State
       setScholars(transformedScholars);
       setTotalScholars(count || 0);
       setLoading(false);
     }
-
     fetchScholars();
-  }, [supabase, filters, debouncedSearchTerm, currentPage]); // Dependencies
+  }, [supabase, filters, debouncedSearchTerm, currentPage]);
 
-  // --- State Handlers ---
   const handleFilterChange = (
     filterName: keyof ScholarFiltersState,
     value: string
   ) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
-    setCurrentPage(1); // Reset to first page when filters change
-  };
-
-  const handleSearchChange = (query: string) => {
-    setSearchTerm(query);
-    setCurrentPage(1); // Reset to first page when search changes
+    setCurrentPage(1);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -156,50 +127,47 @@ export default function ScholarManagementPage() {
   };
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6 text-dost-title">
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold text-dost-title">
         Scholar Management
       </h1>
 
-      {/* Filters Section - This component is now correct */}
       <ScholarFilters filters={filters} onFilterChange={handleFilterChange} />
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-        <div className="flex flex-wrap gap-2">
-          {/* Standalone Export button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => alert('Export logic not yet implemented.')}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Export
-          </Button>
+      <div className="bg-white rounded-lg shadow-md">
+        {/* --- MODIFIED: Header layout changed as requested --- */}
+        <div className="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Scholars
+            </h2>
+            <AddScholarModal />
+          </div>
 
-          {/* Add Scholar Modal Trigger */}
-          <AddScholarModal />
+          <SearchInput
+            placeholder="Search Scholars...."
+            onSearch={(query: string) => {
+              setSearchTerm(query);
+              setCurrentPage(1);
+            }}
+            className="w-full sm:max-w-xs"
+          />
         </div>
-
-        <SearchInput
-          placeholder="Search Scholars...."
-          onSearch={(query: string) => setSearchTerm(query)}
-          className="w-full sm:max-w-xs"
-        />
+        
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <p className="text-gray-500">Loading scholars...</p>
+          </div>
+        ) : (
+          <ScholarTable
+            scholars={scholars}
+            totalScholars={totalScholars}
+            page={currentPage}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={handlePageChange}
+          />
+        )}
       </div>
-
-      {loading ? (
-        <div className="flex justify-center items-center h-64 bg-white rounded-lg shadow-md">
-          <p className="text-gray-500">Loading scholars...</p>
-        </div>
-      ) : (
-        <ScholarTable
-          scholars={scholars}
-          totalScholars={totalScholars}
-          page={currentPage}
-          itemsPerPage={ITEMS_PER_PAGE}
-          onPageChange={handlePageChange}
-        />
-      )}
     </div>
   );
 }
