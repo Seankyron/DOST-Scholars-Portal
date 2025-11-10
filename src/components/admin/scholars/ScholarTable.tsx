@@ -1,123 +1,145 @@
 'use client';
 
-import { useState } from 'react';
-import { ScholarRow, Scholar } from './ScholarRow';
-import { EditScholarModal } from './EditScholarModal';
-import { ViewScholarModal } from './ViewScholarModal';
-import { HistoryScholarModal } from './HistoryScholarModal';
+import { ScholarRow } from './ScholarRow';
 import { Pagination } from '@/components/shared/Pagination';
+import type { ScholarStatus } from '@/types/scholar';
+import { Button } from '@/components/ui/button'; // <-- ADDED
+import { Download} from 'lucide-react'; // <-- ADDED
 
-// Mock data
-const mockScholars: Scholar[] = [
-    {
-        id: '1',
-        name: 'Joshua De Larosa',
-        scholarId: '2021-00123',
-        scholarshipType: 'RA 7687',
-        university: 'Laguna State Polytechnic',
-        yearLevel: '4th Year',
-        program: 'BS Electronics',
-        status: 'Active',
-        email: 'joshuadelarosa@lspu.edu.ph',
-        profileImage: '/images/placeholders/avatar-placeholder.png',
-    },
-    {
-        id: '2',
-        name: 'Maloi Ricalde',
-        scholarId: '2022-00456',
-        scholarshipType: 'Merit',
-        university: 'Batangas State University',
-        yearLevel: '3rd Year',
-        program: 'BS Information Technology',
-        status: 'Warning',
-        email: 'maloi.ricalde@batstate.edu.ph',
-        profileImage: '',
-    },
-];
-
-interface ScholarTableProps {
-    searchTerm: string;
-    filters: {
-        type: string;
-        status: string;
-        university: string;
-        year: string;
-    };
+// (ScholarRowData interface remains the same)
+export interface ScholarRowData {
+  id: string;
+  name: string;
+  scholarId: string;
+  scholarshipType: string;
+  university: string;
+  yearLevel: string;
+  program: string;
+  status: ScholarStatus;
+  email: string;
+  profileImage: string;
 }
 
-export function ScholarTable({ searchTerm, filters }: ScholarTableProps) {
-    const [scholars, setScholars] = useState<Scholar[]>(mockScholars);
-    const [viewScholar, setViewScholar] = useState<Scholar | null>(null);
-    const [editScholar, setEditScholar] = useState<Scholar | null>(null);
-    const [historyScholar, setHistoryScholar] = useState<Scholar | null>(null);
+interface ScholarTableProps {
+  scholars: ScholarRowData[];
+  totalScholars: number;
+  page: number;
+  itemsPerPage: number;
+  onPageChange: (newPage: number) => void;
+}
 
-    // Filtering
-    const filteredScholars = scholars.filter((s) => {
-        const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesType = filters.type === 'All' || s.scholarshipType.includes(filters.type);
-        const matchesStatus = filters.status === 'All' || s.status === filters.status;
-        const matchesUniversity = filters.university === 'All' || s.university.includes(filters.university);
-        const matchesYear = filters.year === 'All' || s.yearLevel.includes(filters.year);
-        return matchesSearch && matchesType && matchesStatus && matchesUniversity && matchesYear;
-    });
-
-    const totalPages = Math.ceil(filteredScholars.length / 7);
-
-    const handleUpdateScholar = (updatedScholar: Scholar) => {
-        setScholars((prev) => prev.map((s) => (s.id === updatedScholar.id ? updatedScholar : s)));
-        setEditScholar(null);
-    };
-
+export function ScholarTable({
+  scholars,
+  totalScholars,
+  page,
+  itemsPerPage,
+  onPageChange,
+}: ScholarTableProps) {
+  if (totalScholars === 0) {
     return (
-        <>
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th>Scholar</th>
-                                <th>SPAS ID</th>
-                                <th>Type</th>
-                                <th>University</th>
-                                <th>Year Level</th>
-                                <th>Course</th>
-                                <th>Status</th>
-                                <th>Email</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredScholars.map((scholar) => (
-                                <ScholarRow
-                                    key={scholar.id}
-                                    scholar={scholar}
-                                    onView={setViewScholar}
-                                    onEdit={setEditScholar}
-                                    onHistory={setHistoryScholar}
-                                />
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {viewScholar && <ViewScholarModal scholar={viewScholar} onClose={() => setViewScholar(null)} />}
-
-                {editScholar && (
-                    <EditScholarModal
-                        scholar={editScholar}
-                        open={!!editScholar}
-                        onClose={() => setEditScholar(null)}
-                        onUpdate={handleUpdateScholar}
-                    />
-                )}
-
-                {historyScholar && <HistoryScholarModal scholar={historyScholar} onClose={() => setHistoryScholar(null)} />}
-
-            <div className="flex justify-between items-center mt-4">
-                <p>Showing {filteredScholars.length} of {scholars.length} scholars</p>
-                <Pagination currentPage={1} totalPages={totalPages} onPageChange={() => { }} />
-            </div>
-        </>
+      <div className="flex justify-center items-center h-64">
+        <p className="text-gray-500">No scholars found.</p>
+      </div>
     );
+  }
+
+  const totalPages = Math.ceil(totalScholars / itemsPerPage);
+  const startItem = (page - 1) * itemsPerPage + 1;
+  const endItem = Math.min(page * itemsPerPage, totalScholars);
+
+  return (
+    <>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            {/* (Table headers remain the same) */}
+            <tr>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Scholar
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                SPAS ID
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Type
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                University
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Year Level
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Course
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Email
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {scholars.map((scholar) => (
+              <ScholarRow key={scholar.id} scholar={scholar} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* --- MODIFIED: Pagination and Export layout --- */}
+      <div className="p-4 grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+        <p className="text-sm text-gray-700 sm:justify-self-start sm:text-left">
+          Showing {startItem}-{endItem} of {totalScholars} scholars
+        </p>
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          className="sm:justify-self-center" // <-- Center pagination
+        />
+        <div className="flex sm:justify-end"> {/* <-- Right-align export */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => alert('Export logic not yet implemented.')}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </div>
+    </>
+  );
 }

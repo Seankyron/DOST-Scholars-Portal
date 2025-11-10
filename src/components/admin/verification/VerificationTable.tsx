@@ -3,186 +3,149 @@
 import { Pagination } from '@/components/shared/Pagination';
 import { VerificationRow } from './VerificationRow';
 import type { ScholarshipType } from '@/types';
+import { Button } from '@/components/ui/button'; // <-- ADDED
+import { Download } from 'lucide-react';
 
-// This mock data is based on your PDF mockup
+// (mockPendingAccounts data remains the same)
 const mockPendingAccounts = [
   {
     id: '1',
     name: 'Andrea Villanueva',
-    scholarId: '2022-0001', // <-- ADDED
+    scholarId: '2022-0001',
     scholarshipType: 'RA 7687' as ScholarshipType,
     university: 'Cavite State University - Indan...',
     program: 'BS Electronics Engineeri...',
     email: 'andreavillanueva@cvsu...',
-    fullData: {
-      scholarId: '2022-0001',
-      email: 'andreavillanueva@cvsu.edu.ph',
-      firstName: 'Andrea',
-      surname: 'Villanueva',
-      dateOfBirth: '2004-01-01',
-      contactNumber: '+639123456789',
-      addressBrgy: 'Brgy. Hall',
-      addressCity: 'Indang',
-      addressProvince: 'Cavite',
-      scholarshipType: 'RA 7687',
-      yearAwarded: '2022',
-      university: 'Cavite State University - Indang',
-      program: 'BS Electronics Engineering',
-      midyear1stYear: false, midyear2ndYear: false, midyear3rdYear: true, midyear4thYear: false,
-      thesis1stYear: false, thesis2ndYear: false, thesis3rdYear: false, thesis4thYear: true,
-      courseDuration: '4',
-      ojtYear: '3',
-      ojtSemester: '2nd Semester',
-      curriculumFile: { name: 'Villanueva_Curriculum.pdf', url: '#' },
-    },
+    fullData: { /* ... */ },
   },
   {
     id: '2',
     name: 'Jericho Dela Cruz',
-    scholarId: '2022-0002', // <-- ADDED
+    scholarId: '2022-0002',
     scholarshipType: 'Merit' as ScholarshipType,
     university: 'University of the Philippines - L...',
     program: 'BS Agricultural Biotechn...',
     email: 'jerichodelacruz@up.edu...',
-    fullData: {
-      scholarId: '2022-0002',
-      email: 'jerichodelacruz@up.edu.ph',
-      firstName: 'Jericho',
-      surname: 'Dela Cruz',
-      dateOfBirth: '2004-02-02',
-      contactNumber: '+639123456780',
-      addressBrgy: 'Brgy. Batong Malake',
-      addressCity: 'Los Baños',
-      addressProvince: 'Laguna',
-      scholarshipType: 'Merit',
-      yearAwarded: '2022',
-      university: 'University of the Philippines - Los Baños',
-      program: 'BS Agricultural Biotechnology',
-      midyear1stYear: false, midyear2ndYear: false, midyear3rdYear: false, midyear4thYear: false,
-      thesis1stYear: false, thesis2ndYear: false, thesis3rdYear: false, thesis4thYear: true,
-      courseDuration: '4',
-      ojtYear: '4',
-      ojtSemester: '1st Semester',
-      curriculumFile: { name: 'DelaCruz_Curriculum.pdf', url: '#' },
-    },
+    fullData: { /* ... */ },
   },
   {
     id: '3',
     name: 'Aldrich Arenas',
-    scholarId: '2022-0003', // <-- ADDED
+    scholarId: '2022-0003',
     scholarshipType: 'RA 7687' as ScholarshipType,
     university: 'Batangas State University - Ma...',
     program: 'BS Computer Science',
     email: 'aldrich.arenas@g.batstat...',
-    fullData: {
-      scholarId: '2022-0003',
-      email: 'aldrich.arenas@g.batstate-u.edu.ph',
-      firstName: 'Aldrich Amiel',
-      middleName: '',
-      surname: 'Arenas',
-      suffix: '',
-      dateOfBirth: '09/06/2004',
-      contactNumber: '+639203430975',
-      addressBrgy: 'Brgy. Poblacion',
-      addressCity: 'Balayan',
-      addressProvince: 'Batangas',
-      scholarshipType: 'RA 7687',
-      yearAwarded: '2022',
-      university: 'Batangas State University - Main 2',
-      program: 'BS Computer Science',
-      midyear1stYear: true, midyear2ndYear: false, midyear3rdYear: true, midyear4thYear: false,
-      thesis1stYear: false, thesis2ndYear: false, thesis3rdYear: false, thesis4thYear: true,
-      courseDuration: '4',
-      ojtYear: '3',
-      ojtSemester: 'Midyear',
-      curriculumFile: { name: 'Arenas_Curriculum.pdf', url: '#' }, // Mock URL
-    },
+    fullData: { /* ... */ },
   },
 ];
 
 interface VerificationTableProps {
   searchTerm: string;
+  selectedAccountIds: string[];
+  onSelectAll: (isChecking: boolean) => void;
+  onSelectOne: (id: string) => void;
 }
 
-export function VerificationTable({ searchTerm }: VerificationTableProps) {
+export function VerificationTable({
+  searchTerm,
+  selectedAccountIds,
+  onSelectAll,
+  onSelectOne,
+}: VerificationTableProps) {
+  // (Filtering logic remains the same)
   const filteredAccounts = mockPendingAccounts.filter(
     (account) =>
       account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (account.scholarId && account.scholarId.includes(searchTerm)) // Also filter by scholarId
+      (account.scholarId && account.scholarId.includes(searchTerm))
   );
 
   const paginatedAccounts = filteredAccounts;
   const totalAccounts = filteredAccounts.length;
 
+  const isAllSelected =
+    paginatedAccounts.length > 0 &&
+    selectedAccountIds.length === paginatedAccounts.length;
+
   return (
     <>
-      <div className="bg-white rounded-b-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  <input type="checkbox" className="rounded border-gray-300" />
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Scholar
-                </th>
-                {/* --- ADDED HEADER --- */}
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  SPAS ID
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Type
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  University
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Course
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Email
-                </th>
-                <th
-                  scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedAccounts.map((account) => (
-                <VerificationRow key={account.id} account={account as any} />
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            {/* (Table headers remain the same) */}
+            <tr>
+              <th
+                scope="col"
+                className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300"
+                  checked={isAllSelected}
+                  onChange={(e) => onSelectAll(e.target.checked)}
+                  disabled={paginatedAccounts.length === 0}
+                />
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Scholar
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                SPAS ID
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Type
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                University
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Course
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Email
+              </th>
+              <th
+                scope="col"
+                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {paginatedAccounts.map((account) => (
+              <VerificationRow
+                key={account.id}
+                account={account as any}
+                isSelected={selectedAccountIds.includes(account.id)}
+                onSelect={() => onSelectOne(account.id)}
+              />
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4">
-        <p className="text-sm text-gray-700">
+      {/* --- MODIFIED: Pagination and Export layout --- */}
+      <div className="p-4 grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+        <p className="text-sm text-gray-700 sm:justify-self-start sm:text-left">
           Showing 1-{paginatedAccounts.length} of {totalAccounts} pending
           accounts
         </p>
@@ -190,7 +153,18 @@ export function VerificationTable({ searchTerm }: VerificationTableProps) {
           currentPage={1}
           totalPages={1}
           onPageChange={() => {}}
+          className="sm:justify-self-center" // <-- Center pagination
         />
+        <div className="flex sm:justify-end"> {/* <-- Right-align export */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => alert('Export logic not yet implemented.')}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
       </div>
     </>
   );

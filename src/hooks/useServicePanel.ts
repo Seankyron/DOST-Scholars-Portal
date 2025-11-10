@@ -17,29 +17,18 @@ export type ServiceId =
 
 export function useServicePanel() {
   const [activeService, setActiveService] = useState<ServiceId>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   const openPanel = useCallback((serviceId: ServiceId) => {
-    setIsAnimating(true);
     setActiveService(serviceId);
-    // Disable body scroll
-    document.body.style.overflow = 'hidden';
-    setTimeout(() => setIsAnimating(false), 300);
   }, []);
 
   const closePanel = useCallback(() => {
-    setIsAnimating(true);
-    setTimeout(() => {
-      setActiveService(null);
-      setIsAnimating(false);
-      // Re-enable body scroll
-      document.body.style.overflow = '';
-    }, 300);
+    setActiveService(null);
   }, []);
 
   return {
     activeService,
-    isAnimating,
+    isAnimating: false, 
     openPanel,
     closePanel,
     isOpen: activeService !== null,

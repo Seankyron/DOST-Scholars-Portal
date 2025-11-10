@@ -1,11 +1,12 @@
 'use client';
 
+// Assuming this is your custom Select component
 import { Select } from '@/components/ui/select';
 import {
   SCHOLARSHIP_TYPES,
   UNIVERSITIES,
   YEAR_LEVELS,
-} from '@/lib/utils/constants';
+} from '@/lib/utils/constants'; // Using the constants path from your project
 import type { ScholarStatus } from '@/types/scholar';
 
 const statuses: ScholarStatus[] = [
@@ -38,32 +39,70 @@ const yearOptions = [
   ...YEAR_LEVELS.map((y) => ({ value: y, label: y })),
 ];
 
-export function ScholarFilters({ filters, onChange }: any) {
+export interface ScholarFiltersState {
+  scholarshipType: string;
+  status: string;
+  university: string;
+  course: string;
+  yearLevel: string;
+}
+
+interface ScholarFiltersProps {
+  filters: ScholarFiltersState;
+  onFilterChange: (
+    filterName: keyof ScholarFiltersState,
+    value: string
+  ) => void;
+}
+
+export function ScholarFilters({ filters, onFilterChange }: ScholarFiltersProps) {
+  // --- NEW: Define the change handler for a native <select> ---
+  const handleChange =
+    (filterName: keyof ScholarFiltersState) =>
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      onFilterChange(filterName, e.target.value);
+    };
+
   return (
     <div className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
       <Select
         options={scholarshipOptions}
-        value={filters.type}
-        placeholder="Scholarship Type"
-        onChange={(e) => onChange({ ...filters, type: e.target.value })}
+        value={filters.scholarshipType}
+        // --- CHANGED ---
+        // 'onValueChange' is now 'onChange'
+        // The handler now expects an event object
+        onChange={handleChange('scholarshipType')}
+        // Using placeholder as a label, based on AddScholarModal
+        placeholder="Scholarship Type: All Type"
       />
       <Select
         options={statusOptions}
         value={filters.status}
-        placeholder="Status"
-        onChange={(e) => onChange({ ...filters, status: e.target.value })}
+        // --- CHANGED ---
+        onChange={handleChange('status')}
+        placeholder="Status: All Status"
       />
       <Select
         options={universityOptions}
         value={filters.university}
-        placeholder="University"
-        onChange={(e) => onChange({ ...filters, university: e.target.value })}
+        // --- CHANGED ---
+        onChange={handleChange('university')}
+        placeholder="School: All Universities"
+      />
+      <Select
+        options={courseOptions}
+        value={filters.course}
+        // --- CHANGED ---
+        onChange={handleChange('course')}
+        placeholder="Course: All Courses"
+        disabled
       />
       <Select
         options={yearOptions}
-        value={filters.year}
-        placeholder="Year Level"
-        onChange={(e) => onChange({ ...filters, year: e.target.value })}
+        value={filters.yearLevel}
+        // --- CHANGED ---
+        onChange={handleChange('yearLevel')}
+        placeholder="Year Level: All Year Level"
       />
     </div>
   );

@@ -350,7 +350,6 @@ dost-scholars-portal/
 │   │   │       │   ├── GradeSubmissionRow.tsx
 │   │   │       │   ├── GradeSubmissionModal.tsx      # View submission details
 │   │   │       │   ├── DocumentViewer.tsx            # PDF viewer
-│   │   │       │   ├── ApproveButton.tsx             # Approve action
 │   │   │       │   ├── RequestResubmissionButton.tsx # Request changes
 │   │   │       │   └── CommentSection.tsx            # Add admin comments
 │   │   │       │
