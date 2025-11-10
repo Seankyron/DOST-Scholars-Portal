@@ -59,10 +59,10 @@ export function SemesterCard({ semester, onSelect }: SemesterCardProps) {
       </div>
 
       {/* Bottom Section: Call to Action */}
-      <div className="flex items-center justify-end text-xs font-medium">
+      <div className="flex items-center justify-start text-xs font-medium">
         <span className={cn(
           'font-semibold',
-          isClickable ? 'text-dost-blue' : 'text-gray-500'
+          isClickable ? 'text-dost-title' : 'text-gray-500'
         )}>
           {config.cta}
         </span>
