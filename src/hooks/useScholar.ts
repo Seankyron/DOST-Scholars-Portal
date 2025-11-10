@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Scholar, YearLevel, Semester, CurriculumConfig } from '@/types';
 import { useAuth } from './useAuth';
 // Import the correct database types
@@ -69,7 +69,6 @@ export function useScholar() {
   const [scholar, setScholar] = useState<Scholar | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
 
   useEffect(() => {
     // --- FIX 2: Add check for user.email ---

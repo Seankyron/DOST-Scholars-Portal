@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
     // Get initial session
@@ -31,6 +30,13 @@ export function useAuth() {
   }, []);
 
   const signOut = async () => {
+    supabase.auth.onAuthStateChange((event, session) => {
+    console.log('Auth event:', event);
+    console.log('Session after event:', session);
+    setSession(session);
+  setUser(session?.user ?? null);
+});
+
     await supabase.auth.signOut();
   };
 
