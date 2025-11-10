@@ -1,4 +1,3 @@
-// src/components/scholar/layout/ServicePanelOverlay.tsx
 'use client';
 
 import { useServicePanelContext } from '@/context/ServicePanelContext';
@@ -41,7 +40,7 @@ export function ServicePanelOverlay({ className }: { className?: string }) {
     <div
       className={cn(
         "relative w-full bg-[#f4f6fc] rounded-lg", 
-        className // This now correctly applies "-mt-2"
+        className 
       )}
     >
       <Button
@@ -54,7 +53,7 @@ export function ServicePanelOverlay({ className }: { className?: string }) {
       </Button>
       
 
-      <div className="h-full overflow-y-auto scrollbar-thin p-6 pt-16">
+      <div className="h-full overflow-y-auto scrollbar-thin p-6">
         {renderService()}
       </div>
     </div>

@@ -1,19 +1,16 @@
-// src/components/scholar/services/GradeSubmission/SubmissionReview.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { GradeSubmission } from '@/types/services';
 import { formatDate } from '@/lib/utils/date';
-import { FileText, Download} from 'lucide-react'; // <-- 1. Removed Edit icon
+import { FileText, Download} from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 interface SubmissionReviewProps {
   submission: GradeSubmission;
-  // --- 2. Removed onEdit prop ---
 }
 
-// ... (FileDisplay component remains the same) ...
 function FileDisplay({ 
   label, 
   fileName, 
@@ -94,7 +91,6 @@ export function SubmissionReview({ submission }: SubmissionReviewProps) {
 
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Submitted Documents</h3>
-        {/* ... (Submitted Documents section remains the same) ... */}
         <div className="space-y-4">
           <FileDisplay 
             label={`Official Registration Form ${submission.semester}`}
@@ -108,17 +104,6 @@ export function SubmissionReview({ submission }: SubmissionReviewProps) {
           />
         </div>
       </div>
-
-      {/* --- 5. This block has been REMOVED ---
-      {canEdit && (
-        <div className="flex justify-end pt-4 border-t">
-          <Button variant="outline" onClick={onEdit}>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Response
-          </Button>
-        </div>
-      )}
-      */}
     </div>
   );
 }

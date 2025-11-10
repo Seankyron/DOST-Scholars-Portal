@@ -18,7 +18,7 @@ function DashboardContentWrapper() {
   const { isOpen } = useServicePanelContext();
 
   if (isOpen) {
-    return <ServicePanelOverlay className="-mt-2" />;
+    return <ServicePanelOverlay />;
   }
 
   return (

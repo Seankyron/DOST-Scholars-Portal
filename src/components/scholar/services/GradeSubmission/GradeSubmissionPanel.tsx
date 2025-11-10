@@ -86,14 +86,14 @@ export function GradeSubmissionPanel() {
     }, 250);
   };
   return (
-    <div className="space-y-2">
+    <div className="space-y-6">
       <h2 className="text-3xl text-center font-bold text-dost-title mb-4">
         Grade Submission
       </h2>
       
       <Card>
         <CardHeader>
-          <CardTitle className="text-dost-blue">Grade Submission Requirements</CardTitle>
+          <CardTitle className="text-dost-title">Grade Submission Requirements</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
