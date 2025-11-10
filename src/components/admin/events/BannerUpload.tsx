@@ -3,24 +3,29 @@
 import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload } from 'lucide-react'; // <-- Import icon
-import Image from 'next/image'; // <-- Import Image
+import { Upload } from 'lucide-react';
+import Image from 'next/image';
+import { supabase } from '@/lib/supabase/client';
+import { type Database } from '@/lib/supabase/type';
+
 
 interface Banner {
   title: string;
-  link: string;
-  image: string; // This will be the object URL for preview
+  address_link: string;
+  image_file_key: string;
 }
 
 interface BannerUploadProps {
   onAddBanner: (banner: Banner) => void;
 }
 
+
 export function BannerUpload({ onAddBanner }: BannerUploadProps) {
   const [title, setTitle] = useState('');
-  const [link, setLink] = useState('');
+  const [address_link, setLink] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (!file) {
@@ -37,30 +42,67 @@ export function BannerUpload({ onAddBanner }: BannerUploadProps) {
     setFile(e.target.files?.[0] ?? null);
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!file || !title || !link || !preview) return;
+    if (!file || !title || !address_link) return;
 
-    const newBanner: Banner = {
-      title,
-      link,
-      image: preview, // Pass the object URL
-    };
+    setIsUploading(true);
 
-    onAddBanner(newBanner);
+    try {
+      // Generate unique filename
+      const timestamp = Date.now();
+      const fileExt = file.name.split('.').pop();
+      const fileName = `banners/${timestamp}.${fileExt}`;
 
-    setTitle('');
-    setLink('');
-    setFile(null);
-    setPreview('');
-    // Reset file input
-    const fileInput = document.getElementById('upload-banner') as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
+      // Upload image to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('event-banners')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Create new event via API
+      
+      const res = await fetch('/api/admin/events/post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          address_link,
+          image_file_key: fileName,
+        }),
+      });
+      console.log(res)
+      // const data = await res.json();
+      // if (!res.ok) throw new Error(data.error || 'Failed to create event');
+
+      onAddBanner({
+        title,
+        address_link,
+        image_file_key: fileName,
+      });
+
+      // Reset form
+      setTitle('');
+      setLink('');
+      setFile(null);
+      setPreview('');
+      const fileInput = document.getElementById('upload-banner') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+    } catch (error: any) {
+      console.error('Upload failed:', error.message);
+      alert('Failed to upload banner: ' + error.message);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* --- Updated Dropzone --- */}
       <div className="border-2 border-dashed rounded-lg p-6 text-center text-gray-500 transition-colors hover:border-dost-blue">
         <input
           type="file"
@@ -88,7 +130,7 @@ export function BannerUpload({ onAddBanner }: BannerUploadProps) {
               src={preview}
               alt="Preview"
               width={200}
-              height={112} // 16:9 ratio
+              height={112}
               className="mx-auto max-h-36 w-auto object-contain rounded border"
             />
           </div>
@@ -106,12 +148,12 @@ export function BannerUpload({ onAddBanner }: BannerUploadProps) {
         <Input
           label="Address Link"
           placeholder="https://... *"
-          value={link}
+          value={address_link}
           onChange={(e) => setLink(e.target.value)}
           required
         />
-        <Button type="submit" className="sm:self-end" variant="primary">
-          + Add Banner
+        <Button type="submit" className="sm:self-end" variant="primary" disabled={isUploading}>
+          {isUploading ? 'Uploading...' : '+ Add Banner'}
         </Button>
       </div>
     </form>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,8 +18,6 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
-  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

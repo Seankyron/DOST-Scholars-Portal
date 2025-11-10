@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { type Database } from '@/lib/supabase/type';
 import { AddScholarModal } from '@/components/admin/scholars/AddScholarModal';
 import {
@@ -57,7 +57,6 @@ export default function ScholarManagementPage() {
     course: 'All',
     yearLevel: 'All',
   });
-  const supabase = createClient();
 
   useEffect(() => {
     async function fetchScholars() {

@@ -9,8 +9,9 @@ import Image from 'next/image'; // <-- Import Image
 export interface Banner {
   id: number;
   title: string;
-  link: string;
-  image: string;
+  address_link: string;
+  image_file_key: string;
+  image_url: string;
 }
 
 interface BannerListProps {
@@ -47,20 +48,20 @@ export function BannerList({ banners, onEdit, onDelete }: BannerListProps) {
             <div className="flex items-center gap-4">
               {/* --- Use Image component --- */}
               <Image
-                src={banner.image}
+                src={banner.image_url}
                 alt={banner.title}
                 width={96} // w-24
                 height={56} // h-14
                 className="w-24 h-14 object-cover rounded bg-gray-200"
                 onError={(e) =>
                   (e.currentTarget.src =
-                    'https://via.placeholder.com/96x56?text=No+Image')
+                    '/images/banners/banner-1.jpg')
                 }
               />
               <div className="min-w-0">
                 <p className="font-semibold truncate">{banner.title}</p>
                 <p className="text-sm text-gray-500 truncate">
-                  {banner.link}
+                  {banner.address_link}
                 </p>
               </div>
             </div>
