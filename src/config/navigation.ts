@@ -40,7 +40,7 @@ export const adminNavigation = [
   },
   { 
     label: 'Events', 
-    href: '/admin/events', 
+    href: '/admin/event', 
     icon: Calendar 
   },
   {

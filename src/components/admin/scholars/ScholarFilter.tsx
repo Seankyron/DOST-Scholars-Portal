@@ -19,7 +19,6 @@ const statuses: ScholarStatus[] = [
   'On hold',
 ];
 
-// Options for filters
 const scholarshipOptions = [
   { value: 'All', label: 'All Type' },
   ...SCHOLARSHIP_TYPES.map((s) => ({ value: s, label: s })),
@@ -34,8 +33,6 @@ const universityOptions = [
   { value: 'All', label: 'All Universities' },
   ...UNIVERSITIES.map((u) => ({ value: u, label: u })),
 ];
-
-const courseOptions = [{ value: 'All', label: 'All Courses' }];
 
 const yearOptions = [
   { value: 'All', label: 'All Year Level' },
@@ -67,7 +64,7 @@ export function ScholarFilters({ filters, onFilterChange }: ScholarFiltersProps)
     };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+    <div className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
       <Select
         options={scholarshipOptions}
         value={filters.scholarshipType}

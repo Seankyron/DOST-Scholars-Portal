@@ -8,22 +8,24 @@ import type { ScholarStatus } from '@/types/scholar';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'; // <-- Import ConfirmDialog
 import { toast } from '@/components/ui/toaster'; // <-- Import toast
 
-// Interface for the scholar prop
-interface Scholar {
-  id: string;
-  name: string;
-  scholarId: string;
-  scholarshipType: string;
-  university: string;
-  yearLevel: string;
-  program: string;
-  status: ScholarStatus;
-  email: string;
-  profileImage: string;
+export interface Scholar {
+    id: string;
+    name: string;
+    scholarId: string;
+    scholarshipType: string;
+    university: string;
+    yearLevel: string;
+    program: string;
+    status: ScholarStatus;
+    email: string;
+    profileImage: string;
 }
 
 interface ScholarRowProps {
-  scholar: Scholar;
+    scholar: Scholar;
+    onView: (scholar: Scholar) => void;
+    onEdit: (scholar: Scholar) => void;
+    onHistory: (scholar: Scholar) => void;
 }
 
 export function ScholarRow({ scholar }: ScholarRowProps) {

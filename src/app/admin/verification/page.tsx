@@ -8,10 +8,7 @@ import { VerificationTable } from '@/components/admin/verification/VerificationT
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
 import { Check, X } from 'lucide-react';
-import {
-  SCHOLARSHIP_TYPES,
-  UNIVERSITIES,
-} from '@/lib/utils/constants';
+import { SCHOLARSHIP_TYPES, UNIVERSITIES } from '@/lib/utils/constants';
 
 const MOCK_ACCOUNT_IDS = ['1', '2', '3'];
 

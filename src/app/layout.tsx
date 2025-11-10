@@ -5,8 +5,8 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'DOST-SEI Scholars Portal',
-  description: 'Official portal for DOST-SEI CALABARZON scholars',
+    title: 'DOST-SEI Scholars Portal',
+    description: 'Official portal for DOST-SEI CALABARZON scholars',
 };
 
 export default function RootLayout({
