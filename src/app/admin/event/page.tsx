@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { BannerUpload } from '@/components/admin/event/BannerUpload';
-import { BannerList, Banner } from '@/components/admin/event/BannerList';
-import { CarouselSettings } from '@/components/admin/event/CarouselSettings';
-import { EditBannerModal } from '@/components/admin/event/EditBannerModal';
+import { BannerUpload } from '@/components/admin/events/BannerUpload';
+import { BannerList, Banner } from '@/components/admin/events/BannerList';
+import { CarouselSettings } from '@/components/admin/events/CarouselSettings';
+import { EditBannerModal } from '@/components/admin/events/EditBannerModal';
 
 export default function EventBannerManagementPage() {
     const [banners, setBanners] = useState<Banner[]>([
