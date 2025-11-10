@@ -87,6 +87,7 @@ export function AddScholarModal() {
   const handleFileChange = (file: File | null) => {
     if (file) {
       setCurriculumFile(file);
+      setCurriculumFile(file);
     }
   };
 
@@ -179,6 +180,7 @@ export function AddScholarModal() {
     { value: '4', label: '4th Year' },
     { value: '5', label: '5th Year' },
   ];
+ 
 
   return (
     <>
