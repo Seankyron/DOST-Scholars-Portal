@@ -40,5 +40,6 @@ export function useAuth() {
     loading,
     signOut,
     isAuthenticated: !!user,
+    userId: user?.id || null,
   };
 }
