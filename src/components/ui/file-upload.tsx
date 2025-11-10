@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { cn } from '@/lib/utils/cn';
-import { Upload, File, X } from 'lucide-react';
+import { Upload, FileText, X } from 'lucide-react';
 
 interface FileUploadProps {
   label?: string;
@@ -82,11 +82,12 @@ export function FileUpload({
         />
 
         {!file ? (
+          // --- This is the placeholder when NO file is selected ---
           <div className="flex flex-col items-center gap-2 text-center">
             <Upload className="h-10 w-10 text-gray-400" />
             <div>
               <p className="text-sm font-medium text-gray-700">
-                📄 Click to upload or drag and drop
+                📄 {isDragging ? "Drop your file here" : "Click to upload or drag and drop"}
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 Supported formats: {accept} • Max {maxSizeMB}MB per file
@@ -94,9 +95,12 @@ export function FileUpload({
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between">
+          <div className={cn(
+            "flex items-center justify-between",
+            isDragging && "opacity-50" // Dim the existing file preview
+          )}>
             <div className="flex items-center gap-3">
-              <File className="h-8 w-8 text-dost-blue" />
+              <FileText className="h-8 w-8 text-dost-blue" />
               <div>
                 <p className="text-sm font-medium text-gray-900">{file.name}</p>
                 <p className="text-xs text-gray-500">
@@ -114,6 +118,15 @@ export function FileUpload({
             >
               <X className="h-5 w-5 text-gray-500" />
             </button>
+          </div>
+        )}
+
+        {isDragging && file && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-blue-50/50">
+            <Upload className="h-10 w-10 text-dost-blue" />
+            <p className="text-sm font-medium text-dost-blue mt-2">
+              Drop to replace the current file
+            </p>
           </div>
         )}
       </div>

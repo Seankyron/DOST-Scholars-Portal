@@ -6,9 +6,8 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { GradeSubmissionPanel } from '../services/GradeSubmission/GradeSubmissionPanel';
-import { cn } from '@/lib/utils/cn'; // <-- 1. Import cn
+import { cn } from '@/lib/utils/cn'; 
 
-// Placeholder for services that are not yet built
 const MockServicePanel = ({ title }: { title: string }) => (
   <div className="p-6">
     <h2 className="text-3xl font-bold text-dost-title mb-4">{title}</h2>
@@ -20,7 +19,6 @@ const MockServicePanel = ({ title }: { title: string }) => (
   </div>
 );
 
-// --- 2. MODIFICATION: Accept className prop ---
 export function ServicePanelOverlay({ className }: { className?: string }) {
   const { closePanel, activeService } = useServicePanelContext();
 
@@ -41,7 +39,6 @@ export function ServicePanelOverlay({ className }: { className?: string }) {
 
   return (
     <div
-      // --- 3. MODIFICATION: Merge passed className ---
       className={cn(
         "relative w-full bg-[#f4f6fc] rounded-lg", 
         className // This now correctly applies "-mt-2"
