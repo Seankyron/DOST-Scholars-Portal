@@ -9,6 +9,7 @@ import { GradeSubmissionModal } from './GradeSubmissionModal';
 import type { SemesterAvailability } from '@/types/curriculum';
 import type { SubmissionStatus, CurriculumConfig, Semester } from '@/types'; 
 import { hasMidyear } from '@/lib/utils/curriculum'; 
+import { toast } from '@/components/ui/toaster';
 
 const requirements = [
   'Certified True Copy of complete grades and certificate of registration from University Registrar',
@@ -72,6 +73,8 @@ export function GradeSubmissionPanel() {
     if (semester.status !== 'Not Available') {
       setSelectedSemester(semester);
       setIsClosing(false);
+    } else {
+      toast.info('This semester is not yet available for submission.');
     }
   };
 
@@ -83,8 +86,8 @@ export function GradeSubmissionPanel() {
     }, 250);
   };
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl text-center font-bold text-dost-title mb-4">
+    <div className="space-y-2">
+      <h2 className="text-3xl text-center font-bold text-dost-title mb-4">
         Grade Submission
       </h2>
       

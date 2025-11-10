@@ -18,6 +18,7 @@ import type { SemesterAvailability } from '@/types/curriculum';
 import type { GradeSubmission, YearLevel } from '@/types'; 
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { toast } from '@/components/ui/toaster';
+import { Edit } from 'lucide-react'; 
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ const yearLabels: { [key: number]: YearLevel } = {
 };
 
 const APPROVED_MESSAGE = 'Your submission is approved. Please wait for your stipend to be processed. You can check the status in the Stipend Tracking service.';
+
 
 export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmissionModalProps) {
   
@@ -65,7 +67,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
   const [gradesFile, setGradesFile] = useState<File | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false); // <-- ADDED
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false); 
   
   const scholarId = 'mock-scholar-id'; 
   const { uploadFile } = useFileUpload('grade-submissions');
@@ -75,9 +77,10 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
     setRegForm(null);
     setGradesFile(null);
     setIsConfirmed(false);
-    setIsConfirmOpen(false); // <-- ADDED
+    setIsConfirmOpen(false); 
     onClose(); 
   };
+
 
   let commentToShow: string | undefined = undefined;
   if (semester.status === 'Resubmit' && submission?.adminComment) {
@@ -86,13 +89,15 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
     commentToShow = APPROVED_MESSAGE;
   }
   
-  const showForm = isEditing && (semester.status === 'Open' || semester.status === 'Resubmit');
+  const showForm = isEditing;
+  
+  const canEdit = submission?.status === 'Pending' || submission?.status === 'Resubmit';
+
   const isResubmit = submission && submission.status === 'Resubmit';
   const comment = submission?.adminComment?.toLowerCase() || '';
   const showRegFormUpload = !isResubmit || (isResubmit && (comment.includes('registration') || comment.includes('form 5')));
   const showGradesFormUpload = !isResubmit || (isResubmit && (comment.includes('grades') || comment.includes('tor')));
 
-  // --- MODIFICATION: This is now just for validation and opening the dialog ---
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -109,11 +114,9 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
        return;
     }
     
-    // If validation passes, open confirm dialog
     setIsConfirmOpen(true);
   };
   
-  // --- NEW: This function handles the actual submission ---
   const handleConfirmSubmit = async () => {
     setIsConfirmOpen(false);
     setIsLoading(true);
@@ -147,7 +150,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
 
     } catch (error: any) {
       toast.error(error.message || 'Submission failed.');
-      setIsLoading(false); // Only set loading false on error
+      setIsLoading(false); 
     }
   };
 
@@ -162,7 +165,6 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
             </ModalTitle>
           </ModalHeader>
           
-          {/* --- MODIFICATION: Added scrolling classes HERE (like admin modal) --- */}
           <ModalBody className="space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin">
             {commentToShow && (
               <AdminCommentAlert
@@ -186,7 +188,6 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
               submission && (
                 <SubmissionReview
                   submission={submission}
-                  onEdit={() => setIsEditing(true)}
                 />
               )
             )}
@@ -194,6 +195,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
           
           <ModalFooter>
             {showForm ? (
+              // When in EDITING mode
               <>
                 <ModalClose asChild>
                   <Button type="button" variant="outline" disabled={isLoading}>
@@ -202,7 +204,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
                 </ModalClose>
                 <Button
                   type="button"
-                  onClick={handleSubmit} // <-- MODIFIED: Calls validation
+                  onClick={handleSubmit} 
                   isLoading={isLoading}
                   disabled={
                     isLoading || !isConfirmed ||
@@ -214,9 +216,18 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
                 </Button>
               </>
             ) : (
-              <ModalClose asChild>
-                <Button variant="outline">Close</Button>
-              </ModalClose>
+              <>
+                <ModalClose asChild>
+                  <Button variant="outline">Close</Button>
+                </ModalClose>
+                
+                {canEdit && (
+                  <Button variant="outline" onClick={() => setIsEditing(true)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Response
+                  </Button>
+                )}
+              </>
             )}
           </ModalFooter>
         </ModalContent>

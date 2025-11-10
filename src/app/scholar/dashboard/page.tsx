@@ -14,12 +14,10 @@ import {
 import { ServicePanelOverlay } from '@/components/scholar/layout/ServicePanelOverlay';
 import { cn } from '@/lib/utils/cn';
 
-// --- MODIFIED: Removed Framer Motion animation ---
 function DashboardContentWrapper() {
   const { isOpen } = useServicePanelContext();
 
   if (isOpen) {
-    // This line is now valid
     return <ServicePanelOverlay className="-mt-2" />;
   }
 
@@ -31,7 +29,6 @@ function DashboardContentWrapper() {
   );
 }
 
-// --- NEW: Inner component to access context for layout ---
 function DashboardPageContent() {
   const { isOpen } = useServicePanelContext();
 

@@ -1,17 +1,19 @@
+// src/components/scholar/services/GradeSubmission/SubmissionReview.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { GradeSubmission } from '@/types/services';
 import { formatDate } from '@/lib/utils/date';
-import { FileText, Edit, Download} from 'lucide-react';
+import { FileText, Download} from 'lucide-react'; // <-- 1. Removed Edit icon
 import { cn } from '@/lib/utils/cn';
 
 interface SubmissionReviewProps {
   submission: GradeSubmission;
-  onEdit: () => void;
+  // --- 2. Removed onEdit prop ---
 }
 
+// ... (FileDisplay component remains the same) ...
 function FileDisplay({ 
   label, 
   fileName, 
@@ -56,14 +58,18 @@ function FileDisplay({
   );
 }
 
-export function SubmissionReview({ submission, onEdit }: SubmissionReviewProps) {
-  const canEdit = submission.status === 'Pending' || submission.status === 'Resubmit';
+
+// --- 3. Removed onEdit from function signature ---
+export function SubmissionReview({ submission }: SubmissionReviewProps) {
+  // --- 4. Removed canEdit constant and the entire editing block ---
+  // const canEdit = submission.status === 'Pending' || submission.status === 'Resubmit';
 
   return (
     <div className="space-y-6">
       
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Status & History</h3>
+        {/* ... (Status & History section remains the same) ... */}
         <div className="p-4 bg-white rounded-lg border space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-500">Current Status:</span>
@@ -88,6 +94,7 @@ export function SubmissionReview({ submission, onEdit }: SubmissionReviewProps) 
 
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Submitted Documents</h3>
+        {/* ... (Submitted Documents section remains the same) ... */}
         <div className="space-y-4">
           <FileDisplay 
             label={`Official Registration Form ${submission.semester}`}
@@ -102,6 +109,7 @@ export function SubmissionReview({ submission, onEdit }: SubmissionReviewProps) 
         </div>
       </div>
 
+      {/* --- 5. This block has been REMOVED ---
       {canEdit && (
         <div className="flex justify-end pt-4 border-t">
           <Button variant="outline" onClick={onEdit}>
@@ -110,6 +118,7 @@ export function SubmissionReview({ submission, onEdit }: SubmissionReviewProps) 
           </Button>
         </div>
       )}
+      */}
     </div>
   );
 }
