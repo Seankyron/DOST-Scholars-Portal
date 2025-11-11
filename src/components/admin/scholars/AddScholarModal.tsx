@@ -24,8 +24,8 @@ import {
   SEMESTERS,
   PROVINCES,
 } from '@/lib/utils/constants';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'; // <-- IMPORT
-import { toast } from '@/components/ui/toaster'; // <-- IMPORT
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { toast } from '@/components/ui/toaster';
 
 const initialState = {
   scholarId: '',
@@ -59,9 +59,7 @@ export function AddScholarModal() {
   const [formData, setFormData] = useState(initialState);
   const [curriculumFile, setCurriculumFile] = useState<File | null>(null);
   
-  // --- ADDED: State for confirmation dialog ---
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-
 
   // --- Generic Change Handlers (Unchanged) ---
   const handleChange = (
@@ -91,7 +89,6 @@ export function AddScholarModal() {
     }
   };
 
-  // --- MODIFIED: This function now just validates and opens the confirm dialog ---
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -101,34 +98,27 @@ export function AddScholarModal() {
       return;
     }
     
-    // Simple check if required fields are filled (you can make this more robust)
     if (!formData.scholarId || !formData.email || !formData.password || !formData.firstName || !formData.surname) {
       setError('Please fill in all required fields.');
       return;
     }
 
-    // If validation passes, open the confirmation dialog
     setIsConfirmOpen(true);
   };
   
-  // --- NEW: This function contains the actual API submission logic ---
   const handleConfirmSubmit = async () => {
-    setIsConfirmOpen(false); // Close confirm dialog
+    setIsConfirmOpen(false); 
     setLoading(true);
     setError(null);
 
     try {
-      // 1. Create a FormData object to send file + JSON
       const submissionData = new FormData();
       submissionData.append('curriculumFile', curriculumFile as File);
-      // Send all other form data as a JSON string
       submissionData.append('scholarData', JSON.stringify(formData));
 
-      // 2. Send data to your new API route
       const response = await fetch('/api/admin/create-scholar', {
         method: 'POST',
         body: submissionData,
-        // Don't set Content-Type; browser does it for FormData
       });
 
       const result = await response.json();
@@ -137,14 +127,12 @@ export function AddScholarModal() {
         throw new Error(result.error || 'Failed to create scholar');
       }
 
-      // 3. Success
-      toast.success('Scholar added successfully!'); // <-- Show toast
-      setFormData(initialState); // Reset form
+      toast.success('Scholar added successfully!'); 
+      setFormData(initialState); 
       setCurriculumFile(null);
-      setIsModalOpen(false); // Close the main modal
+      setIsModalOpen(false); 
       
-      // TODO: Re-fetch or update the scholar list on the page
-      window.location.reload(); // Simple way to refresh data
+      window.location.reload(); 
       
     } catch (err: any) {
       console.error(err);
@@ -193,13 +181,15 @@ export function AddScholarModal() {
         </ModalTrigger>
 
         <ModalContent size="4xl">
-          {/* --- MODIFIED: form onSubmit now points to the validation function --- */}
-          <form onSubmit={handleFormSubmit}>
-            <ModalHeader>
-              <ModalTitle>Add New Scholar</ModalTitle>
-            </ModalHeader>
+          {/* FIX 1: The <form> tag is REMOVED from here. */}
+          <ModalHeader>
+            <ModalTitle>Add New Scholar</ModalTitle>
+          </ModalHeader>
 
-            <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
+          {/* FIX 2: Removed space-y-6 from ModalBody */}
+          <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6">
+            {/* FIX 3: ADDED <form> tag HERE, inside the body */}
+            <form id="add-scholar-form" onSubmit={handleFormSubmit} className="space-y-6">
               {error && (
                 <div
                   className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
@@ -461,34 +451,39 @@ export function AddScholarModal() {
                   required
                 />
               </fieldset>
-            </ModalBody>
+            </form> {/* FIX 4: The </form> tag closes INSIDE ModalBody */}
+          </ModalBody>
 
-            <ModalFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsModalOpen(false)}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" variant="primary" disabled={loading}>
-                {/* The button's loading state is now handled by the async function */}
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Adding...
-                  </>
-                ) : (
-                  'ADD SCHOLAR'
-                )}
-              </Button>
-            </ModalFooter>
-          </form>
+          <ModalFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsModalOpen(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={loading}
+              form="add-scholar-form" // FIX 5: Link button to the form ID
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'ADD SCHOLAR'
+              )}
+            </Button>
+          </ModalFooter>
+          {/* FIX 6: The </form> tag is REMOVED from here */}
         </ModalContent>
       </Modal>
 
-      {/* --- ADDED: Confirmation Dialog --- */}
+      {/* --- Confirmation Dialog (Unchanged) --- */}
       <ConfirmDialog
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
