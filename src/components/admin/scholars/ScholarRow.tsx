@@ -57,7 +57,6 @@ export function ScholarRow({
   onHistory,
   onDelete,
 }: ScholarRowProps) {
-  // --- NEW: Combine name fields for display ---
   const fullName = [
     scholar.firstName,
     scholar.middleName,
@@ -70,7 +69,6 @@ export function ScholarRow({
   return (
     <>
       <tr className="hover:bg-gray-50 transition-colors">
-        {/* --- MODIFIED: Use correct fields from ScholarRowData --- */}
         <td className="px-4 py-3 whitespace-nowrap">
           <div className="text-sm font-medium text-gray-900">{fullName}</div>
         </td>
