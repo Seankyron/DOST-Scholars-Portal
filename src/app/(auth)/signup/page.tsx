@@ -586,7 +586,7 @@ export default function SignupPage() {
               value={formData.ojtYear}
               onChange={(e) => updateFormData('ojtYear', e.target.value)}
               options={YEAR_LEVELS.slice(0, 4).map((year, idx) => ({ 
-                value: (idx + 1).toString(), 
+                value: year, 
                 label: year 
               }))}
               error={errors.ojtYear}
