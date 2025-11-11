@@ -30,14 +30,12 @@ export function SemesterCard({ semester, onSelect }: SemesterCardProps) {
     <button
       type="button"
       onClick={onSelect}
-      disabled={!isClickable}
       className={cn(
         'rounded-xl border bg-white shadow-md', 
         'p-4 text-left transition-all duration-200 w-full flex flex-col h-full justify-between',
         isClickable 
           ? 'hover:shadow-lg cursor-pointer' 
-          : 'bg-gray-50 opacity-80 cursor-not-allowed',
-        
+          : 'bg-gray-50 opacity-80', 
       )}
     >
       {/* Top Section: Icon + Status Badge */}

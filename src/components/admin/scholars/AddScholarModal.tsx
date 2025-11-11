@@ -136,8 +136,7 @@ export function AddScholarModal() {
       
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'An unknown error occurred.');
-    } finally {
+      toast.error(err.message || 'An unknown error occurred.');    } finally {
       setLoading(false);
     }
   };
