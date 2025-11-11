@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
   // --- 1. HANDLE USERS WHO ARE NOT LOGGED IN ---
   if (!user) {
     // If a non-logged-in user tries to access any protected route, redirect to login
-    if (pathname.startsWith('/dashboard') || pathname.startsWith('/admin')) {
+    if (pathname.startsWith('/scholar') || pathname.startsWith('/admin')) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
     // Allow them to access login, signup, or home page
