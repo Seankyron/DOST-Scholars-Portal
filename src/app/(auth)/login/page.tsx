@@ -3,73 +3,48 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
+// We no longer need the client-side supabase createClient
+// import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+// This is our new Server Action
+import { loginWithSpasIdOrEmail } from '@/lib/actions/auth';
 
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    email: '',
+    identifier: '', // Changed from 'email' to 'identifier'
     password: '',
     rememberMe: false,
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
 
-  const supabase = createClient();
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
     setErrorMessage('');
     setIsLoading(true);
 
     try {
-      const { data: authData, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
+      // Call the Server Action instead of doing the logic here
+      const response = await loginWithSpasIdOrEmail(
+        formData.identifier,
+        formData.password
+      );
 
-      if (error) throw error;
-
-      const userID = authData.user.id;
-
-      // Check user role and redirect accordingly
-      const { data: scholarData } = await supabase
-        .from('User')
-        .select('*')
-        .eq('id', userID)
-        .single();
-
-      console.log(scholarData);
-      if (scholarData) {
-        if(scholarData.is_verified == true) {
-          router.push('/scholar/dashboard');
-        }
-        else {
-          setErrorMessage('Account not verified by the admins yet.');
-        }
+      if (response.error) {
+        setErrorMessage(response.error);
+      } else if (response.redirectTo) {
+        // The server tells us where to go
+        router.push(response.redirectTo);
       } else {
-        // Check if admin
-        const { data: adminData } = await supabase
-          .from('Admin')
-          .select('*')
-          .eq('id', userID)
-          .single();
-        console.log(userID);
-        console.log(adminData);
-
-        if (adminData) {
-          router.push('/admin/dashboard');
-        } else {
-          setErrorMessage('Account not found. Please contact support.');
-        }
+        setErrorMessage('An unexpected error occurred.');
       }
     } catch (error: any) {
-      setErrorMessage(error.message || 'Invalid email or password');
+      setErrorMessage(error.message || 'An unknown error occurred.');
     } finally {
       setIsLoading(false);
     }
@@ -92,9 +67,10 @@ export default function LoginPage() {
           label="Email / Scholar ID"
           type="text"
           placeholder="Enter your email or scholar ID"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          error={errors.email}
+          value={formData.identifier}
+          onChange={(e) =>
+            setFormData({ ...formData, identifier: e.target.value })
+          }
           required
         />
 
@@ -103,8 +79,9 @@ export default function LoginPage() {
           type="password"
           placeholder="Enter your password"
           value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          error={errors.password}
+          onChange={(e) =>
+            setFormData({ ...formData, password: e.target.value })
+          }
           required
         />
 
@@ -112,7 +89,9 @@ export default function LoginPage() {
           <Checkbox
             label="Remember me"
             checked={formData.rememberMe}
-            onChange={(e) => setFormData({ ...formData, rememberMe: e.target.checked })}
+            onChange={(e) =>
+              setFormData({ ...formData, rememberMe: e.target.checked })
+            }
           />
           <Link
             href="/forgot-password"
@@ -135,7 +114,10 @@ export default function LoginPage() {
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600">
           Don't have an account?{' '}
-          <Link href="/signup" className="text-dost-title font-medium hover:underline">
+          <Link
+            href="/signup"
+            className="text-dost-title font-medium hover:underline"
+          >
             Create Account
           </Link>
         </p>

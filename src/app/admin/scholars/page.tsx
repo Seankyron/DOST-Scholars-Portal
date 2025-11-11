@@ -10,17 +10,22 @@ import {
 } from '@/components/admin/scholars/ScholarFilter';
 import {
   ScholarTable,
+  // --- MODIFIED: Import the correct type from ScholarRow ---
   type ScholarRowData,
 } from '@/components/admin/scholars/ScholarTable';
 import { SearchInput } from '@/components/shared/SearchInput';
-// --- Button and Upload removed, they are now in the table component ---
+// --- NEW: Import Modals ---
+import { ViewScholarModal } from '@/components/admin/scholars/ViewScholarModal';
+// import { EditScholarModal } from '@/components/admin/scholars/EditScholarModal'; // (Assuming you have this)
+// import { ConfirmDeleteModal } from '@/components/admin/scholars/ConfirmDeleteModal'; // (Assuming you have this)
+// import { ScholarHistoryModal } from '@/components/admin/scholars/ScholarHistoryModal'; // (Assuming you have this)
+
 import type { ScholarStatus } from '@/types/scholar';
 import { useDebounce } from '@/hooks/useDebounce';
 
-// (Helper functions formatYear, getYearLevelNumber, ITEMS_PER_PAGE remain the same)
-// --- Helper Functions ---
 type ScholarViewRow = Database['public']['Views']['admin_scholar_view']['Row'];
 
+// --- NEW: Added helper from your file ---
 const formatYear = (year: number | null): string => {
   if (year === null) return 'N/A';
   if (year > 4) return 'Graduated';
@@ -39,11 +44,11 @@ const getYearLevelNumber = (yearString: string): number | null => {
   if (yearString === 'Graduated') return 5;
   return null;
 };
+// --- END OF HELPERS ---
 
 const ITEMS_PER_PAGE = 7;
 
 export default function ScholarManagementPage() {
-  // (State and useEffect logic remains the same)
   const [scholars, setScholars] = useState<ScholarRowData[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalScholars, setTotalScholars] = useState(0);
@@ -57,6 +62,16 @@ export default function ScholarManagementPage() {
     course: 'All',
     yearLevel: 'All',
   });
+
+  // --- NEW: State to manage all modals ---
+  const [viewingScholar, setViewingScholar] = useState<ScholarRowData | null>(
+    null
+  );
+  // --- (Add state for other modals as you build them) ---
+  // const [editingScholar, setEditingScholar] = useState<ScholarRowData | null>(null);
+  // const [deletingScholar, setDeletingScholar] = useState<ScholarRowData | null>(null);
+  // const [historyScholar, setHistoryScholar] = useState<ScholarRowData | null>(null);
+
   const supabase = createClient();
 
   useEffect(() => {
@@ -65,7 +80,8 @@ export default function ScholarManagementPage() {
       let query = supabase
         .from('admin_scholar_view')
         .select('*', { count: 'exact' });
-      // ... (filtering logic) ...
+
+      // ... (Filtering logic remains the same) ...
       if (filters.scholarshipType !== 'All') {
         query = query.eq('scholarship_type', filters.scholarshipType);
       }
@@ -93,20 +109,61 @@ export default function ScholarManagementPage() {
         setLoading(false);
         return;
       }
+
+      // --- CRITICAL FIX: Transform the data to match ScholarRowData ---
       const transformedScholars: ScholarRowData[] = data.map(
-        (scholar: ScholarViewRow) => ({
-          id: scholar.id || '',
-          name: scholar.full_name || 'No Name',
-          scholarId: scholar.spas_id || 'N/A',
-          scholarshipType: scholar.scholarship_type || 'N/A',
-          university: scholar.university || 'N/A',
-          yearLevel: formatYear(scholar.current_scholar_year),
-          program: scholar.program_course || 'N/A',
-          status: (scholar.scholarship_status || 'N/A') as ScholarStatus,
-          email: scholar.email || 'N/A',
-          profileImage: '/images/placeholders/avatar-placeholder.png',
-        })
+        (scholar: ScholarViewRow) => {
+          // Parse complex fields
+          const midyearClasses = scholar.midyear_classes || [];
+          const ojt = (scholar.ojt || {}) as {
+            year?: string;
+            semester?: string;
+          };
+          const curriculumFile = scholar.curriculum_file_key
+            ? { name: scholar.curriculum_file_key, url: '' } // URL would be fetched separately
+            : undefined;
+
+          return {
+            id: scholar.id || crypto.randomUUID(), // For React key
+            scholarId: scholar.spas_id || 'N/A',
+            email: scholar.email || 'N/A',
+            firstName: scholar.first_name || '',
+            middleName: scholar.middle_name || '',
+            surname: scholar.last_name || '',
+            suffix: scholar.suffix || '',
+            dateOfBirth: scholar.date_of_birth || '',
+            contactNumber: scholar.contact_number || '',
+            addressBrgy: scholar.address || '',
+            addressCity: scholar.municipality_city || '',
+            addressProvince: scholar.province || '',
+            scholarshipType: scholar.scholarship_type || 'N/A',
+            yearAwarded: scholar.year_awarded || 'N/A',
+            university: scholar.university || 'N/A',
+            program: scholar.program_course || 'N/A',
+            courseDuration: scholar.course_duration?.toString() || 'N/A',
+            status: (scholar.scholarship_status || 'N/A') as ScholarStatus,
+            yearLevel: formatYear(scholar.current_scholar_year), // For display in table
+            
+            // Map array/number to booleans
+            midyear1stYear: midyearClasses.includes(1),
+            midyear2ndYear: midyearClasses.includes(2),
+            midyear3rdYear: midyearClasses.includes(3),
+            midyear4thYear: midyearClasses.includes(4),
+            thesis1stYear: scholar.thesis_year === 1,
+            thesis2ndYear: scholar.thesis_year === 2,
+            thesis3rdYear: scholar.thesis_year === 3,
+            thesis4thYear: scholar.thesis_year === 4,
+
+            // Map JSON to strings
+            ojtYear: ojt.year || 'N/A',
+            ojtSemester: ojt.semester || 'N/A',
+
+            curriculumFile: curriculumFile,
+          };
+        }
       );
+      // --- END OF FIX ---
+
       setScholars(transformedScholars);
       setTotalScholars(count || 0);
       setLoading(false);
@@ -114,6 +171,7 @@ export default function ScholarManagementPage() {
     fetchScholars();
   }, [supabase, filters, debouncedSearchTerm, currentPage]);
 
+  // --- (Handlers remain the same) ---
   const handleFilterChange = (
     filterName: keyof ScholarFiltersState,
     value: string
@@ -121,9 +179,20 @@ export default function ScholarManagementPage() {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
     setCurrentPage(1);
   };
-
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
+  };
+
+  // --- NEW: Handlers for modal actions ---
+  const handleView = (scholar: ScholarRowData) => setViewingScholar(scholar);
+  // const handleEdit = (scholar: ScholarRowData) => setEditingScholar(scholar);
+  // const handleHistory = (scholar: ScholarRowData) => setHistoryScholar(scholar);
+  // const handleDelete = (scholar: ScholarRowData) => setDeletingScholar(scholar);
+  const handleCloseModals = () => {
+    setViewingScholar(null);
+    // setEditingScholar(null);
+    // setDeletingScholar(null);
+    // setHistoryScholar(null);
   };
 
   return (
@@ -135,7 +204,6 @@ export default function ScholarManagementPage() {
       <ScholarFilters filters={filters} onFilterChange={handleFilterChange} />
 
       <div className="bg-white rounded-lg shadow-md">
-        {/* --- MODIFIED: Header layout changed as requested --- */}
         <div className="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-semibold text-gray-800">
@@ -165,9 +233,24 @@ export default function ScholarManagementPage() {
             page={currentPage}
             itemsPerPage={ITEMS_PER_PAGE}
             onPageChange={handlePageChange}
+            // --- NEW: Pass handlers down ---
+            onView={handleView}
+            onEdit={(scholar) => alert(`Editing ${scholar.firstName}`)} // Placeholder
+            onHistory={(scholar) => alert(`History for ${scholar.firstName}`)} // Placeholder
+            onDelete={(scholar) => alert(`Deleting ${scholar.firstName}`)} // Placeholder
           />
         )}
       </div>
+
+      {/* --- NEW: Render modals --- */}
+      {viewingScholar && (
+        <ViewScholarModal
+          scholar={viewingScholar}
+          open={!!viewingScholar}
+          onClose={handleCloseModals}
+        />
+      )}
+      {/* (Render other modals here) */}
     </div>
   );
 }
