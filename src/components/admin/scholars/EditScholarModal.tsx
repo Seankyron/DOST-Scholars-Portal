@@ -39,8 +39,7 @@ export function EditScholarModal({
 }: EditScholarModalProps) {
   const [formData, setFormData] = useState<ScholarRowData>({ ...scholar });
   const [loading, setLoading] = useState(false);
-  // We'll handle file uploads separately if needed
-  // const [newCurriculumFile, setNewCurriculumFile] = useState<File | null>(null);
+  // const [newCurriculumFile, setNewCurriculumFile] = useState<File | null>(null); // For file upload logic
 
   useEffect(() => {
     // Re-populate form when the scholar prop changes
@@ -54,25 +53,25 @@ export function EditScholarModal({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // --- FIX: Use 'onChange' and handle the React.ChangeEvent ---
   const handleCheckboxChange = (
     name: keyof ScholarRowData,
-    checked: boolean
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setFormData((prev) => ({ ...prev, [name]: checked }));
+    setFormData((prev) => ({ ...prev, [name]: e.target.checked }));
   };
+  // --- END OF FIX ---
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: Add file upload logic here if newCurriculumFile is set
-    // 1. Upload new file to storage
-    // 2. Get the new file_key
-    // 3. Update formData.curriculumFile
+    // TODO: Add file upload logic here
     
     await onUpdate(formData); // Call the async function from the page
     setLoading(false);
   };
 
+  // --- Options (Copied from AddScholarModal) ---
   const statusOptions = [
     { value: 'Active', label: 'Active' },
     { value: 'Warning', label: 'Warning' },
@@ -96,6 +95,10 @@ export function EditScholarModal({
     { value: '3', label: '3rd Year' },
     { value: '4', label: '4th Year' },
     { value: '5', label: '5th Year' },
+  ];
+  const durationOptions = [
+    { value: '4', label: '4 Years' },
+    { value: '5', label: '5 Years' },
   ];
 
   return (
@@ -253,10 +256,7 @@ export function EditScholarModal({
                   name="courseDuration"
                   value={formData.courseDuration}
                   onChange={handleChange}
-                  options={[
-                    { value: '4', label: '4 Years' },
-                    { value: '5', label: '5 Years' },
-                  ]}
+                  options={durationOptions}
                   required
                 />
               </div>
@@ -267,33 +267,34 @@ export function EditScholarModal({
                     Midyear Classes
                   </label>
                   <div className="flex flex-col gap-2">
+                    {/* --- FIX: Use 'onChange' and pass the event --- */}
                     <Checkbox
                       label="1st Year"
                       checked={formData.midyear1stYear}
-                      onCheckedChange={(c) => handleCheckboxChange('midyear1stYear', !!c)}
+                      onChange={(e) => handleCheckboxChange('midyear1stYear', e)}
                     />
                     <Checkbox
                       label="2nd Year"
                       checked={formData.midyear2ndYear}
-                      onCheckedChange={(c) => handleCheckboxChange('midyear2ndYear', !!c)}
+                      onChange={(e) => handleCheckboxChange('midyear2ndYear', e)}
                     />
                     <Checkbox
                       label="3rd Year"
                       checked={formData.midyear3rdYear}
-                      onCheckedChange={(c) => handleCheckboxChange('midyear3rdYear', !!c)}
+                      onChange={(e) => handleCheckboxChange('midyear3rdYear', e)}
                     />
                     <Checkbox
                       label="4th Year"
                       checked={formData.midyear4thYear}
-                      onCheckedChange={(c) => handleCheckboxChange('midyear4thYear', !!c)}
+                      onChange={(e) => handleCheckboxChange('midyear4thYear', e)}
                     />
+                    {/* --- END OF FIX --- */}
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Thesis
                   </label>
-                  {/* Simplified to Select for easier state management */}
                   <Select
                     label="Thesis Year"
                     name="thesisYear"
@@ -350,6 +351,7 @@ export function EditScholarModal({
                 Current file: {scholar.curriculumFile?.name || 'None'}
               </p>
             </fieldset>
+            
           </ModalBody>
 
           <ModalFooter>
