@@ -38,6 +38,7 @@ interface ScholarTableProps {
   searchTerm: string;
   page: number;
   itemsPerPage: number;
+  refreshKey: number;
 
   // --- Handlers to send events UP to the page ---
   onPageChange: (newPage: number) => void;
@@ -52,6 +53,7 @@ export function ScholarTable({
   searchTerm,
   page,
   itemsPerPage,
+  refreshKey,
   onPageChange,
   onView,
   onEdit,
@@ -158,7 +160,7 @@ export function ScholarTable({
     }
 
     fetchScholars();
-  }, [supabase, filters, debouncedSearchTerm, page, itemsPerPage]); // Re-run when props change
+  }, [supabase, filters, debouncedSearchTerm, page, itemsPerPage, refreshKey]); // Re-run when props change
 
   // --- Render Logic ---
   if (loading) {

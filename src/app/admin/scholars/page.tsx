@@ -1,18 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Import router for refresh
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AddScholarModal } from '@/components/admin/scholars/AddScholarModal';
 import {
   ScholarFilters,
   type ScholarFiltersState,
 } from '@/components/admin/scholars/ScholarFilter';
 import { ScholarTable } from '@/components/admin/scholars/ScholarTable';
-// --- FIX 1: Correct the import location for ScholarRowData ---
 import { type ScholarRowData } from '@/components/admin/scholars/ScholarRow';
 import { SearchInput } from '@/components/shared/SearchInput';
 import { ViewScholarModal } from '@/components/admin/scholars/ViewScholarModal';
 import { EditScholarModal } from '@/components/admin/scholars/EditScholarModal';
+import { HistoryScholarModal } from '@/components/admin/scholars/HistoryScholarModal';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { toast } from '@/components/ui/toaster';
 
 // (Helper functions: getYearLevelNumber)
 const getYearLevelNumber = (yearString: string): number | null => {
@@ -29,7 +31,6 @@ const ITEMS_PER_PAGE = 7;
 export default function ScholarManagementPage() {
   const router = useRouter(); // For refreshing data
 
-  // --- This page now only manages state that needs to be shared ---
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<ScholarFiltersState>({
@@ -39,8 +40,7 @@ export default function ScholarManagementPage() {
     course: 'All',
     yearLevel: 'All',
   });
-
-  // --- FIX 2: Add state for modal submission (replaces the old 'loading') ---
+  const [refreshKey, setRefreshKey] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State for modals
@@ -50,11 +50,14 @@ export default function ScholarManagementPage() {
   const [editingScholar, setEditingScholar] = useState<ScholarRowData | null>(
     null
   );
-  // (Add state for Delete/History as needed)
+  const [historyScholar, setHistoryScholar] = useState<ScholarRowData | null>(
+    null
+  );
+  const [deletingScholar, setDeletingScholar] = useState<ScholarRowData | null>(
+    null
+  );
+  // --- END ADDED STATE ---
 
-  // --- All data-fetching (useEffect) logic is correctly GONE from this file ---
-
-  // --- Handlers for state that this page owns ---
   const handleFilterChange = (
     filterName: keyof ScholarFiltersState,
     value: string
@@ -66,28 +69,26 @@ export default function ScholarManagementPage() {
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
-  
+
   const handleSearch = (query: string) => {
     setSearchTerm(query);
     setCurrentPage(1); // Reset page when search changes
   };
 
-  // --- Handlers for actions coming UP from the table ---
   const handleView = (scholar: ScholarRowData) => setViewingScholar(scholar);
   const handleEdit = (scholar: ScholarRowData) => setEditingScholar(scholar);
-  const handleHistory = (scholar: ScholarRowData) =>
-    alert(`History for ${scholar.firstName}`); // Placeholder
-  const handleDelete = (scholar: ScholarRowData) =>
-    alert(`Deleting ${scholar.firstName}`); // Placeholder
+  const handleHistory = (scholar: ScholarRowData) => setHistoryScholar(scholar);
+  const handleDelete = (scholar: ScholarRowData) => setDeletingScholar(scholar);
 
   const handleCloseModals = () => {
     setViewingScholar(null);
     setEditingScholar(null);
+    setHistoryScholar(null); // MODIFIED
+    setDeletingScholar(null); // MODIFIED
   };
 
-  // --- FIX 3: Update this function to use 'isSubmitting' and 'router.refresh()' ---
   const handleUpdateScholar = async (updatedData: ScholarRowData) => {
-    setIsSubmitting(true); // Use the new state variable
+    setIsSubmitting(true);
     try {
       const response = await fetch('/api/admin/update-scholar', {
         method: 'POST',
@@ -100,24 +101,41 @@ export default function ScholarManagementPage() {
         throw new Error(result.error || 'Failed to update scholar');
       }
 
-      alert('Scholar updated successfully!');
+      toast.success('Scholar updated successfully!');
       handleCloseModals();
-      
-      // This is the correct way to refresh the data.
-      // It tells Next.js to re-run the server-side logic, which
-      // will cause your ScholarTable to re-fetch with its useEffect.
-      router.refresh(); 
-      
-      // --- REMOVED this block, as 'scholars' and 'setScholars' do not exist here ---
-      // setScholars(
-      //   scholars.map((s) => (s.id === updatedData.id ? updatedData : s))
-      // );
-      
+      setRefreshKey((prevKey) => prevKey + 1);
     } catch (error: any) {
       console.error(error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     } finally {
-      setIsSubmitting(false); // Use the new state variable
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingScholar) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/admin/delete-scholar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: deletingScholar.id }), // Send only the ID
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete scholar');
+      }
+
+      toast.success('Scholar deleted successfully!');
+      handleCloseModals();
+      router.refresh(); // Refresh the table data
+    } catch (error: any) {
+      console.error(error);
+      toast.error(`Error: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -145,20 +163,14 @@ export default function ScholarManagementPage() {
             className="w-full sm:max-w-xs"
           />
         </div>
-        
-        {/* ScholarTable fetches its own data, but we pass it
-          the state it needs to build its query and handle events.
-          The 'isSubmitting' state is NOT passed down, as the table
-          has its own 'loading' state for fetching.
-        */}
+
+        {/* ScholarTable passes all event handlers down */}
         <ScholarTable
-          // --- Props to control the query ---
           filters={filters}
           searchTerm={searchTerm}
           page={currentPage}
           itemsPerPage={ITEMS_PER_PAGE}
-          
-          // --- Handlers for events coming UP from the table ---
+          refreshKey={refreshKey}
           onPageChange={handlePageChange}
           onView={handleView}
           onEdit={handleEdit}
@@ -182,6 +194,28 @@ export default function ScholarManagementPage() {
           open={!!editingScholar}
           onClose={handleCloseModals}
           onUpdate={handleUpdateScholar}
+        />
+      )}
+
+      {/* --- 5. ADDED MODALS --- */}
+      {historyScholar && (
+        <HistoryScholarModal
+          scholar={historyScholar}
+          open={!!historyScholar}
+          onClose={handleCloseModals}
+        />
+      )}
+
+      {deletingScholar && (
+        <ConfirmDialog
+          isOpen={!!deletingScholar}
+          onClose={handleCloseModals}
+          onConfirm={handleConfirmDelete}
+          title="Delete Scholar"
+          description={`Are you sure you want to permanently delete ${deletingScholar.firstName} ${deletingScholar.surname}? This action will delete their account and all associated data. This cannot be undone.`}
+          variant="danger"
+          confirmText="Yes, delete scholar"
+          isLoading={isSubmitting}
         />
       )}
     </div>

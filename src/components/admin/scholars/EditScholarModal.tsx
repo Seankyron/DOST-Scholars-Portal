@@ -23,6 +23,7 @@ import {
 } from '@/lib/utils/constants';
 import type { ScholarRowData } from './ScholarRow';
 import { Loader2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 
 interface EditScholarModalProps {
   scholar: ScholarRowData;
@@ -42,9 +43,8 @@ export function EditScholarModal({
   // const [newCurriculumFile, setNewCurriculumFile] = useState<File | null>(null); // For file upload logic
 
   useEffect(() => {
-    // Re-populate form when the scholar prop changes
     setFormData({ ...scholar });
-  }, [scholar, open]); // Add 'open' to reset on re-open
+  }, [scholar, open]); 
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -53,25 +53,22 @@ export function EditScholarModal({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // --- FIX: Use 'onChange' and handle the React.ChangeEvent ---
   const handleCheckboxChange = (
     name: keyof ScholarRowData,
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setFormData((prev) => ({ ...prev, [name]: e.target.checked }));
   };
-  // --- END OF FIX ---
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     // TODO: Add file upload logic here
-    
+
     await onUpdate(formData); // Call the async function from the page
     setLoading(false);
   };
 
-  // --- Options (Copied from AddScholarModal) ---
   const statusOptions = [
     { value: 'Active', label: 'Active' },
     { value: 'Warning', label: 'Warning' },
@@ -104,12 +101,19 @@ export function EditScholarModal({
   return (
     <Modal open={open} onOpenChange={onClose}>
       <ModalContent size="4xl">
-        <form onSubmit={handleSubmit}>
-          <ModalHeader>
-            <ModalTitle>Edit Scholar: {scholar.firstName} {scholar.surname}</ModalTitle>
-          </ModalHeader>
+        <ModalHeader>
+          <ModalTitle>
+            Edit Scholar: {scholar.firstName} {scholar.surname}
+          </ModalTitle>
+        </ModalHeader>
 
-          <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
+        <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6">
+          <form
+            id="edit-scholar-form"
+            onSubmit={handleSubmit}
+            className="space-y-6"
+          >
+
             {/* Personal Information */}
             <fieldset className="space-y-4 p-4 border rounded-md">
               <legend className="text-lg font-medium text-dost-title px-1">
@@ -145,14 +149,6 @@ export function EditScholarModal({
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
-                  label="Email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-                <Input
                   label="Contact Number"
                   name="contactNumber"
                   type="tel"
@@ -160,20 +156,11 @@ export function EditScholarModal({
                   onChange={handleChange}
                   required
                 />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <Input
+                <Input
                   label="Date of Birth"
                   name="dateOfBirth"
                   type="date"
                   value={formData.dateOfBirth}
-                  onChange={handleChange}
-                  required
-                />
-                 <Input
-                  label="SPAS ID"
-                  name="scholarId"
-                  value={formData.scholarId}
                   onChange={handleChange}
                   required
                 />
@@ -263,56 +250,60 @@ export function EditScholarModal({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Label className="block text-sm font-medium text-gray-700 mb-2">
                     Midyear Classes
-                  </label>
+                  </Label>
                   <div className="flex flex-col gap-2">
-                    {/* --- FIX: Use 'onChange' and pass the event --- */}
                     <Checkbox
                       label="1st Year"
                       checked={formData.midyear1stYear}
-                      onChange={(e) => handleCheckboxChange('midyear1stYear', e)}
+                      onChange={(e) =>
+                        handleCheckboxChange('midyear1stYear', e)
+                      }
                     />
                     <Checkbox
                       label="2nd Year"
                       checked={formData.midyear2ndYear}
-                      onChange={(e) => handleCheckboxChange('midyear2ndYear', e)}
+                      onChange={(e) =>
+                        handleCheckboxChange('midyear2ndYear', e)
+                      }
                     />
                     <Checkbox
                       label="3rd Year"
                       checked={formData.midyear3rdYear}
-                      onChange={(e) => handleCheckboxChange('midyear3rdYear', e)}
+                      onChange={(e) =>
+                        handleCheckboxChange('midyear3rdYear', e)
+                      }
                     />
                     <Checkbox
                       label="4th Year"
                       checked={formData.midyear4thYear}
-                      onChange={(e) => handleCheckboxChange('midyear4thYear', e)}
+                      onChange={(e) =>
+                        handleCheckboxChange('midyear4thYear', e)
+                      }
                     />
-                    {/* --- END OF FIX --- */}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Thesis
-                  </label>
                   <Select
-                    label="Thesis Year"
+                    label="Thesis in Curriculum"
                     name="thesisYear"
                     value={
                       (formData.thesis1stYear && '1') ||
                       (formData.thesis2ndYear && '2') ||
                       (formData.thesis3rdYear && '3') ||
-                      (formData.thesis4thYear && '4') || ''
+                      (formData.thesis4thYear && '4') ||
+                      ''
                     }
                     onChange={(e) => {
                       const val = e.target.value;
-                      setFormData(prev => ({
+                      setFormData((prev) => ({
                         ...prev,
                         thesis1stYear: val === '1',
                         thesis2ndYear: val === '2',
                         thesis3rdYear: val === '3',
                         thesis4thYear: val === '4',
-                      }))
+                      }));
                     }}
                     options={thesisYearOptions}
                     placeholder="Select Thesis Year"
@@ -350,26 +341,46 @@ export function EditScholarModal({
               <p className="text-sm text-gray-500">
                 Current file: {scholar.curriculumFile?.name || 'None'}
               </p>
-            </fieldset>
-            
-          </ModalBody>
 
-          <ModalFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
-          </ModalFooter>
-        </form>
+              <Select
+                  label="Initial Status"
+                  name="scholarship_status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  options={statusOptions}
+                  placeholder="Select Status"
+                  required
+                />
+
+            </fieldset>
+          </form>
+        </ModalBody>
+
+        <ModalFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={loading}
+            form="edit-scholar-form" 
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save Changes'
+            )}
+          </Button>
+        </ModalFooter>
       </ModalContent>
     </Modal>
   );

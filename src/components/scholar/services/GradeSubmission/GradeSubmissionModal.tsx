@@ -206,11 +206,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
                   type="button"
                   onClick={handleSubmit} 
                   isLoading={isLoading}
-                  disabled={
-                    isLoading || !isConfirmed ||
-                    (showRegFormUpload && !regForm && !submission?.registrationFormUrl) ||
-                    (showGradesFormUpload && !gradesFile && !submission?.copyOfGradesUrl)
-                  }
+                  disabled={isLoading}
                 >
                   Submit
                 </Button>
