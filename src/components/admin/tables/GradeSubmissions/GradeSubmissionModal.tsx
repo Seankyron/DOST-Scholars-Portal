@@ -42,7 +42,6 @@ function FileDisplay({
     <div>
       <div className="flex justify-between items-center mb-1">
         <Label className="text-sm font-medium text-gray-700">{label}</Label>
-        {/* This "To Resubmit" tag is now dynamic */}
         {needsResubmit && (
           <span className="text-xs font-medium text-red-600">To Resubmit</span>
         )}
@@ -108,7 +107,6 @@ export function GradeSubmissionModal({
   const [scholarStatusState, setScholarStatusState] = useState(scholarStatus);
   const [adminComment, setAdminComment] = useState(submissionInfo.adminComment || '');
 
-  // --- ADDED: State for confirmation dialogs ---
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
 

@@ -181,14 +181,11 @@ export function AddScholarModal() {
         </ModalTrigger>
 
         <ModalContent size="4xl">
-          {/* FIX 1: The <form> tag is REMOVED from here. */}
           <ModalHeader>
             <ModalTitle>Add New Scholar</ModalTitle>
           </ModalHeader>
 
-          {/* FIX 2: Removed space-y-6 from ModalBody */}
           <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6">
-            {/* FIX 3: ADDED <form> tag HERE, inside the body */}
             <form id="add-scholar-form" onSubmit={handleFormSubmit} className="space-y-6">
               {error && (
                 <div
@@ -451,7 +448,7 @@ export function AddScholarModal() {
                   required
                 />
               </fieldset>
-            </form> {/* FIX 4: The </form> tag closes INSIDE ModalBody */}
+            </form> 
           </ModalBody>
 
           <ModalFooter>
@@ -467,7 +464,7 @@ export function AddScholarModal() {
               type="submit"
               variant="primary"
               disabled={loading}
-              form="add-scholar-form" // FIX 5: Link button to the form ID
+              form="add-scholar-form" 
             >
               {loading ? (
                 <>
@@ -479,7 +476,6 @@ export function AddScholarModal() {
               )}
             </Button>
           </ModalFooter>
-          {/* FIX 6: The </form> tag is REMOVED from here */}
         </ModalContent>
       </Modal>
 
