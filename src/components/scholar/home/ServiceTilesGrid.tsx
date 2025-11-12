@@ -12,6 +12,8 @@ export function ServiceTilesGrid() {
   const handleServiceClick = (serviceId: string, serviceTitle: string) => {
     if (serviceId === 'grade-submission') {
       openPanel('grade-submission'); 
+    } else if (serviceId === 'stipend-tracking') {
+      openPanel('stipend-tracking');
     } else {
       toast.info(`${serviceTitle} service is not yet built!`);
     }

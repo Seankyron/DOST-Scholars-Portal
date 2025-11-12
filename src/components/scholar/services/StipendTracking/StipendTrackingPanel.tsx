@@ -4,14 +4,12 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
 import type { SubmissionStatus, ScholarStatus } from '@/types';
-import { StipendSummaryCard } from './StipendSummaryCards';
-import {
-  AllowanceBreakdown,
-  type Allowance,
-} from './AllowanceBreakdown';
+import { FlippableStipendCard } from './FlippableStipendCard';
+import type { Allowance } from './AllowanceBreakdown';
 import { StipendUpdates, type StipendUpdate } from './StipendUpdates';
 
-
+// (Mock Data and semesterOptions remain the same)
+// ...
 type StipendData = {
   received: number;
   pending: number;
@@ -104,14 +102,32 @@ const mockStipendData: Record<string, StipendData> = {
     ],
   },
 };
+// ...
 
 export function StipendTrackingPanel() {
   const [selectedSemester, setSelectedSemester] = useState('1-1');
+  const [flippedCard, setFlippedCard] = useState<string | null>(null);
 
   const currentData = mockStipendData[selectedSemester];
   const currentLabel =
     semesterOptions.find((opt) => opt.value === selectedSemester)?.label ||
     'Stipend Details';
+
+  const receivedAllowances = currentData.breakdown.filter(
+    (item) => item.status === 'Released'
+  );
+  const pendingAllowances = currentData.breakdown.filter(
+    (item) => item.status === 'Pending' || item.status === 'On hold'
+  );
+
+  const handleFlip = (cardId: string) => {
+    setFlippedCard((prev) => (prev === cardId ? null : cardId));
+  };
+  
+  const handleSemesterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFlippedCard(null); // Close any flipped cards
+    setSelectedSemester(e.target.value);
+  };
 
   return (
     <div className="space-y-6">
@@ -134,7 +150,7 @@ export function StipendTrackingPanel() {
       <Select
         label="Select Semester"
         value={selectedSemester}
-        onChange={(e) => setSelectedSemester(e.target.value)}
+        onChange={handleSemesterChange} // <-- Use new handler
         options={semesterOptions}
       />
 
@@ -142,33 +158,37 @@ export function StipendTrackingPanel() {
       <h3 className="text-2xl text-center font-bold text-dost-title">
         {currentLabel}
       </h3>
-      
-      {/* Summary Cards */}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StipendSummaryCard
+        <FlippableStipendCard
           title="Total Received"
           value={currentData.received}
           tooltip="This is the total amount you have received for this semester."
           variant="success"
+          breakdown={receivedAllowances} // Pass only received items
+          isFlipped={flippedCard === 'received'}
+          onFlip={() => handleFlip('received')}
         />
-        <StipendSummaryCard
-          title={currentData.onHold ? 'Pending (On Hold)' : 'Pending'}
+        <FlippableStipendCard
+          title="Not Yet Received"
           value={currentData.pending}
-          tooltip="This is the amount pending release. It may be on hold due to missing requirements."
+          tooltip="This is the amount pending release. It may be on hold."
           variant={currentData.onHold ? 'warning' : 'info'}
+          breakdown={pendingAllowances}
+          isFlipped={flippedCard === 'pending'}
+          onFlip={() => handleFlip('pending')}
         />
-        <StipendSummaryCard
+        <FlippableStipendCard
           title="Expected Total"
           value={currentData.total}
-          tooltip="This is the total expected stipend and allowances for this semester."
+          tooltip="This is the total expected stipend for this semester."
           variant="info"
+          breakdown={currentData.breakdown} // Pass ALL items
+          isFlipped={flippedCard === 'total'}
+          onFlip={() => handleFlip('total')}
         />
       </div>
 
-      {/* Allowance Breakdown */}
-      <AllowanceBreakdown breakdown={currentData.breakdown} />
-
-      {/* Your Updates */}
       <StipendUpdates updates={currentData.updates} />
     </div>
   );
