@@ -7,11 +7,12 @@ import {
   ModalHeader,
   ModalTitle,
   ModalBody,
-  ModalDescription, 
+  ModalDescription,
   ModalFooter,
 } from '@/components/ui/modal';
-import { AlertTriangle } from 'lucide-react'
-import { cn } from '@/lib/utils/cn'; 
+import { AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/utils/cn';
+import { toast } from '@/components/ui/toaster';
 
 interface DeleteBannerModalProps {
   open: boolean;
@@ -35,7 +36,7 @@ export function DeleteBannerModal({
           <div
             className={cn(
               'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center',
-              'bg-red-100' 
+              'bg-red-100' // Danger icon bg
             )}
           >
             <AlertTriangle className={cn('h-6 w-6', 'text-red-600')} />
@@ -58,10 +59,11 @@ export function DeleteBannerModal({
             Cancel
           </Button>
           <Button
-            variant="primary" 
+            variant="primary"
             className="bg-red-600 text-white hover:bg-red-700"
             onClick={() => {
               onConfirm();
+              toast.success('Banner deleted successfully.'); 
               onClose();
             }}
           >

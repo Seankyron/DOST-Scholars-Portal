@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { toast } from '@/components/ui/toaster'; 
 
 export function CarouselSettings() {
   const [timer, setTimer] = useState('5 seconds');
@@ -17,7 +18,7 @@ export function CarouselSettings() {
   });
 
   const handleSave = () => {
-    alert('Settings saved!');
+      toast.success('Settings saved successfully.');
   };
 
   const timerOptions = [

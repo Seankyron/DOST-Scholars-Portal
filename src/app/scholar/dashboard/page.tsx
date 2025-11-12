@@ -1,3 +1,4 @@
+// src/app/scholar/dashboard/page.tsx
 'use client';
 
 import { ProfileSection } from '@/components/scholar/profile/ProfileSection';
@@ -6,16 +7,20 @@ import { NavigationTabs } from '@/components/scholar/layout/NavigationTabs';
 import { RecentActivity } from '@/components/scholar/layout/RecentActivity';
 import { WelcomeHeader } from '@/components/scholar/layout/WelcomeHeader';
 import { Card } from '@/components/ui/card';
-import { ServicePanelProvider, useServicePanelContext } from '@/context/ServicePanelContext';
+import {
+  ServicePanelProvider,
+  useServicePanelContext,
+} from '@/context/ServicePanelContext';
 import { ServicePanelOverlay } from '@/components/scholar/layout/ServicePanelOverlay';
+import { cn } from '@/lib/utils/cn';
 
-function DashboardContent() {
+function DashboardContentWrapper() {
   const { isOpen } = useServicePanelContext();
 
   if (isOpen) {
     return <ServicePanelOverlay />;
   }
-  
+
   return (
     <div className="space-y-6">
       <NavigationTabs />
@@ -24,24 +29,38 @@ function DashboardContent() {
   );
 }
 
+function DashboardPageContent() {
+  const { isOpen } = useServicePanelContext();
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8">
+      <Card className="mx-auto max-w-7xl bg-[#f4f6fc] shadow-xl">
+        <div
+          className={cn(
+            'p-6 sm:p-8',
+            !isOpen && 'space-y-6'
+          )}
+        >
+          <WelcomeHeader />
+          {isOpen && <div className="mt-6" />}
+          
+          <ProfileSection />
+          {isOpen && <div className="mt-6" />}
+
+          <EventBannerSection />
+          <div className={cn(isOpen ? 'mt-2' : 'mt-6')} />
+          
+          <DashboardContentWrapper />
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 export default function ScholarDashboardPage() {
   return (
     <ServicePanelProvider>
-      <div className="p-4 sm:p-6 lg:p-8">
-        <Card className="mx-auto max-w-7xl bg-[#f4f6fc] shadow-xl">
-          <div className="p-6 sm:p-8 space-y-6">
-            
-            <WelcomeHeader />
-            
-            <ProfileSection />
-            
-            <EventBannerSection />
-
-            <DashboardContent />
-            
-          </div>
-        </Card>
-      </div>
+      <DashboardPageContent />
     </ServicePanelProvider>
   );
 }

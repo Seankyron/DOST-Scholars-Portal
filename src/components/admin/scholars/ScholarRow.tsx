@@ -1,61 +1,76 @@
 'use client';
 
-import { useState } from 'react'; 
-import { Eye, Pencil, History, Trash2 } from 'lucide-react'; 
+import { Eye, Pencil, History, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { ScholarStatus } from '@/types/scholar';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'; 
-import { toast } from '@/components/ui/toaster'; 
 
-export interface Scholar {
-    id: string;
+// --- THIS IS NOW THE "SINGLE SOURCE OF TRUTH" ---
+export interface ScholarRowData {
+  id: string; // Added for React key
+  scholarId: string;
+  email: string;
+  firstName: string;
+  middleName: string; // Keep as string, handle ""
+  surname: string;
+  suffix: string; // Keep as string, handle ""
+  dateOfBirth: string;
+  contactNumber: string;
+  addressBrgy: string;
+  addressCity: string;
+  addressProvince: string;
+  scholarshipType: string;
+  yearAwarded: string;
+  university: string;
+  program: string;
+  status: ScholarStatus; // Added
+  yearLevel: string; // Added
+  midyear1stYear: boolean;
+  midyear2ndYear: boolean;
+  midyear3rdYear: boolean;
+  midyear4thYear: boolean;
+  thesis1stYear: boolean;
+  thesis2ndYear: boolean;
+  thesis3rdYear: boolean;
+  thesis4thYear: boolean;
+  courseDuration: string;
+  ojtYear: string;
+  ojtSemester: string;
+  curriculumFile?: {
     name: string;
-    scholarId: string;
-    scholarshipType: string;
-    university: string;
-    yearLevel: string;
-    program: string;
-    status: ScholarStatus;
-    email: string;
-    profileImage: string;
+    url: string;
+  };
 }
 
 interface ScholarRowProps {
-    scholar: Scholar;
-    onView: (scholar: Scholar) => void;
-    onEdit: (scholar: Scholar) => void;
-    onHistory: (scholar: Scholar) => void;
+  scholar: ScholarRowData;
+  onView: (scholar: ScholarRowData) => void;
+  onEdit: (scholar: ScholarRowData) => void;
+  onHistory: (scholar: ScholarRowData) => void;
+  onDelete: (scholar: ScholarRowData) => void;
 }
 
-export function ScholarRow({ scholar }: ScholarRowProps) {
-  // --- ADDED: State to manage the confirmation dialog ---
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-
-  // --- ADDED: Handler for when deletion is confirmed ---
-  const handleDelete = () => {
-    // In a real app, you would make your API call to delete the scholar here
-    // e.g., await deleteScholar(scholar.id);
-    console.log(`Deleting scholar: ${scholar.name} (ID: ${scholar.id})`);
-    
-    // Close the dialog
-    setIsConfirmOpen(false);
-    
-    // Show a success message
-    toast.success(`${scholar.name} has been deleted.`);
-    
-    // You might want to refresh the data on the page after deletion
-    // e.g., router.refresh();
-  };
+export function ScholarRow({
+  scholar,
+  onView,
+  onEdit,
+  onHistory,
+  onDelete,
+}: ScholarRowProps) {
+  const fullName = [
+    scholar.firstName,
+    scholar.middleName,
+    scholar.surname,
+    scholar.suffix,
+  ]
+    .filter(Boolean) // Remove empty strings
+    .join(' ');
 
   return (
     <>
       <tr className="hover:bg-gray-50 transition-colors">
-        {/* --- MODIFIED: Profile Picture Removed --- */}
         <td className="px-4 py-3 whitespace-nowrap">
-          <div className="text-sm font-medium text-gray-900">
-            {scholar.name}
-          </div>
+          <div className="text-sm font-medium text-gray-900">{fullName}</div>
         </td>
         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
           {scholar.scholarId}
@@ -78,13 +93,13 @@ export function ScholarRow({ scholar }: ScholarRowProps) {
         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
           {scholar.email}
         </td>
-        {/* --- MODIFIED: Actions updated to icon buttons --- */}
         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium space-x-2">
+          {/* --- (Buttons are correct and use the props) --- */}
           <Button
             variant="outline"
             size="sm"
             className="w-8 h-8 p-0"
-            onClick={() => alert(`Viewing details for ${scholar.name}`)}
+            onClick={() => onView(scholar)}
             title="View Details"
           >
             <Eye className="h-4 w-4" />
@@ -93,7 +108,7 @@ export function ScholarRow({ scholar }: ScholarRowProps) {
             variant="outline"
             size="sm"
             className="w-8 h-8 p-0"
-            onClick={() => alert(`Editing scholar ${scholar.name}`)}
+            onClick={() => onEdit(scholar)}
             title="Edit Scholar"
           >
             <Pencil className="h-4 w-4" />
@@ -102,35 +117,22 @@ export function ScholarRow({ scholar }: ScholarRowProps) {
             variant="outline"
             size="sm"
             className="w-8 h-8 p-0"
-            onClick={() => alert(`Viewing history for ${scholar.name}`)}
+            onClick={() => onHistory(scholar)}
             title="Scholar History"
           >
             <History className="h-4 w-4" />
           </Button>
-          
-          {/* --- ADDED: Delete button --- */}
           <Button
             variant="outline"
             size="sm"
             className="w-8 h-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
-            onClick={() => setIsConfirmOpen(true)} // <-- This opens the pop-up
+            onClick={() => onDelete(scholar)}
             title="Delete Scholar"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         </td>
       </tr>
-
-      {/* --- ADDED: Confirmation Pop-up (Dialog) --- */}
-      <ConfirmDialog
-        isOpen={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
-        onConfirm={handleDelete}
-        title="Delete Scholar"
-        description={`Are you sure you want to delete ${scholar.name}? This action cannot be undone.`}
-        variant="danger"
-        confirmText="Yes, delete scholar"
-      />
     </>
   );
 }

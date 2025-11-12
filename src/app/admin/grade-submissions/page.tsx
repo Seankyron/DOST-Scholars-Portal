@@ -21,7 +21,6 @@ export default function AdminGradeSubmissionsPage() {
 
       {/* Table Section */}
       <div className="bg-white rounded-lg shadow-md">
-        {/* --- MODIFICATION: Simplified the header --- */}
         <div className="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-xl font-semibold text-gray-800">
             All Submissions

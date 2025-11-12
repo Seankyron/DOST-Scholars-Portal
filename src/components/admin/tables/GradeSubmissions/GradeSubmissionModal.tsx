@@ -16,10 +16,9 @@ import { Label } from '@/components/ui/label';
 import { Eye, Download, MessageSquarePlus } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import type { GradeSubmissionDetails } from './GradeSubmissionsTable';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'; // <-- IMPORT
-import { toast } from '@/components/ui/toaster'; // <-- IMPORT
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'; 
+import { toast } from '@/components/ui/toaster';
 
-// --- Helper Component for info pairs ---
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
@@ -43,7 +42,6 @@ function FileDisplay({
     <div>
       <div className="flex justify-between items-center mb-1">
         <Label className="text-sm font-medium text-gray-700">{label}</Label>
-        {/* This "To Resubmit" tag is now dynamic */}
         {needsResubmit && (
           <span className="text-xs font-medium text-red-600">To Resubmit</span>
         )}
@@ -109,7 +107,6 @@ export function GradeSubmissionModal({
   const [scholarStatusState, setScholarStatusState] = useState(scholarStatus);
   const [adminComment, setAdminComment] = useState(submissionInfo.adminComment || '');
 
-  // --- ADDED: State for confirmation dialogs ---
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
 
@@ -156,9 +153,8 @@ export function GradeSubmissionModal({
   };
 
   const comment = adminComment.toLowerCase();
-  const showCorResubmit = comment.includes('registration') || comment.includes('cor');
+  const showCorResubmit = comment.includes('registration') || comment.includes('form 5');
   const showGradesResubmit = comment.includes('grades');
-  const showCurriculumResubmit = comment.includes('curriculum'); // For future use
 
   return (
     <>
@@ -214,7 +210,6 @@ export function GradeSubmissionModal({
                   <FileDisplay
                     label="Course Curriculum:"
                     fileName={files.curriculumFile}
-                    needsResubmit={showCurriculumResubmit}
                   />
                   <FileDisplay
                     label="Registration Form or Form 5:"
@@ -308,7 +303,7 @@ export function GradeSubmissionModal({
               type="button"
               variant="primary"
               className="bg-green-600 hover:bg-green-700"
-              onClick={() => setIsApproveOpen(true)} // <-- MODIFIED
+              onClick={() => setIsApproveOpen(true)}
             >
               APPROVE
             </Button>
