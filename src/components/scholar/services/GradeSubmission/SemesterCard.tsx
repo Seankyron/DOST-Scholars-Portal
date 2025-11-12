@@ -31,7 +31,7 @@ export function SemesterCard({ semester, onSelect }: SemesterCardProps) {
       type="button"
       onClick={onSelect}
       className={cn(
-        'rounded-xl border bg-white shadow-md', 
+        'rounded-xl border bg-white shadow-md',   
         'p-4 text-left transition-all duration-200 w-full flex flex-col h-full justify-between',
         isClickable 
           ? 'hover:shadow-lg cursor-pointer' 

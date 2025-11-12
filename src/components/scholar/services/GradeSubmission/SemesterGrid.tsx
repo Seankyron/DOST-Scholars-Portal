@@ -40,7 +40,7 @@ export function SemesterGrid({ semesters, onSelectSemester }: SemesterGridProps)
             </span>
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
             {sems.map((sem) => (
               <SemesterCard 
                 key={sem.semester}

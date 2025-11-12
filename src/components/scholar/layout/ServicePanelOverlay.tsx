@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { GradeSubmissionPanel } from '../services/GradeSubmission/GradeSubmissionPanel';
+import { StipendTrackingPanel } from '../services/StipendTracking/StipendTrackingPanel';
 import { cn } from '@/lib/utils/cn'; 
 
 const MockServicePanel = ({ title }: { title: string }) => (
@@ -25,7 +26,8 @@ export function ServicePanelOverlay({ className }: { className?: string }) {
     switch (activeService) {
       case 'grade-submission':
         return <GradeSubmissionPanel />;
-      // ... other cases
+      case 'stipend-tracking':
+        return <StipendTrackingPanel />;
       default:
         const serviceTitle = activeService
           ? activeService.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')

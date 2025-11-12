@@ -8,7 +8,8 @@ export type SubmissionStatus =
   | 'Processing' 
   | 'Closed' 
   | 'Open' 
-  | 'Not Available';
+  | 'Not Available'
+  | 'Released';
 
 export interface BaseSubmission {
   id: string;
