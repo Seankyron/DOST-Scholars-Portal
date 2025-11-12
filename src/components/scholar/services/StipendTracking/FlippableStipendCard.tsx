@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { InfoTooltip } from '@/components/shared/InfoToolTip';
 import { cn } from '@/lib/utils/cn';
 import { formatCurrency } from '@/lib/utils/format';
-import type { Allowance } from './AllowanceBreakdown'; 
+import type { Allowance } from '@/types/services'; 
 import { ArrowLeft } from 'lucide-react';
 
 interface FlippableStipendCardProps {

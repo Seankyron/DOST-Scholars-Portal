@@ -51,6 +51,12 @@ export interface StipendTracking extends BaseSubmission {
   };
 }
 
+export type Allowance = {
+  name: string;
+  amount: number;
+  status: 'Released' | 'Pending' | 'On hold';
+};
+
 export type PTPPlan = 'undertake_ptp' | 'cannot_participate' | 'ojt_midyear_and_ptp';
 
 export interface PracticalTrainingReferral extends BaseSubmission {

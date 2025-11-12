@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
 import type { SubmissionStatus, ScholarStatus } from '@/types';
 import { FlippableStipendCard } from './FlippableStipendCard';
-import type { Allowance } from './AllowanceBreakdown';
+import type { Allowance } from '@/types/services'; 
 import { StipendUpdates, type StipendUpdate } from './StipendUpdates';
 
 // (Mock Data and semesterOptions remain the same)
