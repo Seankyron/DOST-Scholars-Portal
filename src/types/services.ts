@@ -57,6 +57,11 @@ export type Allowance = {
   status: 'Released' | 'Pending' | 'On hold';
 };
 
+export type StipendUpdate = {
+  message: string;
+  type: 'info' | 'warning' | 'success';
+};
+
 export type PTPPlan = 'undertake_ptp' | 'cannot_participate' | 'ojt_midyear_and_ptp';
 
 export interface PracticalTrainingReferral extends BaseSubmission {

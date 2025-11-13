@@ -91,16 +91,16 @@ export function GradeSubmissionPanel() {
         Grade Submission
       </h2>
       
-      <Card>
+      <Card className='bg-yellow-50 border-yellow-200'>
         <CardHeader>
-          <CardTitle className="text-dost-title">Grade Submission Requirements</CardTitle>
+          <CardTitle className="font-bold text-yellow-800">Grade Submission Requirements</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
             {requirements.map((req, index) => (
               <li key={index} className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-700">{req}</span>
+                <span className="text-sm text-yellow-800">{req}</span>
               </li>
             ))}
           </ul>

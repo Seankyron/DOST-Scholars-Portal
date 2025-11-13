@@ -2,9 +2,6 @@
 
 import { SemesterCard } from './SemesterCard';
 import type { SemesterAvailability } from '@/types/curriculum';
-import { getAcademicYear } from '@/lib/utils/date';
-// --- MODIFICATION: Removed Card imports ---
-
 interface SemesterGridProps {
   semesters: SemesterAvailability[];
   onSelectSemester: (semester: SemesterAvailability) => void;

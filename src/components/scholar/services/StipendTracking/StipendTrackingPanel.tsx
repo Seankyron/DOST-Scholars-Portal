@@ -170,10 +170,14 @@ export function StipendTrackingPanel() {
           onFlip={() => handleFlip('received')}
         />
         <FlippableStipendCard
-          title="Not Yet Received"
+          title={currentData.onHold ? 'On Hold' : 'Not Yet Received'}
           value={currentData.pending}
-          tooltip="This is the amount pending release. It may be on hold."
-          variant={currentData.onHold ? 'warning' : 'info'}
+          tooltip={
+            currentData.onHold
+              ? 'This amount is on hold due to pending requirements.'
+              : 'This is the amount pending for release.'
+          }
+          variant={currentData.onHold ? 'warning' : 'pending'}
           breakdown={pendingAllowances}
           isFlipped={flippedCard === 'pending'}
           onFlip={() => handleFlip('pending')}
