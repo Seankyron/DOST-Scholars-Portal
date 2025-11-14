@@ -51,6 +51,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@types/jquery": "^3.5.33",
     "@types/node": "^20.19.24",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
