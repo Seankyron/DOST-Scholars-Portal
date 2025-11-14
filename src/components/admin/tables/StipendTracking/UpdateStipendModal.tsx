@@ -129,7 +129,6 @@ export function UpdateStipendModal({
                       <p className="text-sm font-medium">
                         {allowance.name} ({formatCurrency(allowance.amount)})
                       </p>
-                      {/* --- 4. USE the new StatusDropdown --- */}
                       <StatusDropdown
                         currentStatus={allowance.status}
                         onChange={(newStatus) =>

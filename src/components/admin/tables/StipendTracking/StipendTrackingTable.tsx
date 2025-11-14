@@ -305,7 +305,6 @@ export function StipendTrackingTable({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {/* --- 5. RENDER stipends prop --- */}
             {stipends.map((stipend) => (
               <StipendTrackingRow
                 key={stipend.id}
