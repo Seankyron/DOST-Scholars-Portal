@@ -2,8 +2,8 @@
 
 import { Select } from '@/components/ui/select';
 import { UNIVERSITIES } from '@/lib/utils/constants';
+import { DateRangeFilter } from '@/components/shared/DateRangeFilter';
 
-// Mock options for filters
 const statusOptions = [
   { value: 'All', label: 'All Status' },
   { value: 'Processing', label: 'Processing' },
@@ -22,24 +22,36 @@ const universityOptions = [
   ...UNIVERSITIES.map((u) => ({ value: u, label: u })),
 ];
 
+
 export function StipendTrackingFilters() {
+  const handleDateFilter = (startDate: string, endDate: string) => {
+    // In a real app, you'd set state here
+    console.log('Filtering from', startDate, 'to', endDate);
+  };
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-      <Select
-        options={statusOptions}
-        defaultValue="All"
-        placeholder="Status: All"
-      />
-      <Select
-        options={academicYearOptions}
-        defaultValue="All"
-        placeholder="Academic Year: All"
-      />
-      <Select
-        options={universityOptions}
-        defaultValue="All"
-        placeholder="School: All"
-      />
+    <div className="space-y-4">
+      {/* Row 1: Dropdowns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <Select
+          options={statusOptions}
+          defaultValue="All"
+          placeholder="Status: All"
+        />
+        <Select
+          options={academicYearOptions}
+          defaultValue="All"
+          placeholder="Academic Year: All"
+        />
+        <Select
+          options={universityOptions}
+          defaultValue="All"
+          placeholder="School: All"
+        />
+      </div>
+
+      {/* Row 2: Date Range Filter */}
+      <DateRangeFilter onFilter={handleDateFilter} />
     </div>
   );
 }
