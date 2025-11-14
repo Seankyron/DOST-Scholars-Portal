@@ -14,10 +14,9 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { StipendTrackingRow } from './StipendTrackingRow';
 import { UpdateStipendModal } from './UpdateStipendModal';
+import { Checkbox } from '@/components/ui/checkbox';
 
-// --- 1. COPIED FROM SCHOLAR PANEL (RENAMED) ---
-// This is the scholar's data type
-type ScholarStipendData = {
+export type ScholarStipendData = {
   received: number;
   pending: number;
   onHold: boolean;
@@ -25,29 +24,32 @@ type ScholarStipendData = {
   status: SubmissionStatus | ScholarStatus;
   breakdown: Allowance[];
   updates: StipendUpdate[];
+  dateSubmitted: string; // <-- ADDED
 };
 
-// This is the scholar's mock data, defined FIRST
 const scholarPanelMockData: Record<string, ScholarStipendData> = {
   '1-1': {
-    received: 24000, // 3 x 8k
-    pending: 22000, // 2 x 8k + 5k book + 5k clothing
+    received: 24000,
+    pending: 22000,
     onHold: true,
-    total: 46000, // 5 x 8k + 5k + 5k
+    total: 46000,
     status: 'On hold',
+    dateSubmitted: '2023-10-15T09:30:00Z', // <-- ADDED
     breakdown: [
+      // ...breakdown
       { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
       { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
       { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
       { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'On hold' },
       { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'On hold' },
       { name: 'Book Allowance', amount: 5000, status: 'On hold' },
-      { name: 'Clothing Allowance', amount: 1000, status: 'On hold' }, // Only appears here
+      { name: 'Clothing Allowance', amount: 1000, status: 'On hold' },
     ],
     updates: [
+      // ...updates
       {
         message:
-          'Stipend On Hold: Your 1st Semester 2024 stipend (₱26,000) is on hold.', // Updated amount
+          'Stipend On Hold: Your 1st Semester 2024 stipend (₱22,000) is on hold.',
         type: 'warning',
       },
       {
@@ -58,21 +60,23 @@ const scholarPanelMockData: Record<string, ScholarStipendData> = {
     ],
   },
   '1-2': {
-    received: 45000, // 5 x 8k + 5k book
+    received: 45000,
     pending: 0,
     onHold: false,
-    total: 45000, // 5 x 8k + 5k book
+    total: 45000,
     status: 'Approved',
+    dateSubmitted: '2024-03-20T14:00:00Z', // <-- ADDED
     breakdown: [
+      // ...breakdown
       { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
       { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
       { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
       { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Released' },
       { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Released' },
       { name: 'Book Allowance', amount: 5000, status: 'Released' },
-      // Clothing Allowance removed
     ],
     updates: [
+      // ...updates
       {
         message:
           'Your stipend (₱45,000) for this semester has been fully released.',
@@ -82,10 +86,11 @@ const scholarPanelMockData: Record<string, ScholarStipendData> = {
   },
   '2-1': {
     received: 0,
-    pending: 45000, // 5 x 8k + 5k book
+    pending: 45000,
     onHold: false,
-    total: 45000, // 5 x 8k + 5k book
+    total: 45000,
     status: 'Processing',
+    dateSubmitted: '2024-10-18T11:20:00Z', 
     breakdown: [
       { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Pending' },
       { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Pending' },
@@ -93,7 +98,6 @@ const scholarPanelMockData: Record<string, ScholarStipendData> = {
       { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Pending' },
       { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Pending' },
       { name: 'Book Allowance', amount: 5000, status: 'Pending' },
-      // Clothing Allowance removed
     ],
     updates: [
       {
@@ -105,11 +109,11 @@ const scholarPanelMockData: Record<string, ScholarStipendData> = {
   },
 };
 
-// This is the full data structure an admin will manage per scholar, per semester
+
 export interface StipendDetails {
-  id: string; // Unique ID for this stipend record
+  id: string;
   scholarInfo: {
-    id: string; // Scholar's user ID
+    id: string;
     name: string;
     scholarId: string;
   };
@@ -126,10 +130,10 @@ export interface StipendDetails {
     onHold: boolean;
     breakdown: Allowance[];
     updates: StipendUpdate[];
+    dateSubmitted: string; 
   };
 }
 
-// Mock data based on the scholar view
 const mockStipendData: StipendDetails[] = [
   {
     id: 'stipend-1-1',
@@ -144,7 +148,6 @@ const mockStipendData: StipendDetails[] = [
       academicYear: 'AY 2023-2024',
     },
     stipend: {
-      // --- 2. UPDATED to use the renamed variable ---
       ...scholarPanelMockData['1-1'],
       status: 'On hold',
     },
@@ -162,7 +165,6 @@ const mockStipendData: StipendDetails[] = [
       academicYear: 'AY 2023-2024',
     },
     stipend: {
-      // --- 2. UPDATED to use the renamed variable ---
       ...scholarPanelMockData['1-2'],
       status: 'Released',
     },
@@ -180,44 +182,85 @@ const mockStipendData: StipendDetails[] = [
       academicYear: 'AY 2024-2025',
     },
     stipend: {
-      // --- 2. UPDATED to use the renamed variable ---
       ...scholarPanelMockData['2-1'],
       status: 'Processing',
     },
   },
 ];
 
+
 interface StipendTrackingTableProps {
-  searchTerm: string;
+  stipends: StipendDetails[];
+  loading: boolean;
+  totalCount: number;
+  currentPage: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+  selectedScholarIds: string[];
+  onSelectAll: (ids: string[]) => void;
+  onSelectOne: (id: string) => void;
 }
 
 export function StipendTrackingTable({
-  searchTerm,
+  stipends,
+  loading,
+  totalCount,
+  currentPage,
+  itemsPerPage,
+  onPageChange,
+  selectedScholarIds,
+  onSelectAll,
+  onSelectOne,
 }: StipendTrackingTableProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStipend, setSelectedStipend] =
     useState<StipendDetails | null>(null);
 
-  const filteredData = mockStipendData.filter((s) =>
-    s.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const isAllSelected =
+    stipends.length > 0 &&
+    selectedScholarIds.length === stipends.length;
+
+  const handleSelectAll = (isChecking: boolean) => {
+    if (isChecking) {
+      onSelectAll(stipends.map((s) => s.id));
+    } else {
+      onSelectAll([]);
+    }
+  };
 
   const handleOpenModal = (stipend: StipendDetails) => {
     setSelectedStipend(stipend);
     setIsModalOpen(true);
   };
-
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedStipend(null);
   };
-
   const handleSave = (updatedStipend: StipendDetails) => {
-    // In a real app, this would be an API call
     console.log('Saving stipend data:', updatedStipend);
-    // Here you would update your main data source (e.g., SWR, React Query)
     handleCloseModal();
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p className="text-gray-500">Loading stipend records...</p>
+      </div>
+    );
+  }
+
+  if (stipends.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p className="text-gray-500">No stipend records found.</p>
+      </div>
+    );
+  }
+  
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalCount);
+
 
   return (
     <>
@@ -225,6 +268,19 @@ export function StipendTrackingTable({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th
+                scope="col"
+                className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                <Checkbox
+                  checked={isAllSelected}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    handleSelectAll(e.target.checked)
+                  }
+                  aria-label="Select all rows"
+                />
+              </th>
+              {/* ... (other headers) ... */}
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Scholar
               </th>
@@ -233,6 +289,9 @@ export function StipendTrackingTable({
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Status
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date Submitted
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Total Received
@@ -246,11 +305,14 @@ export function StipendTrackingTable({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredData.map((stipend) => (
+            {/* --- 5. RENDER stipends prop --- */}
+            {stipends.map((stipend) => (
               <StipendTrackingRow
                 key={stipend.id}
                 stipend={stipend}
                 onUpdate={() => handleOpenModal(stipend)}
+                isSelected={selectedScholarIds.includes(stipend.id)}
+                onSelect={() => onSelectOne(stipend.id)}
               />
             ))}
           </tbody>
@@ -259,13 +321,13 @@ export function StipendTrackingTable({
 
       <div className="p-4 grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
         <p className="text-sm text-gray-700 sm:justify-self-start sm:text-left">
-          Showing 1-{filteredData.length} of {filteredData.length} records
+          Showing {startItem}-{endItem} of {totalCount} records
         </p>
 
         <Pagination
-          currentPage={1}
-          totalPages={1}
-          onPageChange={() => {}}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
           className="sm:justify-self-center"
         />
 
