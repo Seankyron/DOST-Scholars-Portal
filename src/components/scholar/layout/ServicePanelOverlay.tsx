@@ -5,8 +5,9 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { GradeSubmissionPanel } from '../services/GradeSubmission/GradeSubmissionPanel';
+import { StipendTrackingPanel } from '../services/StipendTracking/StipendTrackingPanel';
+import { cn } from '@/lib/utils/cn'; 
 
-// Placeholder for services that are not yet built
 const MockServicePanel = ({ title }: { title: string }) => (
   <div className="p-6">
     <h2 className="text-3xl font-bold text-dost-title mb-4">{title}</h2>
@@ -18,14 +19,15 @@ const MockServicePanel = ({ title }: { title: string }) => (
   </div>
 );
 
-export function ServicePanelOverlay() {
+export function ServicePanelOverlay({ className }: { className?: string }) {
   const { closePanel, activeService } = useServicePanelContext();
 
   const renderService = () => {
     switch (activeService) {
       case 'grade-submission':
         return <GradeSubmissionPanel />;
-      // ... other cases
+      case 'stipend-tracking':
+        return <StipendTrackingPanel />;
       default:
         const serviceTitle = activeService
           ? activeService.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
@@ -38,7 +40,10 @@ export function ServicePanelOverlay() {
 
   return (
     <div
-      className="relative w-full bg-[#f4f6fc] rounded-lg"
+      className={cn(
+        "relative w-full bg-[#f4f6fc] rounded-lg", 
+        className 
+      )}
     >
       <Button
         variant="ghost"
@@ -50,7 +55,7 @@ export function ServicePanelOverlay() {
       </Button>
       
 
-      <div className="h-full overflow-y-auto scrollbar-thin p-6 pt-16">
+      <div className="h-full overflow-y-auto scrollbar-thin p-6">
         {renderService()}
       </div>
     </div>

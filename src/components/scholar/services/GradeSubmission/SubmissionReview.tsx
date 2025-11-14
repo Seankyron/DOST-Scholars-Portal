@@ -4,12 +4,11 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { GradeSubmission } from '@/types/services';
 import { formatDate } from '@/lib/utils/date';
-import { FileText, Edit, Download, History, CheckCircle } from 'lucide-react';
+import { FileText, Download} from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 interface SubmissionReviewProps {
   submission: GradeSubmission;
-  onEdit: () => void;
 }
 
 function FileDisplay({ 
@@ -56,14 +55,18 @@ function FileDisplay({
   );
 }
 
-export function SubmissionReview({ submission, onEdit }: SubmissionReviewProps) {
-  const canEdit = submission.status === 'Pending' || submission.status === 'Resubmit';
+
+// --- 3. Removed onEdit from function signature ---
+export function SubmissionReview({ submission }: SubmissionReviewProps) {
+  // --- 4. Removed canEdit constant and the entire editing block ---
+  // const canEdit = submission.status === 'Pending' || submission.status === 'Resubmit';
 
   return (
     <div className="space-y-6">
       
       <div>
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Status & History</h3>
+        {/* ... (Status & History section remains the same) ... */}
         <div className="p-4 bg-white rounded-lg border space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-500">Current Status:</span>
@@ -101,15 +104,6 @@ export function SubmissionReview({ submission, onEdit }: SubmissionReviewProps) 
           />
         </div>
       </div>
-
-      {canEdit && (
-        <div className="flex justify-end pt-4 border-t">
-          <Button variant="outline" onClick={onEdit}>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Response
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

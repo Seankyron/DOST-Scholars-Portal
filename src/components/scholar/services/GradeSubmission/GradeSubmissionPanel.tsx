@@ -9,6 +9,8 @@ import { GradeSubmissionModal } from './GradeSubmissionModal';
 import type { SemesterAvailability } from '@/types/curriculum';
 import type { SubmissionStatus, CurriculumConfig, Semester } from '@/types'; 
 import { hasMidyear } from '@/lib/utils/curriculum'; 
+import { toast } from '@/components/ui/toaster';
+import { Select } from '@/components/ui/select'; 
 
 const requirements = [
   'Certified True Copy of complete grades and certificate of registration from University Registrar',
@@ -25,21 +27,32 @@ const mockCurriculum: CurriculumConfig = {
   duration: 4, 
 };
 
-// --- MODIFICATION: Synced this data to match RecentSubmissions ---
 const submissionStatuses: Record<string, SubmissionStatus> = {
   '1-1st Semester': 'Approved',
   '1-2nd Semester': 'Approved',
   '1-Midyear': 'Approved', 
   '2-1st Semester': 'Approved',
-  '2-2nd Semester': 'Pending', // <-- Matches recent activity
-  '3-1st Semester': 'Approved', // <-- Matches recent activity
-  '3-2nd Semester': 'Resubmit', // <-- Matches recent activity
+  '2-2nd Semester': 'Pending', 
+  '3-1st Semester': 'Approved',
+  '3-2nd Semester': 'Resubmit', 
   '3-Midyear': 'Open', 
   '4-1st Semester': 'Not Available',
   '4-2nd Semester': 'Not Available',
 };
 
-const generatedSemesters: SemesterAvailability[] = [];
+const academicYearMapping: Record<number, string> = {
+  1: 'AY 2023-2024',
+  2: 'AY 2024-2025',
+  3: 'AY 2025-2026',
+  4: 'AY 2026-2027',
+  5: 'AY 2027-2028',
+};
+
+const academicYearOptions = Object.values(academicYearMapping)
+  .map(ay => ({ value: ay, label: ay }))
+  .reverse(); // Show newest first
+
+  const generatedSemesters: (SemesterAvailability & { academicYear: string })[] = [];
 const courseDuration = mockCurriculum.duration; 
 
 for (let year = 1; year <= courseDuration; year++) {
@@ -58,63 +71,83 @@ for (let year = 1; year <= courseDuration; year++) {
       semester: sem,
       status: status,
       isAvailable: status !== 'Not Available',
-      // (Mock data for other flags)
       isCurrent: (year === 3 && sem === '2nd Semester'), 
       isPast: year < 3 || (year === 3 && sem === '1st Semester'), 
       isFuture: year > 3,
+      academicYear: academicYearMapping[year] || 'N/A', // <-- ADDED
     });
   }
 }
 
 export function GradeSubmissionPanel() {
   const [selectedSemester, setSelectedSemester] = useState<SemesterAvailability | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
+  
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState('AY 2025-2026'); 
 
   const handleOpenModal = (semester: SemesterAvailability) => {
     if (semester.status !== 'Not Available') {
       setSelectedSemester(semester);
+      setIsClosing(false);
+    } else {
+      toast.info('This semester is not yet available for submission.');
     }
   };
 
   const handleCloseModal = () => {
-    setSelectedSemester(null);
+    setIsClosing(true);
+    setTimeout(() => {
+      setSelectedSemester(null);
+      setIsClosing(false);
+    }, 250);
   };
+
+  const filteredSemesters = generatedSemesters.filter(
+    (sem) => sem.academicYear === selectedAcademicYear
+  );
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl text-center font-bold text-dost-title mb-4">
+      <h2 className="text-3xl text-center font-bold text-dost-title mb-4">
         Grade Submission
       </h2>
       
-      <Card>
+      <Card className='bg-yellow-50 border-yellow-200'>
         <CardHeader>
-          <CardTitle className="text-dost-blue">Grade Submission Requirements</CardTitle>
+          <CardTitle className="font-bold text-yellow-800">Grade Submission Requirements</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
             {requirements.map((req, index) => (
               <li key={index} className="flex items-start gap-2">
                 <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-gray-700">{req}</span>
+                <span className="text-sm text-yellow-800">{req}</span>
               </li>
             ))}
           </ul>
         </CardContent>
       </Card>
 
-      <SemesterGrid 
-        semesters={generatedSemesters} 
-        onSelectSemester={handleOpenModal} 
+      <Select 
+        label="Select Academic Year"
+        value={selectedAcademicYear}
+        onChange={(e) => setSelectedAcademicYear(e.target.value)}
+        options={academicYearOptions}
       />
 
-      {/* --- MODIFICATION: Pass handleOpenModal to the component --- */}
+      <SemesterGrid 
+        semesters={filteredSemesters} 
+        onSelectSemester={handleOpenModal}
+        academicYear={selectedAcademicYear}
+      />
+
       <RecentSubmissions onSelectSubmission={handleOpenModal} />
 
-      {/* Submission Modal */}
-      {selectedSemester && (
+      {(selectedSemester || isClosing) && (
         <GradeSubmissionModal
-          isOpen={!!selectedSemester}
+          isOpen={!!selectedSemester && !isClosing}
           onClose={handleCloseModal}
-          semester={selectedSemester}
+          semester={selectedSemester!}
         />
       )}
     </div>

@@ -254,7 +254,7 @@ export default function SignupPage() {
                         formData.thesis3rdYear ? 3 : 4;
 
       const ojtInfo = {
-        ojtYear: parseInt(formData.ojtYear),
+        ojtYear: formData.ojtYear,
         ojtSemester: formData.ojtSemester,
       };
       console.log(ojtInfo);
@@ -293,14 +293,13 @@ export default function SignupPage() {
                 
                 // --- Default Statuses ---
                 is_verified: false,
-                scholarship_status: 'pending', // Or 'active' as you have
+                scholarship_status: 'ACTIVE', // Or 'active' as you have
               },
             },
           });
 
           console.log(authData);
     if (authError) throw authError;
-
       // Redirect to success page
       router.push('/signup/success');
     } catch (error: any) {
@@ -585,7 +584,7 @@ export default function SignupPage() {
               value={formData.ojtYear}
               onChange={(e) => updateFormData('ojtYear', e.target.value)}
               options={YEAR_LEVELS.slice(0, 4).map((year, idx) => ({ 
-                value: (idx + 1).toString(), 
+                value: year, 
                 label: year 
               }))}
               error={errors.ojtYear}

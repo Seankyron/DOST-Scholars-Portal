@@ -2,15 +2,18 @@
 
 import { SemesterCard } from './SemesterCard';
 import type { SemesterAvailability } from '@/types/curriculum';
-import { getAcademicYear } from '@/lib/utils/date';
-// --- MODIFICATION: Removed Card imports ---
 
 interface SemesterGridProps {
   semesters: SemesterAvailability[];
   onSelectSemester: (semester: SemesterAvailability) => void;
+  academicYear: string;
 }
 
-export function SemesterGrid({ semesters, onSelectSemester }: SemesterGridProps) {
+export function SemesterGrid({ 
+  semesters, 
+  onSelectSemester, 
+  academicYear 
+}: SemesterGridProps) {
   
   // Group semesters by year
   const semestersByYear = semesters.reduce((acc, sem) => {
@@ -18,8 +21,6 @@ export function SemesterGrid({ semesters, onSelectSemester }: SemesterGridProps)
     return acc;
   }, {} as Record<number, SemesterAvailability[]>);
 
-  // Mock academic year for display
-  const mockAcademicYear = '2023-2024';
 
   const yearLabels: { [key: number]: string } = {
     1: 'First Year',
@@ -33,14 +34,16 @@ export function SemesterGrid({ semesters, onSelectSemester }: SemesterGridProps)
     <div className="space-y-6">
       {Object.entries(semestersByYear).map(([year, sems]) => (
         <div key={year}>
-          <h3 className="text-lg font-semibold text-dost-title   mb-3">
-            {yearLabels[Number(year)]}
-            <span className="ml-2 text-base font-medium text-gray-500">
-              ({mockAcademicYear})
-            </span>
-          </h3>
+          <div className="mb-2">
+            <h3 className="text-2xl text-center font-bold text-dost-title">
+              {yearLabels[Number(year)]}
+            </h3>
+            <p className="text-center text-base font-medium text-gray-500">
+              {academicYear}
+            </p>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
             {sems.map((sem) => (
               <SemesterCard 
                 key={sem.semester}

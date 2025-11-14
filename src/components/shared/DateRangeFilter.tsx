@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { useDebounce } from '@/hooks/useDebounce';
+import { cn } from '@/lib/utils/cn'; // Import cn
 
 interface DateRangeFilterProps {
   onFilter: (startDate: string, endDate: string) => void;
@@ -13,18 +14,17 @@ export function DateRangeFilter({ onFilter, className }: DateRangeFilterProps) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  const handleFilter = () => {
-    onFilter(startDate, endDate);
-  };
+  // --- 2. DEBOUNCE the inputs ---
+  const debouncedStartDate = useDebounce(startDate, 500);
+  const debouncedEndDate = useDebounce(endDate, 500);
 
-  const handleClear = () => {
-    setStartDate('');
-    setEndDate('');
-    onFilter('', '');
-  };
+  useEffect(() => {
+    onFilter(debouncedStartDate, debouncedEndDate);
+  }, [debouncedStartDate, debouncedEndDate, onFilter]);
+
 
   return (
-    <div className={`flex items-end gap-3 ${className}`}>
+        <div className={cn('flex flex-col sm:flex-row items-end gap-3', className)}>
       <Input
         type="date"
         label="Start Date"
@@ -37,12 +37,6 @@ export function DateRangeFilter({ onFilter, className }: DateRangeFilterProps) {
         value={endDate}
         onChange={(e) => setEndDate(e.target.value)}
       />
-      <Button variant="primary" onClick={handleFilter}>
-        Filter
-      </Button>
-      <Button variant="outline" onClick={handleClear}>
-        Clear
-      </Button>
     </div>
   );
 }

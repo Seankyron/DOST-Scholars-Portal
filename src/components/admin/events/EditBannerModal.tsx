@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-    Modal,
-    ModalHeader,
-    ModalTitle,
-    ModalContent,
-    ModalBody,
-    ModalFooter,
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalContent,
+  ModalBody,
+  ModalFooter,
 } from '@/components/ui/modal';
 import { supabase } from '@/lib/supabase/client';
 
@@ -153,13 +153,13 @@ export function EditBannerModal({ banner, open, onClose, onUpdate }: EditBannerM
         return '';
     };
 
-    return (
-        <Modal open={open} onOpenChange={onClose}>
-            <ModalContent>
-                <form onSubmit={handleSubmit}>
-                    <ModalHeader>
-                        <ModalTitle>Edit Banner</ModalTitle>
-                    </ModalHeader>
+  return (
+    <Modal open={open} onOpenChange={onClose}>
+      <ModalContent>
+        <form onSubmit={handleSubmit}>
+          <ModalHeader>
+            <ModalTitle>Edit Banner</ModalTitle>
+          </ModalHeader>
 
                     <ModalBody className="space-y-4">
                         <div>

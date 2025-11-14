@@ -10,6 +10,8 @@ export type {
   GradeSubmission,
   StipendTracking,
   PTPPlan,
+  Allowance,
+  StipendUpdate,
   PracticalTrainingReferral,
   PracticalTrainingCompletion,
   ThesisPercentage,

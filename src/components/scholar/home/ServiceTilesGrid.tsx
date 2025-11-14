@@ -12,13 +12,15 @@ export function ServiceTilesGrid() {
   const handleServiceClick = (serviceId: string, serviceTitle: string) => {
     if (serviceId === 'grade-submission') {
       openPanel('grade-submission'); 
+    } else if (serviceId === 'stipend-tracking') {
+      openPanel('stipend-tracking');
     } else {
       toast.info(`${serviceTitle} service is not yet built!`);
     }
   };
 
   return (
-    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 ">
       {scholarServices.map((service) => (
       
         <Card
