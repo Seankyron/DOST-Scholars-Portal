@@ -30,24 +30,24 @@ type ScholarStipendData = {
 // This is the scholar's mock data, defined FIRST
 const scholarPanelMockData: Record<string, ScholarStipendData> = {
   '1-1': {
-    received: 21000,
-    pending: 24000,
+    received: 24000, // 3 x 8k
+    pending: 22000, // 2 x 8k + 5k book + 5k clothing
     onHold: true,
-    total: 45000,
+    total: 46000, // 5 x 8k + 5k + 5k
     status: 'On hold',
     breakdown: [
-      { name: 'Monthly Stipend (Month 1)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 2)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 3)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 4)', amount: 7000, status: 'On hold' },
-      { name: 'Monthly Stipend (Month 5)', amount: 7000, status: 'On hold' },
+      { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'On hold' },
+      { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'On hold' },
       { name: 'Book Allowance', amount: 5000, status: 'On hold' },
-      { name: 'Clothing Allowance', amount: 5000, status: 'On hold' },
+      { name: 'Clothing Allowance', amount: 1000, status: 'On hold' }, // Only appears here
     ],
     updates: [
       {
         message:
-          'Stipend On Hold: Your 1st Semester 2024 stipend (₱24,000) is on hold.',
+          'Stipend On Hold: Your 1st Semester 2024 stipend (₱26,000) is on hold.', // Updated amount
         type: 'warning',
       },
       {
@@ -58,19 +58,19 @@ const scholarPanelMockData: Record<string, ScholarStipendData> = {
     ],
   },
   '1-2': {
-    received: 45000,
+    received: 45000, // 5 x 8k + 5k book
     pending: 0,
     onHold: false,
-    total: 45000,
+    total: 45000, // 5 x 8k + 5k book
     status: 'Approved',
     breakdown: [
-      { name: 'Monthly Stipend (Month 1)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 2)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 3)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 4)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 5)', amount: 7000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Released' },
       { name: 'Book Allowance', amount: 5000, status: 'Released' },
-      { name: 'Clothing Allowance', amount: 5000, status: 'Released' },
+      // Clothing Allowance removed
     ],
     updates: [
       {
@@ -82,18 +82,18 @@ const scholarPanelMockData: Record<string, ScholarStipendData> = {
   },
   '2-1': {
     received: 0,
-    pending: 45000,
+    pending: 45000, // 5 x 8k + 5k book
     onHold: false,
-    total: 45000,
+    total: 45000, // 5 x 8k + 5k book
     status: 'Processing',
     breakdown: [
-      { name: 'Monthly Stipend (Month 1)', amount: 7000, status: 'Pending' },
-      { name: 'Monthly Stipend (Month 2)', amount: 7000, status: 'Pending' },
-      { name: 'Monthly Stipend (Month 3)', amount: 7000, status: 'Pending' },
-      { name: 'Monthly Stipend (Month 4)', amount: 7000, status: 'Pending' },
-      { name: 'Monthly Stipend (Month 5)', amount: 7000, status: 'Pending' },
+      { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Pending' },
+      { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Pending' },
+      { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Pending' },
+      { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Pending' },
+      { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Pending' },
       { name: 'Book Allowance', amount: 5000, status: 'Pending' },
-      { name: 'Clothing Allowance', amount: 5000, status: 'Pending' },
+      // Clothing Allowance removed
     ],
     updates: [
       {
@@ -104,7 +104,6 @@ const scholarPanelMockData: Record<string, ScholarStipendData> = {
     ],
   },
 };
-// --- END OF COPIED DATA ---
 
 // This is the full data structure an admin will manage per scholar, per semester
 export interface StipendDetails {
