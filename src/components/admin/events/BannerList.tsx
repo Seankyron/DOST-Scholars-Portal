@@ -3,20 +3,21 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DeleteBannerModal } from '@/components/admin/events/DeleteBannerModal';
-import { Pencil, Trash2 } from 'lucide-react'; // <-- Import icons
-import Image from 'next/image'; // <-- Import Image
+import { Pencil, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 
 export interface Banner {
   id: number;
   title: string;
-  link: string;
-  image: string;
+  address_link: string;
+  image_file_key: string;
+  image_url: string;
 }
 
 interface BannerListProps {
   banners: Banner[];
   onEdit: (banner: Banner) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: number) => void; 
 }
 
 export function BannerList({ banners, onEdit, onDelete }: BannerListProps) {
@@ -28,45 +29,34 @@ export function BannerList({ banners, onEdit, onDelete }: BannerListProps) {
     setIsDeleteOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (selectedBanner) {
-      onDelete(selectedBanner.id);
-      setIsDeleteOpen(false);
-      setSelectedBanner(null);
-    }
-  };
-
   return (
     <>
       <div className="space-y-3">
         {banners.map((banner) => (
           <div
             key={banner.id}
-            className="flex items-center justify-between border rounded-lg p-4 bg-white shadow-sm" // <-- Use p-4
+            className="flex items-center justify-between border rounded-lg p-4 bg-white shadow-sm"
           >
             <div className="flex items-center gap-4">
-              {/* --- Use Image component --- */}
               <Image
-                src={banner.image}
+                src={banner.image_url}
                 alt={banner.title}
-                width={96} // w-24
-                height={56} // h-14
+                width={96}
+                height={56}
                 className="w-24 h-14 object-cover rounded bg-gray-200"
-                onError={(e) =>
-                  (e.currentTarget.src =
-                    'https://via.placeholder.com/96x56?text=No+Image')
-                }
+                onError={(e) => {
+                  e.currentTarget.src = '/images/banners/banner-1.jpg';
+                }}
               />
               <div className="min-w-0">
                 <p className="font-semibold truncate">{banner.title}</p>
                 <p className="text-sm text-gray-500 truncate">
-                  {banner.link}
+                  {banner.address_link}
                 </p>
               </div>
             </div>
 
             <div className="flex gap-2 flex-shrink-0">
-              {/* --- Changed to icon button --- */}
               <Button
                 variant="outline"
                 size="sm"
@@ -76,7 +66,6 @@ export function BannerList({ banners, onEdit, onDelete }: BannerListProps) {
               >
                 <Pencil className="h-4 w-4" />
               </Button>
-              {/* --- Changed to icon button --- */}
               <Button
                 variant="outline"
                 size="sm"
@@ -94,8 +83,9 @@ export function BannerList({ banners, onEdit, onDelete }: BannerListProps) {
       <DeleteBannerModal
         open={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
+        bannerId={selectedBanner?.id}
         bannerTitle={selectedBanner?.title}
-        onConfirm={confirmDelete}
+        onDeleted={(id) => onDelete(id)}
       />
     </>
   );

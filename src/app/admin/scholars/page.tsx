@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase/client';
+import { type Database } from '@/lib/supabase/type';
 import { AddScholarModal } from '@/components/admin/scholars/AddScholarModal';
 import {
   ScholarFilters,
@@ -40,23 +41,61 @@ export default function ScholarManagementPage() {
     course: 'All',
     yearLevel: 'All',
   });
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // State for modals
-  const [viewingScholar, setViewingScholar] = useState<ScholarRowData | null>(
-    null
-  );
-  const [editingScholar, setEditingScholar] = useState<ScholarRowData | null>(
-    null
-  );
-  const [historyScholar, setHistoryScholar] = useState<ScholarRowData | null>(
-    null
-  );
-  const [deletingScholar, setDeletingScholar] = useState<ScholarRowData | null>(
-    null
-  );
-  // --- END ADDED STATE ---
+  useEffect(() => {
+    async function fetchScholars() {
+      setLoading(true);
+      let query = supabase
+        .from('admin_scholar_view')
+        .select('*', { count: 'exact' });
+      // ... (filtering logic) ...
+      if (filters.scholarshipType !== 'All') {
+        query = query.eq('scholarship_type', filters.scholarshipType);
+      }
+      if (filters.status !== 'All') {
+        query = query.eq('scholarship_status', filters.status);
+      }
+      if (filters.university !== 'All') {
+        query = query.eq('university', filters.university);
+      }
+      const yearLevelNum = getYearLevelNumber(filters.yearLevel);
+      if (yearLevelNum) {
+        query = query.eq('current_scholar_year', yearLevelNum);
+      }
+      if (debouncedSearchTerm) {
+        query = query.or(
+          `full_name.ilike.%${debouncedSearchTerm}%,spas_id.ilike.%${debouncedSearchTerm}%,email.ilike.%${debouncedSearchTerm}%`
+        );
+      }
+      const from = (currentPage - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+      query = query.range(from, to).order('last_name', { ascending: true });
+      const { data, error, count } = await query;
+      if (error) {
+        console.error('Error fetching scholars:', error);
+        setLoading(false);
+        return;
+      }
+      const transformedScholars: ScholarRowData[] = data.map(
+        (scholar: ScholarViewRow) => ({
+          id: scholar.id || '',
+          name: scholar.full_name || 'No Name',
+          scholarId: scholar.spas_id || 'N/A',
+          scholarshipType: scholar.scholarship_type || 'N/A',
+          university: scholar.university || 'N/A',
+          yearLevel: formatYear(scholar.current_scholar_year),
+          program: scholar.program_course || 'N/A',
+          status: (scholar.scholarship_status || 'N/A') as ScholarStatus,
+          email: scholar.email || 'N/A',
+          profileImage: '/images/placeholders/avatar-placeholder.png',
+        })
+      );
+      setScholars(transformedScholars);
+      setTotalScholars(count || 0);
+      setLoading(false);
+    }
+    fetchScholars();
+  }, [supabase, filters, debouncedSearchTerm, currentPage]);
 
   const handleFilterChange = (
     filterName: keyof ScholarFiltersState,
