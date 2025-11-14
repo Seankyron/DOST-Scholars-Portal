@@ -13,12 +13,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { formatCurrency } from '@/lib/utils/format';
 import type { StipendDetails } from './StipendTrackingTable';
 import type { Allowance, StipendUpdate } from '@/types';
 import { toast } from '@/components/ui/toaster';
+import { StatusDropdown } from './StatusDropdown';
+import { Separator } from '@/components/ui/separator';
 
 interface UpdateStipendModalProps {
   isOpen: boolean;
@@ -27,22 +27,15 @@ interface UpdateStipendModalProps {
   onSave: (updatedStipend: StipendDetails) => void;
 }
 
-const allowanceStatusOptions = [
-  { value: 'Pending', label: 'Pending' },
-  { value: 'On hold', label: 'On Hold' },
-  { value: 'Released', label: 'Released' },
-];
-
 export function UpdateStipendModal({
   isOpen,
   onClose,
   stipendDetails,
   onSave,
 }: UpdateStipendModalProps) {
-  // --- STATE TO MANAGE EDITS ---
+  // (State and handlers remain the same)
   const [breakdown, setBreakdown] = useState(stipendDetails.stipend.breakdown);
   const [updates, setUpdates] = useState(stipendDetails.stipend.updates);
-  const [onHold, setOnHold] = useState(stipendDetails.stipend.onHold);
   const [customUpdateMsg, setCustomUpdateMsg] = useState('');
 
   const handleBreakdownChange = (
@@ -57,63 +50,61 @@ export function UpdateStipendModal({
   };
 
   const handleAddCustomUpdate = () => {
+    // (This function remains the same)
     if (customUpdateMsg.trim() === '') {
       toast.error('Update message cannot be empty.');
       return;
     }
     const newUpdate: StipendUpdate = {
       message: `Admin Note: ${customUpdateMsg}`,
-      type: 'info', // Or 'warning' if you add a selector for it
+      type: 'info',
     };
     setUpdates((prev) => [newUpdate, ...prev]);
     setCustomUpdateMsg('');
   };
 
   const handleSaveChanges = () => {
-    // Recalculate totals based on the new breakdown
+    // (This function remains the same)
     const newReceived = breakdown
       .filter((item) => item.status === 'Released')
       .reduce((sum, item) => sum + item.amount, 0);
     const newPending = breakdown
       .filter((item) => item.status !== 'Released')
       .reduce((sum, item) => sum + item.amount, 0);
-
+    const newOnHold = breakdown.some((item) => item.status === 'On hold');
     const newStatus =
       newPending === 0
         ? 'Released'
-        : onHold
+        : newOnHold
           ? 'On hold'
           : 'Processing';
-
-    // Create the updated stipend object
     const updatedStipend: StipendDetails = {
       ...stipendDetails,
       stipend: {
         ...stipendDetails.stipend,
         received: newReceived,
         pending: newPending,
-        onHold: onHold,
+        onHold: newOnHold,
         status: newStatus,
         breakdown: breakdown,
         updates: updates,
       },
     };
-    
     onSave(updatedStipend);
     toast.success('Stipend updated successfully!');
   };
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="2xl">
+      <ModalContent size="4xl">
         <ModalHeader>
           <ModalTitle>Update Stipend</ModalTitle>
         </ModalHeader>
 
-        <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
+        <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6">
           {/* Scholar Info */}
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-lg font-semibold text-dost-title">
+          <div className="p-4 bg-gray-50 rounded-lg mb-6">
+            <h3 className="text-lg font-bold text-dost-title">
               {stipendDetails.scholarInfo.name}
             </h3>
             <p className="text-sm text-gray-600">
@@ -123,70 +114,79 @@ export function UpdateStipendModal({
             </p>
           </div>
 
-          {/* Allowance Breakdown Editor */}
-          <section className="space-y-3">
-            <Label className="text-base font-semibold text-gray-800">
-              Allowance Breakdown
-            </Label>
-            <div className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin border p-3 rounded-md">
-              {breakdown.map((allowance, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between gap-2"
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            {/* --- LEFT COLUMN (Allowances) --- */}
+            <section className="md:col-span-3 space-y-3">
+              <Label className="text-base font-semibold text-gray-800">
+                Allowance Breakdown
+              </Label>
+              <div className="border p-3 rounded-md">
+                {breakdown.map((allowance, index) => (
+                  <div key={index}>
+                    {/* --- 3. ADD the separator --- */}
+                    {index > 0 && <Separator className="my-2" />}
+                    <div className="flex items-center justify-between gap-3 pt-1 pb-1">
+                      <p className="text-sm font-medium">
+                        {allowance.name} ({formatCurrency(allowance.amount)})
+                      </p>
+                      {/* --- 4. USE the new StatusDropdown --- */}
+                      <StatusDropdown
+                        currentStatus={allowance.status}
+                        onChange={(newStatus) =>
+                          handleBreakdownChange(index, newStatus)
+                        }
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* --- RIGHT COLUMN (Actions & Updates) --- */}
+            <section className="md:col-span-2 space-y-4">
+              {/* (Custom Updates & History sections remain the same) */}
+              <div className="space-y-2">
+                <Label className="text-base font-semibold text-gray-800">
+                  Add Custom Update
+                </Label>
+                <Textarea
+                  placeholder="e.g., 'On hold pending Form 5 submission...'"
+                  value={customUpdateMsg}
+                  onChange={(e) => setCustomUpdateMsg(e.target.value)}
+                  className="min-h-[70px]"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddCustomUpdate}
                 >
-                  <p className="text-sm font-medium">
-                    {allowance.name} ({formatCurrency(allowance.amount)})
-                  </p>
-                  <Select
-                    value={allowance.status}
-                    onChange={(e) =>
-                      handleBreakdownChange(
-                        index,
-                        e.target.value as Allowance['status']
-                      )
-                    }
-                    options={allowanceStatusOptions}
-                    className="w-36"
-                  />
+                  Add Update Message
+                </Button>
+              </div>
+
+              <div className="space-y-1 pt-2">
+                <Label className="text-base font-semibold text-gray-800">
+                  Update History
+                </Label>
+                <div className="max-h-40 overflow-y-auto scrollbar-thin border p-3 rounded-md space-y-2">
+                  {updates.length > 0 ? (
+                    updates.map((update, index) => (
+                      <p
+                        key={index}
+                        className="text-sm text-gray-700 border-b pb-2 last:border-b-0"
+                      >
+                        {update.message}
+                      </p>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">
+                      No custom updates posted.
+                    </p>
+                  )}
                 </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Status Checkbox */}
-          <Checkbox
-            label="Place this semester's stipend 'On Hold'"
-            checked={onHold}
-            onChange={(e) => setOnHold(e.target.checked)}
-          />
-
-          {/* Custom Updates */}
-          <section className="space-y-2">
-            <Label className="text-base font-semibold text-gray-800">
-              Add Custom Update
-            </Label>
-            <Textarea
-              placeholder="e.g., 'On hold pending Form 5 submission...'"
-              value={customUpdateMsg}
-              onChange={(e) => setCustomUpdateMsg(e.target.value)}
-              className="min-h-[70px]"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleAddCustomUpdate}
-            >
-              Add Update Message
-            </Button>
-            <div className="space-y-1 pt-2">
-              <Label className="text-xs text-gray-500">Update History</Label>
-              {updates.map((update, index) => (
-                <p key={index} className="text-sm text-gray-700 border-b pb-1">
-                  {update.message}
-                </p>
-              ))}
-            </div>
-          </section>
+              </div>
+            </section>
+          </div>
         </ModalBody>
 
         <ModalFooter>

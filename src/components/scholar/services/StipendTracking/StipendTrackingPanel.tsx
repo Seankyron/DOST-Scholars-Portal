@@ -3,19 +3,16 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
-import type { SubmissionStatus, ScholarStatus } from '@/types';
+import type { SubmissionStatus, ScholarStatus, Allowance } from '@/types';
 import { FlippableStipendCard } from './FlippableStipendCard';
-import type { Allowance } from '@/types/services'; 
 import { StipendUpdates, type StipendUpdate } from './StipendUpdates';
 
-// (Mock Data and semesterOptions remain the same)
-// ...
 type StipendData = {
   received: number;
   pending: number;
   onHold: boolean;
   total: number;
-  status: SubmissionStatus | ScholarStatus; 
+  status: SubmissionStatus | ScholarStatus;
   breakdown: Allowance[];
   updates: StipendUpdate[];
 };
@@ -26,26 +23,27 @@ const semesterOptions = [
   { value: '2-1', label: '2nd Year, 1st Semester' },
 ];
 
+// --- UPDATED MOCK DATA ---
 const mockStipendData: Record<string, StipendData> = {
   '1-1': {
-    received: 21000,
-    pending: 24000,
+    received: 24000, // 3 months @ 8k
+    pending: 22000, // 2 months @ 8k (16k) + 5k book + 1k clothing
     onHold: true,
-    total: 45000,
-    status: 'On hold', 
+    total: 46000, // 5 * 8k + 5k + 5k
+    status: 'On hold',
     breakdown: [
-      { name: 'Monthly Stipend (Month 1)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 2)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 3)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 4)', amount: 7000, status: 'On hold' },
-      { name: 'Monthly Stipend (Month 5)', amount: 7000, status: 'On hold' },
+      { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'On hold' },
+      { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'On hold' },
       { name: 'Book Allowance', amount: 5000, status: 'On hold' },
-      { name: 'Clothing Allowance', amount: 5000, status: 'On hold' },
+      { name: 'Clothing Allowance', amount: 1000, status: 'On hold' }, // Only in 1-1
     ],
     updates: [
       {
         message:
-          'Stipend On Hold: Your 1st Semester 2024 stipend (₱24,000) is on hold.',
+          'Stipend On Hold: Your 1st Semester 2024 stipend (₱26,000) is on hold.',
         type: 'warning',
       },
       {
@@ -56,19 +54,19 @@ const mockStipendData: Record<string, StipendData> = {
     ],
   },
   '1-2': {
-    received: 45000,
+    received: 45000, // 5 * 8k + 5k book
     pending: 0,
     onHold: false,
-    total: 45000,
+    total: 45000, // 5 * 8k + 5k book
     status: 'Approved',
     breakdown: [
-      { name: 'Monthly Stipend (Month 1)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 2)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 3)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 4)', amount: 7000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 5)', amount: 7000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Released' },
+      { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Released' },
       { name: 'Book Allowance', amount: 5000, status: 'Released' },
-      { name: 'Clothing Allowance', amount: 5000, status: 'Released' },
+      // No Clothing Allowance
     ],
     updates: [
       {
@@ -80,18 +78,18 @@ const mockStipendData: Record<string, StipendData> = {
   },
   '2-1': {
     received: 0,
-    pending: 45000,
+    pending: 45000, // 5 * 8k + 5k book
     onHold: false,
-    total: 45000,
+    total: 45000, // 5 * 8k + 5k book
     status: 'Processing',
     breakdown: [
-      { name: 'Monthly Stipend (Month 1)', amount: 7000, status: 'Pending' },
-      { name: 'Monthly Stipend (Month 2)', amount: 7000, status: 'Pending' },
-      { name: 'Monthly Stipend (Month 3)', amount: 7000, status: 'Pending' },
-      { name: 'Monthly Stipend (Month 4)', amount: 7000, status: 'Pending' },
-      { name: 'Monthly Stipend (Month 5)', amount: 7000, status: 'Pending' },
+      { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Pending' },
+      { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Pending' },
+      { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Pending' },
+      { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Pending' },
+      { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Pending' },
       { name: 'Book Allowance', amount: 5000, status: 'Pending' },
-      { name: 'Clothing Allowance', amount: 5000, status: 'Pending' },
+      // No Clothing Allowance
     ],
     updates: [
       {
@@ -102,7 +100,7 @@ const mockStipendData: Record<string, StipendData> = {
     ],
   },
 };
-// ...
+// --- END OF UPDATED MOCK DATA ---
 
 export function StipendTrackingPanel() {
   const [selectedSemester, setSelectedSemester] = useState('1-1');
@@ -123,9 +121,9 @@ export function StipendTrackingPanel() {
   const handleFlip = (cardId: string) => {
     setFlippedCard((prev) => (prev === cardId ? null : cardId));
   };
-  
+
   const handleSemesterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFlippedCard(null); // Close any flipped cards
+    setFlippedCard(null);
     setSelectedSemester(e.target.value);
   };
 
@@ -135,26 +133,23 @@ export function StipendTrackingPanel() {
         Stipend Tracking
       </h2>
 
-      {/* Description Box */}
       <Card className="bg-yellow-50 border-yellow-200">
         <CardContent className="p-4">
           <p className="text-sm text-yellow-800">
             This module tracks your stipend releases per semester. Stipends are
             processed after your grade submission is approved. Please allow up
-            to 21 working days for processing.
+D            to 21 working days for processing.
           </p>
         </CardContent>
       </Card>
 
-      {/* Selector */}
       <Select
         label="Select Semester"
         value={selectedSemester}
-        onChange={handleSemesterChange} // <-- Use new handler
+        onChange={handleSemesterChange}
         options={semesterOptions}
       />
 
-      {/* Dynamic Section */}
       <h3 className="text-2xl text-center font-bold text-dost-title">
         {currentLabel}
       </h3>
@@ -165,10 +160,11 @@ export function StipendTrackingPanel() {
           value={currentData.received}
           tooltip="This is the total amount you have received for this semester."
           variant="success"
-          breakdown={receivedAllowances} // Pass only received items
+          breakdown={receivedAllowances}
           isFlipped={flippedCard === 'received'}
           onFlip={() => handleFlip('received')}
         />
+
         <FlippableStipendCard
           title={currentData.onHold ? 'On Hold' : 'Not Yet Received'}
           value={currentData.pending}
@@ -182,12 +178,13 @@ export function StipendTrackingPanel() {
           isFlipped={flippedCard === 'pending'}
           onFlip={() => handleFlip('pending')}
         />
+
         <FlippableStipendCard
           title="Expected Total"
           value={currentData.total}
           tooltip="This is the total expected stipend for this semester."
           variant="info"
-          breakdown={currentData.breakdown} // Pass ALL items
+          breakdown={currentData.breakdown}
           isFlipped={flippedCard === 'total'}
           onFlip={() => handleFlip('total')}
         />
