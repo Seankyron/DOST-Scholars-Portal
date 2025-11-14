@@ -6,8 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Upload } from 'lucide-react';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase/client';
-import { type Database } from '@/lib/supabase/type';
-
 
 interface Banner {
   title: string;
@@ -153,7 +151,7 @@ export function BannerUpload({ onAddBanner }: BannerUploadProps) {
           required
         />
         <Button type="submit" className="sm:self-end" variant="primary" disabled={isUploading}>
-          {isUploading ? 'Uploading...' : '+ Add Banner'}
+          {isUploading ? 'Uploading...' : '+'}
         </Button>
       </div>
     </form>
