@@ -10,6 +10,7 @@ import type { SemesterAvailability } from '@/types/curriculum';
 import type { SubmissionStatus, CurriculumConfig, Semester } from '@/types'; 
 import { hasMidyear } from '@/lib/utils/curriculum'; 
 import { toast } from '@/components/ui/toaster';
+import { Select } from '@/components/ui/select'; 
 
 const requirements = [
   'Certified True Copy of complete grades and certificate of registration from University Registrar',
@@ -39,7 +40,19 @@ const submissionStatuses: Record<string, SubmissionStatus> = {
   '4-2nd Semester': 'Not Available',
 };
 
-const generatedSemesters: SemesterAvailability[] = [];
+const academicYearMapping: Record<number, string> = {
+  1: 'AY 2023-2024',
+  2: 'AY 2024-2025',
+  3: 'AY 2025-2026',
+  4: 'AY 2026-2027',
+  5: 'AY 2027-2028',
+};
+
+const academicYearOptions = Object.values(academicYearMapping)
+  .map(ay => ({ value: ay, label: ay }))
+  .reverse(); // Show newest first
+
+  const generatedSemesters: (SemesterAvailability & { academicYear: string })[] = [];
 const courseDuration = mockCurriculum.duration; 
 
 for (let year = 1; year <= courseDuration; year++) {
@@ -61,6 +74,7 @@ for (let year = 1; year <= courseDuration; year++) {
       isCurrent: (year === 3 && sem === '2nd Semester'), 
       isPast: year < 3 || (year === 3 && sem === '1st Semester'), 
       isFuture: year > 3,
+      academicYear: academicYearMapping[year] || 'N/A', // <-- ADDED
     });
   }
 }
@@ -68,6 +82,8 @@ for (let year = 1; year <= courseDuration; year++) {
 export function GradeSubmissionPanel() {
   const [selectedSemester, setSelectedSemester] = useState<SemesterAvailability | null>(null);
   const [isClosing, setIsClosing] = useState(false);
+  
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState('AY 2025-2026'); 
 
   const handleOpenModal = (semester: SemesterAvailability) => {
     if (semester.status !== 'Not Available') {
@@ -85,6 +101,11 @@ export function GradeSubmissionPanel() {
       setIsClosing(false);
     }, 250);
   };
+
+  const filteredSemesters = generatedSemesters.filter(
+    (sem) => sem.academicYear === selectedAcademicYear
+  );
+
   return (
     <div className="space-y-6">
       <h2 className="text-3xl text-center font-bold text-dost-title mb-4">
@@ -107,9 +128,17 @@ export function GradeSubmissionPanel() {
         </CardContent>
       </Card>
 
+      <Select 
+        label="Select Academic Year"
+        value={selectedAcademicYear}
+        onChange={(e) => setSelectedAcademicYear(e.target.value)}
+        options={academicYearOptions}
+      />
+
       <SemesterGrid 
-        semesters={generatedSemesters} 
-        onSelectSemester={handleOpenModal} 
+        semesters={filteredSemesters} 
+        onSelectSemester={handleOpenModal}
+        academicYear={selectedAcademicYear}
       />
 
       <RecentSubmissions onSelectSubmission={handleOpenModal} />

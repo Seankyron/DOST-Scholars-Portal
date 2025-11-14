@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; 
 import { Card, CardContent } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
 import type { SubmissionStatus, ScholarStatus, Allowance } from '@/types';
@@ -17,13 +17,26 @@ type StipendData = {
   updates: StipendUpdate[];
 };
 
-const semesterOptions = [
-  { value: '1-1', label: '1st Year, 1st Semester' },
-  { value: '1-2', label: '1st Year, 2nd Semester' },
-  { value: '2-1', label: '2nd Year, 1st Semester' },
+const yearOptions = [
+  { value: '1', label: '1st Year' },
+  { value: '2', label: '2nd Year' },
 ];
 
-// --- UPDATED MOCK DATA ---
+const semesterOptions = [
+  { value: '1', label: '1st Semester' },
+  { value: '2', label: '2nd Semester' },
+];
+
+const defaultStipendData: StipendData = {
+  received: 0,
+  pending: 0,
+  onHold: false,
+  total: 0,
+  status: 'Not Available',
+  breakdown: [],
+  updates: [{ message: 'No stipend data available for this selection.', type: 'info' }],
+};
+
 const mockStipendData: Record<string, StipendData> = {
   '1-1': {
     received: 24000, // 3 months @ 8k
@@ -89,7 +102,6 @@ const mockStipendData: Record<string, StipendData> = {
       { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Pending' },
       { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Pending' },
       { name: 'Book Allowance', amount: 5000, status: 'Pending' },
-      // No Clothing Allowance
     ],
     updates: [
       {
@@ -100,16 +112,26 @@ const mockStipendData: Record<string, StipendData> = {
     ],
   },
 };
-// --- END OF UPDATED MOCK DATA ---
 
 export function StipendTrackingPanel() {
-  const [selectedSemester, setSelectedSemester] = useState('1-1');
+  const [selectedYear, setSelectedYear] = useState('1');
+  const [selectedSemester, setSelectedSemester] = useState('1');
+  const [combinedKey, setCombinedKey] = useState('1-1'); 
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const newKey = `${selectedYear}-${selectedSemester}`;
+    setCombinedKey(newKey);
+    setFlippedCard(null); 
+  }, [selectedYear, selectedSemester]);
 
-  const currentData = mockStipendData[selectedSemester];
-  const currentLabel =
-    semesterOptions.find((opt) => opt.value === selectedSemester)?.label ||
-    'Stipend Details';
+  const currentData = mockStipendData[combinedKey] || defaultStipendData;
+
+  const yearLabel =
+    yearOptions.find((opt) => opt.value === selectedYear)?.label || '';
+  const semLabel =
+    semesterOptions.find((opt) => opt.value === selectedSemester)?.label || '';
+  const currentLabel = `${yearLabel}, ${semLabel}`;
 
   const receivedAllowances = currentData.breakdown.filter(
     (item) => item.status === 'Released'
@@ -122,10 +144,6 @@ export function StipendTrackingPanel() {
     setFlippedCard((prev) => (prev === cardId ? null : cardId));
   };
 
-  const handleSemesterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFlippedCard(null);
-    setSelectedSemester(e.target.value);
-  };
 
   return (
     <div className="space-y-6">
@@ -138,17 +156,25 @@ export function StipendTrackingPanel() {
           <p className="text-sm text-yellow-800">
             This module tracks your stipend releases per semester. Stipends are
             processed after your grade submission is approved. Please allow up
-D            to 21 working days for processing.
+            to 21 working days for processing.
           </p>
         </CardContent>
       </Card>
 
-      <Select
-        label="Select Semester"
-        value={selectedSemester}
-        onChange={handleSemesterChange}
-        options={semesterOptions}
-      />
+      <div className="grid grid-cols-2 gap-4">
+        <Select
+          label="Select Year Level"
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(e.target.value)}
+          options={yearOptions}
+        />
+        <Select
+          label="Select Semester"
+          value={selectedSemester}
+          onChange={(e) => setSelectedSemester(e.target.value)}
+          options={semesterOptions}
+        />
+      </div>
 
       <h3 className="text-2xl text-center font-bold text-dost-title">
         {currentLabel}
