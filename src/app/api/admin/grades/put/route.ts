@@ -21,20 +21,18 @@ export async function PUT(request: Request) {
   );
 
   try {
-    //Parse request body
     const body = await request.json();
-    const { id, title, address_link, image_file_key } = body;
+    const { id, status, comment  } = body;
 
     // Validate required fields
     if (!id) {
-      return NextResponse.json({ error: 'Event ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Submission ID is required' }, { status: 400 });
     }
 
     // Build update object (only include fields that are provided)
     const updateData: any = {};
-    if (title !== undefined) updateData.title = title;
-    if (address_link !== undefined) updateData.address_link = address_link;
-    if (image_file_key !== undefined) updateData.image_file_key = image_file_key;
+    if (status !== undefined) updateData.status = status;
+    if (comment !== undefined) updateData.comment = comment;
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
@@ -42,7 +40,7 @@ export async function PUT(request: Request) {
 
     // Update event
     const { data, error } = await supabase
-      .from('Event')
+      .from('Grade Submission')
       .update(updateData)
       .eq('id', id)
       .select()
@@ -53,7 +51,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ event: data, message: 'Event updated successfully' }, { status: 200 });
+    return NextResponse.json({ event: data, message: 'Grade Submission updated successfully' }, { status: 200 });
 
   } catch (err: any) {
     console.error('Unexpected server error:', err);
