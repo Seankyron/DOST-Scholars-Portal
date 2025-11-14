@@ -8,7 +8,8 @@ import { Download } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export interface GradeSubmissionDetails {
-  id: string;
+  id: number;
+  spas_id: string;
   scholarInfo: {
     name: string;
     contactNumber: string;
@@ -54,7 +55,8 @@ export function GradeSubmissionsTable({ searchTerm }: GradeSubmissionsTableProps
         const res = await response.json();
 
         const formatted: GradeSubmissionDetails[] = (res.submissions || []).map((e: any) => ({
-          id: e.submission_id.toString(),
+          id: e.submission_id,
+          spas_id: e.spas_id,
           scholarInfo: {
             name: e.scholar_name,
             contactNumber: e.contact_number,
@@ -94,7 +96,6 @@ export function GradeSubmissionsTable({ searchTerm }: GradeSubmissionsTableProps
 
     fetchData();
   }, []);
-
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
 
