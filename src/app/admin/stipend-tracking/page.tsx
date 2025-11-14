@@ -274,7 +274,7 @@ export default function AdminStipendTrackingPage() {
               <Button
                 variant="primary"
                 size="sm"
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-purple-600 hover:bg-purple-700"
                 onClick={() => setBulkAction('On Hold')}
                 disabled={isActionDisabled}
               >
