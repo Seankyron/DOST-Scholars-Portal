@@ -130,21 +130,35 @@ export function GradeSubmissionModal({
   // --- MODIFIED: This is now the CONFIRMED action ---
   const handleApprove = async () => {
     const finalComment = adminComment.trim() === '' ? APPROVED_MESSAGE : adminComment;
-    
+
      try{
-        const {data, error: updateError} = await supabase
+        // Update Grade Submission
+        let {data, error: updateError} = await supabase
         .from('Grade Submission')
         .update({
           status: "Approved",
           comment: finalComment,
         })
-        .eq('id', parseInt(submission.id))
+        .eq('id', submission.id)
         .select()
         .single();
 
         if(updateError){
           throw new Error(updateError.message);
         }
+       
+        // Update User Status
+        const { data: userData, error: userError } = await supabase
+        .from('User')
+        .update({
+          scholarship_status: scholarStatusState,
+        })
+        .eq('spas_id', submission.spas_id)
+        .select()
+        .single(); 
+
+        if (userError) throw new Error(userError.message);
+        
         console.log(`Approving ${scholarInfo.name} with comment: ${finalComment}`);
         toast.success('Submission Approved', { description: `${scholarInfo.name} has been notified.` });
 
@@ -179,13 +193,25 @@ export function GradeSubmissionModal({
           status: "Resubmit",
           comment: adminComment,
         })
-        .eq('id', parseInt(submission.id))
+        .eq('id', submission.id)
         .select()
         .single();
 
         if(updateError){
           throw new Error(updateError.message);
         }
+
+         // Update User Status
+        const { data: userData, error: userError } = await supabase
+        .from('User')
+        .update({
+          scholarship_status: scholarStatusState,
+        })
+        .eq('spas_id', submission.spas_id)
+        .select()
+        .single(); 
+
+
         console.log(`Requesting resubmission from ${scholarInfo.name} with comment: ${adminComment}`);
         toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
         submission.submissionInfo.status = "Resubmit"
