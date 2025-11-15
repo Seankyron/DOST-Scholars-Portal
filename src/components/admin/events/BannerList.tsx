@@ -5,22 +5,24 @@ import { Button } from '@/components/ui/button';
 import { DeleteBannerModal } from '@/components/admin/events/DeleteBannerModal';
 import { Pencil, Trash2 } from 'lucide-react';
 import Image from 'next/image';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner'; // <-- FIX 1: Import spinner
 
 export interface Banner {
   id: number;
   title: string;
   address_link: string;
   image_file_key: string;
-  image_url: string;
+  image_url: string; // This field is crucial
 }
 
 interface BannerListProps {
   banners: Banner[];
   onEdit: (banner: Banner) => void;
-  onDelete: (id: number) => void; 
+  onDelete: (id: number) => void;
+  loading: boolean; // <-- FIX 2: Accept the loading prop
 }
 
-export function BannerList({ banners, onEdit, onDelete }: BannerListProps) {
+export function BannerList({ banners, onEdit, onDelete, loading }: BannerListProps) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
 
@@ -28,6 +30,24 @@ export function BannerList({ banners, onEdit, onDelete }: BannerListProps) {
     setSelectedBanner(banner);
     setIsDeleteOpen(true);
   };
+
+  // FIX 3: Add the loading state
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  // FIX 4: Add the empty state
+  if (!loading && banners.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <p className="text-gray-500">No banners have been uploaded yet.</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -37,15 +57,16 @@ export function BannerList({ banners, onEdit, onDelete }: BannerListProps) {
             key={banner.id}
             className="flex items-center justify-between border rounded-lg p-4 bg-white shadow-sm"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-w-0">
               <Image
-                src={banner.image_url}
+                src={banner.image_url || '/images/placeholders/no-image.png'} // Add fallback
                 alt={banner.title}
                 width={96}
                 height={56}
-                className="w-24 h-14 object-cover rounded bg-gray-200"
+                className="w-24 h-14 object-cover rounded bg-gray-200 flex-shrink-0"
                 onError={(e) => {
-                  e.currentTarget.src = '/images/banners/banner-1.jpg';
+                  // Fallback for broken images
+                  e.currentTarget.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
                 }}
               />
               <div className="min-w-0">
@@ -85,7 +106,7 @@ export function BannerList({ banners, onEdit, onDelete }: BannerListProps) {
         onClose={() => setIsDeleteOpen(false)}
         bannerId={selectedBanner?.id}
         bannerTitle={selectedBanner?.title}
-        onDeleted={(id) => onDelete(id)}
+        onDeleted={(id) => onDelete(id)} // This prop name is from the modal
       />
     </>
   );

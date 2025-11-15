@@ -1,239 +1,223 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, ChangeEvent, FormEvent, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalContent,
-  ModalBody,
-  ModalFooter,
-} from '@/components/ui/modal';
+import { Upload } from 'lucide-react';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase/client';
+import { toast } from '@/components/ui/toaster'; // <-- Import toast
+import { cn } from '@/lib/utils/cn';
 
-interface Banner {
-    id: number;
-    title: string;
-    address_link: string;
-    image_file_key: string;
+// FIX 1: Change the prop to a simple function
+interface BannerUploadProps {
+  onAddBanner: () => void;
 }
 
-interface EditBannerModalProps {
-    banner: Banner;
-    open: boolean;
-    onClose: () => void;
-    onUpdate: (id: number, updatedData: Banner) => void;
+// (Helper functions remain the same)
+const autoFormatUrl = (url: string) => {
+  const trimmedUrl = url.trim();
+  if (trimmedUrl && !trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
+    return `https://${trimmedUrl}`;
+  }
+  return trimmedUrl;
+};
+function isValidUrl(string: string) {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
 }
 
-export function EditBannerModal({ banner, open, onClose, onUpdate }: EditBannerModalProps) {
-    const [title, setTitle] = useState(banner.title);
-    const [addressLink, setAddressLink] = useState(banner.address_link);
-    const [file, setFile] = useState<File | null>(null);
-    const [preview, setPreview] = useState<string>('');
-    const [isUpdating, setIsUpdating] = useState(false);
+export function BannerUpload({ onAddBanner }: BannerUploadProps) {
+  const [title, setTitle] = useState('');
+  const [address_link, setLink] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false); 
+  const inputRef = useRef<HTMLInputElement>(null); 
 
-    // Reset form when banner changes
-    useEffect(() => {
-        setTitle(banner.title);
-        setAddressLink(banner.address_link);
-        setFile(null);
-        setPreview('');
-    }, [banner]);
+  useEffect(() => {
+    if (!file) {
+      setPreview('');
+      return;
+    }
+    const objectUrl = URL.createObjectURL(file);
+    setPreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = e.target.files?.[0];
-        if (selectedFile) {
-            setFile(selectedFile);
-            const objectUrl = URL.createObjectURL(selectedFile);
-            setPreview(objectUrl);
-        }
-    };
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile ?? null);
+    }
+  };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        if (!title || !addressLink) {
-            alert('Please fill in all required fields');
-            return;
-        }
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile && droppedFile.type.startsWith('image/')) {
+      setFile(droppedFile);
+    } else {
+      toast.error('Invalid file type. Please upload an image.');
+    }
+  };
 
-        setIsUpdating(true);
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); e.stopPropagation(); setIsDragging(true);
+  };
 
-        try {
-            let newImageKey = banner.image_file_key;
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+  };
 
-            // If new file is selected, upload it
-            if (file) {
-                // Generate new filename in banners/ folder format
-                const timestamp = Date.now();
-                const fileExt = file.name.split('.').pop();
-                newImageKey = `banners/${timestamp}.${fileExt}`;
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    const formattedLink = autoFormatUrl(address_link);
+    setLink(formattedLink);
 
-                console.log('Uploading to:', newImageKey);
+    if (!file || !title || !formattedLink) {
+      toast.error('Please fill in all fields and select an image.');
+      return;
+    }
+    if (!isValidUrl(formattedLink)) {
+      toast.error('Please enter a valid URL (e.g., https://example.com)');
+      return;
+    }
 
-                // Upload new image
-                const { error: uploadError } = await supabase.storage
-                    .from('event-banners')
-                    .upload(newImageKey, file, {
-                        cacheControl: '3600',
-                        upsert: false,
-                        contentType: file.type,
-                    });
+    setIsUploading(true);
 
-                if (uploadError) {
-                    console.error('Upload error:', uploadError);
-                    throw new Error(uploadError.message);
-                }
+    try {
+      // 1. Upload file
+      const timestamp = Date.now();
+      const fileExt = file.name.split('.').pop();
+      const fileName = `banners/${timestamp}.${fileExt}`;
 
-                // Delete old image if it exists and is different
-                if (banner.image_file_key && banner.image_file_key !== newImageKey) {
-                    const { error: deleteError } = await supabase.storage
-                        .from('event-banners')
-                        .remove([banner.image_file_key]);
-                    
-                    if (deleteError) {
-                        console.warn('Could not delete old image:', deleteError);
-                    }
-                }
-            }
+      const { error: uploadError } = await supabase.storage
+        .from('event-banners')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type,
+        });
 
-            // Update event in database
-            const { data, error: updateError } = await supabase
-                .from('Event')
-                .update({
-                    title,
-                    address_link: addressLink,
-                    image_file_key: newImageKey,
-                })
-                .eq('id', banner.id)
-                .select()
-                .single();
+      if (uploadError) throw uploadError;
 
-            if (updateError) {
-                // If update fails and we uploaded a new file, delete it
-                if (file && newImageKey !== banner.image_file_key) {
-                    await supabase.storage
-                        .from('event-banners')
-                        .remove([newImageKey]);
-                }
-                console.error('Update error:', updateError);
-                throw new Error(updateError.message);
-            }
+      // 2. Post to API
+      const res = await fetch('/api/admin/events/post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          address_link: formattedLink,
+          image_file_key: fileName,
+        }),
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create event');
 
-            // Notify parent component with updated data
-            onUpdate(banner.id, {
-                id: banner.id,
-                title,
-                address_link: addressLink,
-                image_file_key: newImageKey,
-            });
+      // 3. Call the parent's refetch function
+      onAddBanner(); // <-- FIX 2
 
-            alert('Banner updated successfully!');
-            onClose();
-        } catch (error: any) {
-            console.error('Update failed:', error);
-            alert('Failed to update banner: ' + error.message);
-        } finally {
-            setIsUpdating(false);
-        }
-    };
-
-    // Get public URL for preview
-    const getImageUrl = () => {
-        if (preview) return preview; // Show local preview if new file selected
-        
-        if (banner.image_file_key) {
-            const { data } = supabase.storage
-                .from('event-banners')
-                .getPublicUrl(banner.image_file_key);
-            return data.publicUrl;
-        }
-        return '';
-    };
+      // 4. Reset form
+      setTitle('');
+      setLink('');
+      setFile(null);
+      if (inputRef.current) inputRef.current.value = ''; 
+    } catch (error: any) {
+      console.error('Upload failed:', error.message);
+      toast.error('Failed to upload banner: ' + error.message); // Use toast
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
-    <Modal open={open} onOpenChange={onClose}>
-      <ModalContent>
-        <form onSubmit={handleSubmit}>
-          <ModalHeader>
-            <ModalTitle>Edit Banner</ModalTitle>
-          </ModalHeader>
+    // ... (The form JSX remains unchanged from our previous fix) ...
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div
+        className={cn(
+          'border-2 border-dashed rounded-lg p-6 text-center text-gray-500 transition-colors',
+          'flex flex-col items-center justify-center min-h-[160px]',
+          isDragging ? 'border-dost-blue bg-blue-50' : 'border-gray-300',
+          'cursor-pointer hover:border-dost-blue'
+        )}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => inputRef.current?.click()}
+      >
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+          id="upload-banner"
+          ref={inputRef}
+        />
+        {!file ? (
+          <div className="flex flex-col items-center gap-2 text-center">
+            <Upload className="h-10 w-10 text-gray-400" />
+            <div>
+              <p className="text-sm font-medium text-gray-700">
+                📄 {isDragging ? 'Drop your image here' : 'Click to upload or drag and drop'}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Supported formats: PNG, JPG, WEBP • Max 10MB
+              </p>
+            </div>
+          </div>
+        ) : isDragging ? (
+          <div className="flex flex-col items-center gap-2 text-center">
+            <Upload className="h-10 w-10 text-dost-blue" />
+            <p className="text-sm font-medium text-dost-blue mt-2">
+              Drop to replace the current image
+            </p>
+          </div>
+        ) : (
+          preview && (
+            <div className="relative">
+              <Image
+                src={preview}
+                alt="Preview"
+                width={200}
+                height={112}
+                className="mx-auto max-h-36 w-auto object-contain rounded border"
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                Click or drag to replace this image
+              </p>
+            </div>
+          )
+        )}
+      </div>
 
-                    <ModalBody className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                Title *
-                            </label>
-                            <Input
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                required
-                                placeholder="Banner Title"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                Address Link *
-                            </label>
-                            <Input
-                                value={addressLink}
-                                onChange={(e) => setAddressLink(e.target.value)}
-                                required
-                                placeholder="https://..."
-                                type="url"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                Replace Image (optional)
-                            </label>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleFileChange}
-                                className="block w-full text-sm text-gray-500
-                                    file:mr-4 file:py-2 file:px-4
-                                    file:rounded file:border-0
-                                    file:text-sm file:font-semibold
-                                    file:bg-blue-50 file:text-blue-700
-                                    hover:file:bg-blue-100
-                                    cursor-pointer"
-                            />
-                            {getImageUrl() && (
-                                <div className="mt-3">
-                                    <img 
-                                        src={getImageUrl()} 
-                                        alt="Preview" 
-                                        className="h-32 w-auto object-contain rounded border border-gray-200 shadow-sm" 
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    </ModalBody>
-
-                    <ModalFooter>
-                        <Button 
-                            type="button" 
-                            variant="outline" 
-                            onClick={onClose}
-                            disabled={isUpdating}
-                        >
-                            Cancel
-                        </Button>
-                        <Button 
-                            type="submit" 
-                            variant="primary"
-                            disabled={isUpdating}
-                        >
-                            {isUpdating ? 'Saving...' : 'Save Changes'}
-                        </Button>
-                    </ModalFooter>
-                </form>
-            </ModalContent>
-        </Modal>
-    );
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Input
+          label="Title"
+          placeholder="Banner Title *"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+        <Input
+          label="Address Link"
+          placeholder="https://... *"
+          value={address_link}
+          onChange={(e) => setLink(e.target.value)}
+          onBlur={() => setLink(autoFormatUrl(address_link))}
+          required
+        />
+        <Button type="submit" className="sm:self-end" variant="primary" disabled={isUploading}>
+          {isUploading ? 'Uploading...' : '+'}
+        </Button>
+      </div>
+    </form>
+  );
 }

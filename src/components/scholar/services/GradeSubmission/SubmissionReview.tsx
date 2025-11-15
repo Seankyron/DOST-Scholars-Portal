@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { GradeSubmission } from '@/types/services';
 import { formatDate } from '@/lib/utils/date';

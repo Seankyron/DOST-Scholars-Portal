@@ -1,62 +1,60 @@
 'use client';
 
-import { useActionState, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BannerUpload } from '@/components/admin/events/BannerUpload';
 import { BannerList, Banner } from '@/components/admin/events/BannerList';
 import { CarouselSettings } from '@/components/admin/events/CarouselSettings';
 import { EditBannerModal } from '@/components/admin/events/EditBannerModal';
+import { toast } from '@/components/ui/toaster'; // Import toast
 
 export default function EventBannerManagementPage() {
-  // const [banners, setBanners] = useState<Banner[]>([
-  //   {
-  //     id: 1,
-  //     title: 'Scholars Leadership Camp',
-  //     address_link: 'https://patriot.science-scholarships.ph/',
-  //     image_file_key: '/images/banners/banner-1.jpg', // Using a real placeholder
-  //   },
-  //   {
-  //     id: 2,
-  //     title: 'YUGTO 2025',
-  //     address_link: 'https://facebook.com/DOST.RPCA4A/',
-  //     image_file_key: '/images/placeholders/avatar-placeholder.png', // Using a real placeholder
-  //   },
-  // ]);
-  const [banners, setBanners] = useState<Banner[]>([])
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-
 
   const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  useEffect(() => {
+  // FIX 1: Create a single, reusable function to fetch banners
   const fetchBanners = async () => {
     try {
-      setLoading(true);
+      setLoading(true); // Show loading spinner
       const response = await fetch('/api/admin/events/get');
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch');
       setBanners(data.events);
-    } catch (err) {
-      setError('Failed to fetch events');
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(err.message); // Show toast on error
       console.error(err);
     } finally {
-      setLoading(false);
-    }};fetchBanners();}, []);
-
-  const handleAddBanner = (newBanner: Omit<Banner, 'id'>) => {
-    setBanners([...banners, { id: Date.now(), ...newBanner }]);
+      setLoading(false); // Hide loading spinner
+    }
   };
 
-  const handleDeleteBanner = (id: number) => {
-    setBanners(banners.filter((b) => b.id !== id));
+  // FIX 2: Call the fetch function on initial load
+  useEffect(() => {
+    fetchBanners();
+  }, []);
+
+  // FIX 3: These functions now just trigger the refetch
+  const onUploadSuccess = () => {
+    toast.success('Banner uploaded! Reloading list...');
+    fetchBanners(); // Reload all banners from the server
   };
 
-  const handleUpdateBanner = (id: number, updatedData: Partial<Banner>) => {
-    setBanners(
-      banners.map((b) => (b.id === id ? { ...b, ...updatedData } : b))
-    );
+  const onDeleteSuccess = (id: number) => {
+    // Optimistically remove from UI, then refetch to confirm
+    setBanners((prev) => prev.filter((b) => b.id !== id));
+    toast.success('Banner deleted! Reloading list...');
+    fetchBanners(); // Reload all banners from the server
   };
+
+  const onEditSuccess = () => {
+    toast.success('Banner updated! Reloading list...');
+    fetchBanners(); // Reload all banners from the server
+  };
+  // --- End of FIX 3 ---
 
   const openEditModal = (banner: Banner | undefined) => {
     if (banner) {
@@ -64,7 +62,7 @@ export default function EventBannerManagementPage() {
       setIsEditOpen(true);
     }
   };
-  console.log("Banners: \n", banners);
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-dost-title">
@@ -81,7 +79,8 @@ export default function EventBannerManagementPage() {
               </h2>
             </div>
             <div className="p-4">
-              <BannerUpload onAddBanner={handleAddBanner} />
+              {/* FIX 4: Pass the new handler */}
+              <BannerUpload onAddBanner={onUploadSuccess} />
             </div>
           </div>
 
@@ -96,7 +95,8 @@ export default function EventBannerManagementPage() {
               <BannerList
                 banners={banners}
                 onEdit={(banner: Banner) => openEditModal(banner)}
-                onDelete={handleDeleteBanner}
+                onDelete={onDeleteSuccess}
+                loading={loading} // <-- Pass the loading prop
               />
             </div>
           </div>
@@ -113,7 +113,7 @@ export default function EventBannerManagementPage() {
           banner={selectedBanner}
           open={isEditOpen}
           onClose={() => setIsEditOpen(false)}
-          onUpdate={handleUpdateBanner}
+          onUpdate={onEditSuccess} // <-- Pass the new handler
         />
       )}
     </div>

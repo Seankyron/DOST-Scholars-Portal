@@ -4,11 +4,11 @@ import { cookies } from 'next/headers';
 import type { Database } from '@/lib/supabase/type';
 
 export async function DELETE(request: Request) {
-  const cookieStore = await cookies(); // must await
+  const cookieStore = await cookies(); //
 
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!, //
     {
       cookies: {
         get(name) {
@@ -27,21 +27,29 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Missing event ID' }, { status: 400 });
     }
 
-    // Check if user is authenticated
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getUser(); //
 
     if (userError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 }); //
     }
 
-    // Delete the event
+    const { data: adminData } = await supabase
+      .from('Admin')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+
+    if (!adminData) {
+      // User is authenticated, but NOT an admin
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
     const { error: deleteError } = await supabase
       .from('Event')
       .delete()
-      .eq('id', id);
+      .eq('id', id); //
 
     if (deleteError) {
       console.error('Delete error:', deleteError);
