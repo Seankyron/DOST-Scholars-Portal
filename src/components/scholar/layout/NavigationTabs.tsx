@@ -1,9 +1,11 @@
+// src/components/scholar/layout/NavigationTabs.tsx
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { scholarNavigation } from '@/config/navigation';
 import { ServiceTilesGrid } from '../home/ServiceTilesGrid';
 import { Card, CardContent } from '@/components/ui/card';
+import { DirectoriesPanel } from '../directories/DirectoriesPanel';
 
 // Mock panels for content
 const MockPanel = ({ title }: { title: string }) => (
@@ -18,7 +20,7 @@ const MockPanel = ({ title }: { title: string }) => (
 
 export function NavigationTabs() {
   return (
-    <Tabs defaultValue="home" className="w-full">
+    <Tabs defaultValue="service" className="w-full">
       {/* The blue bar, with p-1 to create the inset border */}
       <TabsList className="grid w-full grid-cols-4 bg-dost-title rounded-lg p-1 h-auto">
         {scholarNavigation.map((nav) => (
@@ -30,13 +32,11 @@ export function NavigationTabs() {
               ring-offset-white 
               focus-visible:ring-2 focus-visible:ring-white 
               
-              // Inactive state: Fully white text
               text-white 
               
-              // Active state: White background, dost-title text
               data-[state=active]:bg-white 
               data-[state=active]:text-dost-title 
-              data-[state=active]:shadow-none // Prevents overlap
+              data-[state=active]:shadow-none
             "
           >
             {nav.label}
@@ -45,15 +45,14 @@ export function NavigationTabs() {
       </TabsList>
 
       {/* Content panes */}
-      <TabsContent value="home" className="mt-6">
-        <h2 className="text-2xl text-center font-bold text-dost-title mb-4">
-          Scholar Services
-        </h2>
+      <TabsContent value="service" className="mt-6">
         <ServiceTilesGrid />
       </TabsContent>
+
       <TabsContent value="directories" className="mt-6">
-        <MockPanel title="Directories" />
+        <DirectoriesPanel />
       </TabsContent>
+
       <TabsContent value="downloadables" className="mt-6">
         <MockPanel title="Downloadables" />
       </TabsContent>
