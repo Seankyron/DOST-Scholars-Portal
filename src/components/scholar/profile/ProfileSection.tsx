@@ -17,6 +17,8 @@ import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ScholarStatus } from '@/types';
 import { cn } from '@/lib/utils/cn';
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+
 
 // Mock data
 const mockScholar = {
@@ -56,6 +58,9 @@ function InfoItem({
 }
 
 export function ProfileSection() {
+  const { user, loading } = useCurrentUser();
+  const userInfo = user?.user_metadata;
+  
   return (
     // SIMPLIFIED CONTAINER: Removed the outer gradient <div>
     <Card className="shadow-md bg-white">
@@ -93,12 +98,12 @@ export function ProfileSection() {
             <div className="space-y-2 text-center md:text-left">
               <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
                 <h2 className="text-2xl font-bold text-dost-title">
-                  {mockScholar.firstName} {mockScholar.surname}
+                  {userInfo?.first_name } {userInfo?.last_name}
                 </h2>
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={mockScholar.status}>
+                  <StatusBadge status={userInfo?.scholarship_status}>
                     <BadgeCheck className="h-3.5 w-3.5" />
-                    {mockScholar.status} Scholar
+                    {userInfo?.scholarship_status} Scholar
                   </StatusBadge>
                   <InfoTooltip>
                     <div className="space-y-2">
@@ -160,27 +165,27 @@ export function ProfileSection() {
               <InfoItem
                 icon={GraduationCap}
                 label="School"
-                value={mockScholar.school}
+                value={userInfo?.university}
               />
               <InfoItem
                 icon={BookOpen}
                 label="Program"
-                value={mockScholar.course}
+                value={userInfo?.program_course}
               />
               <InfoItem
                 icon={Hash}
                 label="Scholar ID"
-                value={mockScholar.scholarId}
+                value={userInfo?.spas_id}
               />
               <InfoItem
                 icon={Award}
                 label="Scholarship Type"
-                value={mockScholar.scholarshipProgram}
+                value={userInfo?.scholarship_type}
               />
               <InfoItem
                 icon={Calendar}
                 label="Batch"
-                value={mockScholar.batch}
+                value={userInfo?.year_awarded}
               />
             </div>
           </div>
