@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { DeleteBannerModal } from '@/components/admin/events/DeleteBannerModal';
 import { Pencil, Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'; // <-- FIX 1: Import spinner
-
 export interface Banner {
   id: number;
   title: string;
@@ -19,10 +17,9 @@ interface BannerListProps {
   banners: Banner[];
   onEdit: (banner: Banner) => void;
   onDelete: (id: number) => void;
-  loading: boolean; // <-- FIX 2: Accept the loading prop
 }
 
-export function BannerList({ banners, onEdit, onDelete, loading }: BannerListProps) {
+export function BannerList({ banners, onEdit, onDelete }: BannerListProps) { // <-- FIX 3: Remove 'loading' from props
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
 
@@ -31,7 +28,9 @@ export function BannerList({ banners, onEdit, onDelete, loading }: BannerListPro
     setIsDeleteOpen(true);
   };
 
-  // FIX 3: Add the loading state
+  // FIX 4: Remove the loading state block
+  // The parent component (page.tsx) now handles this.
+  /*
   if (loading) {
     return (
       <div className="flex justify-center items-center h-40">
@@ -39,9 +38,10 @@ export function BannerList({ banners, onEdit, onDelete, loading }: BannerListPro
       </div>
     );
   }
+  */
 
-  // FIX 4: Add the empty state
-  if (!loading && banners.length === 0) {
+  // FIX 5: Adjust the empty state check
+  if (banners.length === 0) {
     return (
       <div className="flex justify-center items-center h-40">
         <p className="text-gray-500">No banners have been uploaded yet.</p>

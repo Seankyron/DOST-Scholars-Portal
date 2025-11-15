@@ -1,20 +1,26 @@
 'use client';
 
-import { useState, ChangeEvent, FormEvent, useEffect, useRef } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalBody,
+  ModalFooter,
+} from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload } from 'lucide-react';
-import Image from 'next/image';
+import { FileUpload } from '@/components/ui/file-upload';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase/client';
-import { toast } from '@/components/ui/toaster'; // <-- Import toast
-import { cn } from '@/lib/utils/cn';
+import { toast } from '@/components/ui/toaster';
+import { type Banner } from './BannerList';
+import { Loader2 } from 'lucide-react';
+import Image from 'next/image';
+import { cn } from '@/lib/utils/cn'; // Import cn
 
-// FIX 1: Change the prop to a simple function
-interface BannerUploadProps {
-  onAddBanner: () => void;
-}
-
-// (Helper functions remain the same)
+// Helper function to auto-format URL
 const autoFormatUrl = (url: string) => {
   const trimmedUrl = url.trim();
   if (trimmedUrl && !trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
@@ -22,6 +28,8 @@ const autoFormatUrl = (url: string) => {
   }
   return trimmedUrl;
 };
+
+// Helper function to validate URL
 function isValidUrl(string: string) {
   try {
     new URL(string);
@@ -31,58 +39,43 @@ function isValidUrl(string: string) {
   }
 }
 
-export function BannerUpload({ onAddBanner }: BannerUploadProps) {
+interface EditBannerModalProps {
+  banner: Banner;
+  open: boolean;
+  onClose: () => void;
+  onUpdate: () => void;
+}
+
+export function EditBannerModal({
+  banner,
+  open,
+  onClose,
+  onUpdate,
+}: EditBannerModalProps) {
   const [title, setTitle] = useState('');
   const [address_link, setLink] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string>('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false); 
-  const inputRef = useRef<HTMLInputElement>(null); 
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  const [isChangingImage, setIsChangingImage] = useState(false);
 
   useEffect(() => {
-    if (!file) {
-      setPreview('');
-      return;
+    if (banner) {
+      setTitle(banner.title);
+      setLink(banner.address_link);
+      setFile(null);
+      setIsChangingImage(false);
     }
-    const objectUrl = URL.createObjectURL(file);
-    setPreview(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [file]);
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile ?? null);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); e.stopPropagation(); setIsDragging(false);
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && droppedFile.type.startsWith('image/')) {
-      setFile(droppedFile);
-    } else {
-      toast.error('Invalid file type. Please upload an image.');
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); e.stopPropagation(); setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); e.stopPropagation(); setIsDragging(false);
-  };
+  }, [banner, open]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     const formattedLink = autoFormatUrl(address_link);
     setLink(formattedLink);
 
-    if (!file || !title || !formattedLink) {
-      toast.error('Please fill in all fields and select an image.');
+    if (!title || !formattedLink) {
+      toast.error('Please fill in all fields.');
       return;
     }
     if (!isValidUrl(formattedLink)) {
@@ -90,134 +83,151 @@ export function BannerUpload({ onAddBanner }: BannerUploadProps) {
       return;
     }
 
-    setIsUploading(true);
+    setIsUpdating(true);
+    const toastId = toast.loading('Saving changes...');
 
     try {
-      // 1. Upload file
-      const timestamp = Date.now();
-      const fileExt = file.name.split('.').pop();
-      const fileName = `banners/${timestamp}.${fileExt}`;
+      let final_image_file_key = banner.image_file_key;
+      let old_image_file_key: string | null = null;
 
-      const { error: uploadError } = await supabase.storage
-        .from('event-banners')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: file.type,
-        });
+      if (file) {
+        const timestamp = Date.now();
+        const fileExt = file.name.split('.').pop();
+        const fileName = `banners/${timestamp}.${fileExt}`;
 
-      if (uploadError) throw uploadError;
+        const { error: uploadError } = await supabase.storage
+          .from('event-banners')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: file.type,
+          });
 
-      // 2. Post to API
-      const res = await fetch('/api/admin/events/post', {
-        method: 'POST',
+        if (uploadError) throw uploadError;
+
+        final_image_file_key = fileName;
+        old_image_file_key = banner.image_file_key;
+      }
+
+      const res = await fetch('/api/admin/events/put', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: banner.id,
           title,
           address_link: formattedLink,
-          image_file_key: fileName,
+          image_file_key: final_image_file_key,
+          old_image_file_key: old_image_file_key,
         }),
       });
-      
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to create event');
+      if (!res.ok) throw new Error(data.error || 'Failed to update event');
 
-      // 3. Call the parent's refetch function
-      onAddBanner(); // <-- FIX 2
-
-      // 4. Reset form
-      setTitle('');
-      setLink('');
-      setFile(null);
-      if (inputRef.current) inputRef.current.value = ''; 
+      toast.success('Banner updated successfully!', { id: toastId });
+      onUpdate();
+      onClose();
     } catch (error: any) {
-      console.error('Upload failed:', error.message);
-      toast.error('Failed to upload banner: ' + error.message); // Use toast
+      console.error('Update failed:', error.message);
+      toast.error('Failed to update banner: ' + error.message, { id: toastId });
     } finally {
-      setIsUploading(false);
+      setIsUpdating(false);
     }
   };
 
-  return (
-    // ... (The form JSX remains unchanged from our previous fix) ...
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div
-        className={cn(
-          'border-2 border-dashed rounded-lg p-6 text-center text-gray-500 transition-colors',
-          'flex flex-col items-center justify-center min-h-[160px]',
-          isDragging ? 'border-dost-blue bg-blue-50' : 'border-gray-300',
-          'cursor-pointer hover:border-dost-blue'
-        )}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => inputRef.current?.click()}
-      >
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="hidden"
-          id="upload-banner"
-          ref={inputRef}
-        />
-        {!file ? (
-          <div className="flex flex-col items-center gap-2 text-center">
-            <Upload className="h-10 w-10 text-gray-400" />
-            <div>
-              <p className="text-sm font-medium text-gray-700">
-                📄 {isDragging ? 'Drop your image here' : 'Click to upload or drag and drop'}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Supported formats: PNG, JPG, WEBP • Max 10MB
-              </p>
-            </div>
-          </div>
-        ) : isDragging ? (
-          <div className="flex flex-col items-center gap-2 text-center">
-            <Upload className="h-10 w-10 text-dost-blue" />
-            <p className="text-sm font-medium text-dost-blue mt-2">
-              Drop to replace the current image
-            </p>
-          </div>
-        ) : (
-          preview && (
-            <div className="relative">
-              <Image
-                src={preview}
-                alt="Preview"
-                width={200}
-                height={112}
-                className="mx-auto max-h-36 w-auto object-contain rounded border"
-              />
-              <p className="text-xs text-gray-500 mt-2">
-                Click or drag to replace this image
-              </p>
-            </div>
-          )
-        )}
-      </div>
+  const handleCancelImageChange = () => {
+    setFile(null);
+    setIsChangingImage(false);
+  };
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Input
-          label="Title"
-          placeholder="Banner Title *"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <Input
-          label="Address Link"
-          placeholder="https://... *"
-          value={address_link}
-          onChange={(e) => setLink(e.target.value)}
-          onBlur={() => setLink(autoFormatUrl(address_link))}
-          required
-        />
-        <Button type="submit" className="sm:self-end" variant="primary" disabled={isUploading}>
-          {isUploading ? 'Uploading...' : '+'}
-        </Button>
-      </div>
-    </form>
+  return (
+    <Modal open={open} onOpenChange={onClose}>
+      <ModalContent>
+        <ModalHeader>
+          <ModalTitle>Edit Banner</ModalTitle>
+        </ModalHeader>
+        <form id="edit-banner-form" onSubmit={handleSubmit}>
+          <ModalBody className="space-y-4">
+            <Input
+              label="Title"
+              placeholder="Banner Title *"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+            <Input
+              label="Address Link"
+              placeholder="https://... *"
+              value={address_link}
+              onChange={(e) => setLink(e.target.value)}
+              onBlur={() => setLink(autoFormatUrl(address_link))}
+              required
+            />
+            
+            {!isChangingImage ? (
+              <div className="space-y-2">
+                <Label>Current Image</Label>
+                <div className="relative h-36 w-full rounded-lg border bg-gray-100 overflow-hidden">
+                  <Image
+                    src={banner.image_url}
+                    alt={banner.title}
+                    layout="fill"
+                    objectFit="contain"
+                    className="p-2"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsChangingImage(true)}
+                >
+                  Change Image
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <FileUpload
+                  label="Upload New Image"
+                  accept="image/*"
+                  onChange={(file) => setFile(file)}
+                  helperText="Select a new image to replace the old one."
+                  maxSizeMB={10}
+                />
+                {/* --- THIS IS THE UPDATED BUTTON --- */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    'text-red-600 border-red-500 hover:bg-red-50 hover:text-red-700',
+                    'focus:ring-red-500' // Optional: for focus state
+                  )}
+                  onClick={handleCancelImageChange}
+                >
+                  Cancel Change
+                </Button>
+              </div>
+            )}
+            
+          </ModalBody>
+          <ModalFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isUpdating}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" form="edit-banner-form" disabled={isUpdating}>
+              {isUpdating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+          </ModalFooter>
+        </form>
+      </ModalContent>
+    </Modal>
   );
 }
