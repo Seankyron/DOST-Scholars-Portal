@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export const scholarNavigation = [
-  { label: 'Home', value: 'home' },
+  { label: 'Services', value: 'service' },
   { label: 'Directories', value: 'directories' },
   { label: 'Downloadables', value: 'downloadables' },
   { label: 'FAQs', value: 'faqs' },
