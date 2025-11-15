@@ -1,8 +1,8 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils/cn';
-import { Upload, FileText, X } from 'lucide-react';
+import { Upload, FileText, X, Image as ImageIcon } from 'lucide-react';
 
 interface FileUploadProps {
   label?: string;
@@ -24,8 +24,24 @@ export function FileUpload({
   maxSizeMB = 10,
 }: FileUploadProps) {
   const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!file) {
+      setPreview(null);
+      return;
+    }
+
+    if (file.type.startsWith('image/')) {
+      const objectUrl = URL.createObjectURL(file);
+      setPreview(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    } else {
+      setPreview(null);
+    }
+  }, [file]);
 
   const handleFileChange = (selectedFile: File | null) => {
     setFile(selectedFile);
@@ -82,7 +98,6 @@ export function FileUpload({
         />
 
         {!file ? (
-          // --- This is the placeholder when NO file is selected ---
           <div className="flex flex-col items-center gap-2 text-center">
             <Upload className="h-10 w-10 text-gray-400" />
             <div>
@@ -97,12 +112,27 @@ export function FileUpload({
         ) : (
           <div className={cn(
             "flex items-center justify-between",
-            isDragging && "opacity-50" // Dim the existing file preview
+            isDragging && "opacity-50"
           )}>
-            <div className="flex items-center gap-3">
-              <FileText className="h-8 w-8 text-dost-blue" />
-              <div>
-                <p className="text-sm font-medium text-gray-900">{file.name}</p>
+            <div className="flex items-center gap-3 min-w-0">
+              {preview ? (
+                <img
+                  src={preview}
+                  alt={file.name}
+                  className="h-10 w-10 rounded object-cover flex-shrink-0"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded bg-gray-200 flex items-center justify-center flex-shrink-0">
+                  {file.type === 'application/pdf' ? (
+                    <FileText className="h-6 w-6 text-red-600" />
+                  ) : (
+                    <ImageIcon className="h-6 w-6 text-gray-500" />
+                  )}
+                </div>
+              )}
+              <div className="min-w-0">
+                {/* --- THIS IS THE FIX --- */}
+                <p className="text-sm font-medium text-gray-900 truncate break-all">{file.name}</p>
                 <p className="text-xs text-gray-500">
                   {(file.size / 1024 / 1024).toFixed(2)} MB
                 </p>
@@ -114,7 +144,7 @@ export function FileUpload({
                 e.stopPropagation();
                 handleRemove();
               }}
-              className="p-1 hover:bg-gray-100 rounded"
+              className="p-1 hover:bg-gray-100 rounded flex-shrink-0" // Added flex-shrink-0
             >
               <X className="h-5 w-5 text-gray-500" />
             </button>
