@@ -1,233 +1,239 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Modal,
-  ModalContent,
   ModalHeader,
   ModalTitle,
+  ModalContent,
   ModalBody,
   ModalFooter,
 } from '@/components/ui/modal';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { FileUpload } from '@/components/ui/file-upload';
-import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase/client';
-import { toast } from '@/components/ui/toaster';
-import { type Banner } from './BannerList';
-import { Loader2 } from 'lucide-react';
-import Image from 'next/image';
-import { cn } from '@/lib/utils/cn'; // Import cn
 
-// Helper function to auto-format URL
-const autoFormatUrl = (url: string) => {
-  const trimmedUrl = url.trim();
-  if (trimmedUrl && !trimmedUrl.startsWith('http://') && !trimmedUrl.startsWith('https://')) {
-    return `https://${trimmedUrl}`;
-  }
-  return trimmedUrl;
-};
-
-// Helper function to validate URL
-function isValidUrl(string: string) {
-  try {
-    new URL(string);
-    return true;
-  } catch (_) {
-    return false;
-  }
+interface Banner {
+    id: number;
+    title: string;
+    address_link: string;
+    image_file_key: string;
 }
 
 interface EditBannerModalProps {
-  banner: Banner;
-  open: boolean;
-  onClose: () => void;
-  onUpdate: () => void;
+    banner: Banner;
+    open: boolean;
+    onClose: () => void;
+    onUpdate: (id: number, updatedData: Banner) => void;
 }
 
-export function EditBannerModal({
-  banner,
-  open,
-  onClose,
-  onUpdate,
-}: EditBannerModalProps) {
-  const [title, setTitle] = useState('');
-  const [address_link, setLink] = useState('');
-  const [file, setFile] = useState<File | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-  
-  const [isChangingImage, setIsChangingImage] = useState(false);
+export function EditBannerModal({ banner, open, onClose, onUpdate }: EditBannerModalProps) {
+    const [title, setTitle] = useState(banner.title);
+    const [addressLink, setAddressLink] = useState(banner.address_link);
+    const [file, setFile] = useState<File | null>(null);
+    const [preview, setPreview] = useState<string>('');
+    const [isUpdating, setIsUpdating] = useState(false);
 
-  useEffect(() => {
-    if (banner) {
-      setTitle(banner.title);
-      setLink(banner.address_link);
-      setFile(null);
-      setIsChangingImage(false);
-    }
-  }, [banner, open]);
+    // Reset form when banner changes
+    useEffect(() => {
+        setTitle(banner.title);
+        setAddressLink(banner.address_link);
+        setFile(null);
+        setPreview('');
+    }, [banner]);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile) {
+            setFile(selectedFile);
+            const objectUrl = URL.createObjectURL(selectedFile);
+            setPreview(objectUrl);
+        }
+    };
 
-    const formattedLink = autoFormatUrl(address_link);
-    setLink(formattedLink);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (!title || !addressLink) {
+            alert('Please fill in all required fields');
+            return;
+        }
 
-    if (!title || !formattedLink) {
-      toast.error('Please fill in all fields.');
-      return;
-    }
-    if (!isValidUrl(formattedLink)) {
-      toast.error('Please enter a valid URL (e.g., https://example.com)');
-      return;
-    }
+        setIsUpdating(true);
 
-    setIsUpdating(true);
-    const toastId = toast.loading('Saving changes...');
+        try {
+            let newImageKey = banner.image_file_key;
 
-    try {
-      let final_image_file_key = banner.image_file_key;
-      let old_image_file_key: string | null = null;
+            // If new file is selected, upload it
+            if (file) {
+                // Generate new filename in banners/ folder format
+                const timestamp = Date.now();
+                const fileExt = file.name.split('.').pop();
+                newImageKey = `banners/${timestamp}.${fileExt}`;
 
-      if (file) {
-        const timestamp = Date.now();
-        const fileExt = file.name.split('.').pop();
-        const fileName = `banners/${timestamp}.${fileExt}`;
+                console.log('Uploading to:', newImageKey);
 
-        const { error: uploadError } = await supabase.storage
-          .from('event-banners')
-          .upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false,
-            contentType: file.type,
-          });
+                // Upload new image
+                const { error: uploadError } = await supabase.storage
+                    .from('event-banners')
+                    .upload(newImageKey, file, {
+                        cacheControl: '3600',
+                        upsert: false,
+                        contentType: file.type,
+                    });
 
-        if (uploadError) throw uploadError;
+                if (uploadError) {
+                    console.error('Upload error:', uploadError);
+                    throw new Error(uploadError.message);
+                }
 
-        final_image_file_key = fileName;
-        old_image_file_key = banner.image_file_key;
-      }
+                // Delete old image if it exists and is different
+                if (banner.image_file_key && banner.image_file_key !== newImageKey) {
+                    const { error: deleteError } = await supabase.storage
+                        .from('event-banners')
+                        .remove([banner.image_file_key]);
+                    
+                    if (deleteError) {
+                        console.warn('Could not delete old image:', deleteError);
+                    }
+                }
+            }
 
-      const res = await fetch('/api/admin/events/put', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: banner.id,
-          title,
-          address_link: formattedLink,
-          image_file_key: final_image_file_key,
-          old_image_file_key: old_image_file_key,
-        }),
-      });
+            // Update event in database
+            const { data, error: updateError } = await supabase
+                .from('Event')
+                .update({
+                    title,
+                    address_link: addressLink,
+                    image_file_key: newImageKey,
+                })
+                .eq('id', banner.id)
+                .select()
+                .single();
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to update event');
+            if (updateError) {
+                // If update fails and we uploaded a new file, delete it
+                if (file && newImageKey !== banner.image_file_key) {
+                    await supabase.storage
+                        .from('event-banners')
+                        .remove([newImageKey]);
+                }
+                console.error('Update error:', updateError);
+                throw new Error(updateError.message);
+            }
 
-      toast.success('Banner updated successfully!', { id: toastId });
-      onUpdate();
-      onClose();
-    } catch (error: any) {
-      console.error('Update failed:', error.message);
-      toast.error('Failed to update banner: ' + error.message, { id: toastId });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+            // Notify parent component with updated data
+            onUpdate(banner.id, {
+                id: banner.id,
+                title,
+                address_link: addressLink,
+                image_file_key: newImageKey,
+            });
 
-  const handleCancelImageChange = () => {
-    setFile(null);
-    setIsChangingImage(false);
-  };
+            alert('Banner updated successfully!');
+            onClose();
+        } catch (error: any) {
+            console.error('Update failed:', error);
+            alert('Failed to update banner: ' + error.message);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    // Get public URL for preview
+    const getImageUrl = () => {
+        if (preview) return preview; // Show local preview if new file selected
+        
+        if (banner.image_file_key) {
+            const { data } = supabase.storage
+                .from('event-banners')
+                .getPublicUrl(banner.image_file_key);
+            return data.publicUrl;
+        }
+        return '';
+    };
 
   return (
     <Modal open={open} onOpenChange={onClose}>
       <ModalContent>
-        <ModalHeader>
-          <ModalTitle>Edit Banner</ModalTitle>
-        </ModalHeader>
-        <form id="edit-banner-form" onSubmit={handleSubmit}>
-          <ModalBody className="space-y-4">
-            <Input
-              label="Title"
-              placeholder="Banner Title *"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-            <Input
-              label="Address Link"
-              placeholder="https://... *"
-              value={address_link}
-              onChange={(e) => setLink(e.target.value)}
-              onBlur={() => setLink(autoFormatUrl(address_link))}
-              required
-            />
-            
-            {!isChangingImage ? (
-              <div className="space-y-2">
-                <Label>Current Image</Label>
-                <div className="relative h-36 w-full rounded-lg border bg-gray-100 overflow-hidden">
-                  <Image
-                    src={banner.image_url}
-                    alt={banner.title}
-                    layout="fill"
-                    objectFit="contain"
-                    className="p-2"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsChangingImage(true)}
-                >
-                  Change Image
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <FileUpload
-                  label="Upload New Image"
-                  accept="image/*"
-                  onChange={(file) => setFile(file)}
-                  helperText="Select a new image to replace the old one."
-                  maxSizeMB={10}
-                />
-                {/* --- THIS IS THE UPDATED BUTTON --- */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    'text-red-600 border-red-500 hover:bg-red-50 hover:text-red-700',
-                    'focus:ring-red-500' // Optional: for focus state
-                  )}
-                  onClick={handleCancelImageChange}
-                >
-                  Cancel Change
-                </Button>
-              </div>
-            )}
-            
-          </ModalBody>
-          <ModalFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isUpdating}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" form="edit-banner-form" disabled={isUpdating}>
-              {isUpdating ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
-          </ModalFooter>
-        </form>
-      </ModalContent>
-    </Modal>
-  );
+        <form onSubmit={handleSubmit}>
+          <ModalHeader>
+            <ModalTitle>Edit Banner</ModalTitle>
+          </ModalHeader>
+
+                    <ModalBody className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                Title *
+                            </label>
+                            <Input
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                required
+                                placeholder="Banner Title"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                Address Link *
+                            </label>
+                            <Input
+                                value={addressLink}
+                                onChange={(e) => setAddressLink(e.target.value)}
+                                required
+                                placeholder="https://..."
+                                type="url"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                Replace Image (optional)
+                            </label>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                className="block w-full text-sm text-gray-500
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded file:border-0
+                                    file:text-sm file:font-semibold
+                                    file:bg-blue-50 file:text-blue-700
+                                    hover:file:bg-blue-100
+                                    cursor-pointer"
+                            />
+                            {getImageUrl() && (
+                                <div className="mt-3">
+                                    <img 
+                                        src={getImageUrl()} 
+                                        alt="Preview" 
+                                        className="h-32 w-auto object-contain rounded border border-gray-200 shadow-sm" 
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </ModalBody>
+
+                    <ModalFooter>
+                        <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={onClose}
+                            disabled={isUpdating}
+                        >
+                            Cancel
+                        </Button>
+                        <Button 
+                            type="submit" 
+                            variant="primary"
+                            disabled={isUpdating}
+                        >
+                            {isUpdating ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                    </ModalFooter>
+                </form>
+            </ModalContent>
+        </Modal>
+    );
 }
