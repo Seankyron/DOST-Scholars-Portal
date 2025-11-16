@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -105,9 +104,6 @@ export default function SignupPage() {
     agreeToTerms: false,
     subscribeToUpdates: false,
   });
-
-  // We still need the client-side client for file uploads
-  const supabase = createClient();
 
   const programOptions = (PROGRAMS_BY_UNIVERSITY[formData.university] || []).map(prog => ({
     value: prog,

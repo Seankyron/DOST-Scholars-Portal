@@ -1,35 +1,27 @@
 // --- IMPORTANT: Import the *core* createClient ---
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { type Database } from '@/lib/supabase/type';
 import { NextResponse } from 'next/server';
 
 // Ensure you have these in your .env.local file!
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export async function POST(request: Request) {
-  // --- This is the critical change ---
-  // Create a new ADMIN client using the Service Role Key
-  // This client bypasses all RLS and has full admin rights
-  if (!supabaseUrl || !serviceRoleKey) {
-    return NextResponse.json(
-      { error: 'Missing Supabase URL or Service Role Key' },
-      { status: 500 }
-    );
-  }
+   const cookieStore = await cookies();
   
-  const supabase = createClient<Database>(
-    supabaseUrl,
-    serviceRoleKey,
-    {
-      auth: {
-        // Important: this client should not impersonate a user
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    }
-  );
-  // --- End of critical change ---
+    const supabase = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name) {
+            return cookieStore.get(name)?.value;
+          },
+          set() {},
+          remove() {},
+        },
+      }
+    );
 
   try {
     // 2. Parse the FormData from the request

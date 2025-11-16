@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { SubmissionForm } from './SubmissionForm';
 import { SubmissionReview } from './SubmissionReview';
-import { AdminCommentAlert } from './AdminCommenAlert';
+import { AdminCommentAlert } from '../../../shared/AdminCommenAlert';
 import type { SemesterAvailability } from '@/types/curriculum';
 import type { GradeSubmission, YearLevel } from '@/types'; 
 import { useFileUpload } from '@/hooks/useFileUpload';

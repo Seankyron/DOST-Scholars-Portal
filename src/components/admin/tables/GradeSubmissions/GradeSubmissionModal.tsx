@@ -16,8 +16,15 @@ import { Label } from '@/components/ui/label';
 import { Eye, Download, MessageSquarePlus } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import type { GradeSubmissionDetails } from './GradeSubmissionsTable';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'; 
-import { toast } from '@/components/ui/toaster';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'; // <-- IMPORT
+import { toast } from '@/components/ui/toaster'; // <-- IMPORT
+import { supabase } from '@/lib/supabase/client';
+
+{/*
+  Suggestions:
+  Add UX for when Updating  
+  Improve Loading screen
+*/}
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -118,38 +125,107 @@ export function GradeSubmissionModal({
   };
 
   // --- MODIFIED: This is now the CONFIRMED action ---
-  const handleApprove = () => {
+  const handleApprove = async () => {
     const finalComment = adminComment.trim() === '' ? APPROVED_MESSAGE : adminComment;
-    
+
+     try{
+        // Update Grade Submission
+        let {data, error: updateError} = await supabase
+        .from('Grade Submission')
+        .update({
+          status: "Approved",
+          comment: finalComment,
+        })
+        .eq('id', submission.id)
+        .select()
+        .single();
+
+        if(updateError){
+          throw new Error(updateError.message);
+        }
+       
+        // Update User Status
+        const { data: userData, error: userError } = await supabase
+        .from('User')
+        .update({
+          scholarship_status: scholarStatusState,
+        })
+        .eq('spas_id', submission.spas_id)
+        .select()
+        .single(); 
+
+        if (userError) throw new Error(userError.message);
+        
+        console.log(`Approving ${scholarInfo.name} with comment: ${finalComment}`);
+        toast.success('Submission Approved', { description: `${scholarInfo.name} has been notified.` });
+
+        submission.submissionInfo.status = "Approved"
+    }catch(e: any){
+        console.error('Update failed:', e);
+        alert('Failed to update Grades: ' + e.message);
+    }finally{
+        setIsApproveOpen(false); // Close dialog
+        onClose(); // Close modal
+    }
+
     // In a real app, you would save:
     // 1. status: "Approved"
     // 2. adminComment: finalComment
     // 3. scholarStatus: scholarStatusState
     
-    console.log(`Approving ${scholarInfo.name} with comment: ${finalComment}`);
-    toast.success('Submission Approved', { description: `${scholarInfo.name} has been notified.` });
-    
-    setIsApproveOpen(false); // Close dialog
-    onClose(); // Close modal
   };
 
   // --- MODIFIED: This is now the CONFIRMED action ---
-  const handleResubmit = () => {
+  const handleResubmit = async () => {
     if (adminComment.trim() === '') {
       toast.error('Please provide a comment before requesting resubmission.');
       return;
     }
     
+    
+    try{
+        const {data, error: updateError} = await supabase
+        .from('Grade Submission')
+        .update({
+          status: "Resubmit",
+          comment: adminComment,
+        })
+        .eq('id', submission.id)
+        .select()
+        .single();
+
+        if(updateError){
+          throw new Error(updateError.message);
+        }
+
+         // Update User Status
+        const { data: userData, error: userError } = await supabase
+        .from('User')
+        .update({
+          scholarship_status: scholarStatusState,
+        })
+        .eq('spas_id', submission.spas_id)
+        .select()
+        .single(); 
+
+
+        console.log(`Requesting resubmission from ${scholarInfo.name} with comment: ${adminComment}`);
+        toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
+        submission.submissionInfo.status = "Resubmit"
+    }catch(e: any){
+        console.error('Update failed:', e);
+        alert('Failed to update Grades: ' + e.message);
+    }finally{
+        setIsResubmitOpen(false); // Close dialog
+        onClose(); // Close modal
+    }
+
     // In a real app, you would save:
     // 1. status: "Resubmit"
     // 2. adminComment: adminComment
     // 3. scholarStatus: scholarStatusState
     
-    console.log(`Requesting resubmission from ${scholarInfo.name} with comment: ${adminComment}`);
-    toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
     
-    setIsResubmitOpen(false); // Close dialog
-    onClose(); // Close modal
   };
 
   const comment = adminComment.toLowerCase();

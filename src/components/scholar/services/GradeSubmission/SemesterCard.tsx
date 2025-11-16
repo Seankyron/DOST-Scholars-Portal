@@ -3,7 +3,7 @@
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { cn } from '@/lib/utils/cn';
 import type { SemesterAvailability } from '@/types/curriculum';
-import { FileText, Check, Clock, RefreshCw, X, EyeOff, UploadCloud } from 'lucide-react';
+import { FileText, Check, Clock, RefreshCw, EyeOff, UploadCloud } from 'lucide-react';
 
 interface SemesterCardProps {
   semester: SemesterAvailability;

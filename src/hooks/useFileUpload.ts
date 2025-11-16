@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import { isValidFileType, isValidFileSize } from '@/lib/utils/file';
 
 export interface UploadProgress {
@@ -13,7 +13,6 @@ export interface UploadProgress {
 
 export function useFileUpload(bucketName: string) {
   const [uploads, setUploads] = useState<Record<string, UploadProgress>>({});
-  const supabase = createClient();
 
   const uploadFile = useCallback(
     async (
