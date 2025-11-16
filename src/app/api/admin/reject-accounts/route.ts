@@ -1,21 +1,38 @@
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr'; // <-- CHANGED
 import { type Database } from '@/lib/supabase/type';
+import { cookies } from 'next/headers'; // <-- ADDED
 import { NextResponse } from 'next/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// We NO LONGER need the service role key here.
+// const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export async function POST(request: Request) {
-  if (!supabaseUrl || !serviceRoleKey) {
+  const cookieStore = await cookies(); // <-- ADDED
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  console.log(cookieStore);
+  
+  if (!supabaseUrl) {
     return NextResponse.json(
-      { error: 'Missing Supabase URL or Service Role Key' },
+      { error: 'Missing Supabase URL' },
       { status: 500 }
     );
   }
 
-  const supabase = createClient<Database>(supabaseUrl, serviceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  // Create a new client in the context of the logged-in user
+  const supabase = createServerClient<Database>(
+    supabaseUrl,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name) {
+          return cookieStore.get(name)?.value;
+        },
+        set() {},
+        remove() {},
+      },
+    }
+  );
 
   const { userIds }: { userIds: string[] } = await request.json();
 
@@ -26,9 +43,6 @@ export async function POST(request: Request) {
   const results = await Promise.all(
     userIds.map(async (id) => {
       try {
-        // 1. Delete the user from auth.users
-        // Assuming 'on delete cascade' is set, this
-        // will also delete their 'public.User' row.
         const { error: authError } =
           await supabase.auth.admin.deleteUser(id);
         

@@ -1,27 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-// We no longer need the client-side supabase createClient
-// import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-// This is our new Server Action
-import { loginWithSpasIdOrEmail } from '@/lib/actions/auth';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
-    identifier: '', // Changed from 'email' to 'identifier'
+    identifier: '', // This can be email or Scholar ID
     password: '',
     rememberMe: false,
   });
 
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState(searchParams.get('message') || '');
   const [isLoading, setIsLoading] = useState(false);
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,19 +25,31 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Call the Server Action instead of doing the logic here
-      const response = await loginWithSpasIdOrEmail(
-        formData.identifier,
-        formData.password
-      );
+      // Call your new API route
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          identifier: formData.identifier,
+          password: formData.password,
+        }),
+      });
 
-      if (response.error) {
-        setErrorMessage(response.error);
-      } else if (response.redirectTo) {
-        // The server tells us where to go
-        router.push(response.redirectTo);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Login failed');
+      }
+
+      // On success, the API route returns the redirect path
+      if (result.redirectTo) {
+        // router.push(result.redirectTo); // This is good
+        // This is better, as it re-fetches server components
+        window.location.href = result.redirectTo;
       } else {
-        setErrorMessage('An unexpected error occurred.');
+        throw new Error('An unexpected error occurred.');
       }
     } catch (error: any) {
       setErrorMessage(error.message || 'An unknown error occurred.');
@@ -57,8 +65,8 @@ export default function LoginPage() {
       </div>
 
       {errorMessage && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">{errorMessage}</p>
+        <div className={`mb-6 p-4 rounded-lg ${errorMessage.includes('Email verified') ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+          <p className={`text-sm ${errorMessage.includes('Email verified') ? 'text-green-700' : 'text-red-600'}`}>{errorMessage}</p>
         </div>
       )}
 
