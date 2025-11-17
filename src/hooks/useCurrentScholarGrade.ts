@@ -10,6 +10,7 @@ export interface iGradeSubmissions {
   cor_file_key?: string | null;
   status: string;
   updated_at: string;
+  comment?: string | null;
 }
 
 export function useCurrentScholarGrade(year: number | null = null, semester: string | null = null) 
@@ -39,7 +40,7 @@ export function useCurrentScholarGrade(year: number | null = null, semester: str
       try {
         const query = supabase
             .from('Grade Submission')
-            .select('id, year_level, semester, grade_file_key, cor_file_key, status, updated_at')
+            .select('id, year_level, semester, grade_file_key, cor_file_key, status, updated_at, comment')
             .eq('spas_id', user.spas_id);
         
         if (year) query.eq('year_level', year);
@@ -52,7 +53,6 @@ export function useCurrentScholarGrade(year: number | null = null, semester: str
         setGrade(data as iGradeSubmissions[] ?? []);
       }
       catch (err: any) {
-        console.error("Error fetching current user:", err);
         setError(err.message || "Unknown error");
         setGrade(null);
       } finally {

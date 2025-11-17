@@ -19,7 +19,7 @@ import type { GradeSubmission, YearLevel } from '@/types';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { toast } from '@/components/ui/toaster';
 import { Edit } from 'lucide-react'; 
-import { useCurrentScholarGrade } from '@/hooks/useCurrentScholarGrade';
+import { iGradeSubmissions, useCurrentScholarGrade } from '@/hooks/useCurrentScholarGrade';
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;
@@ -37,12 +37,31 @@ const yearLabels: { [key: number]: YearLevel } = {
 
 const APPROVED_MESSAGE = 'Your submission is approved. Please wait for your stipend to be processed. You can check the status in the Stipend Tracking service.';
 
+function GetMissingDocument(grade: iGradeSubmissions | null = null)
+{
+  if (!grade) return ['Transcript of Records (TOR)', 'Certificate of Registration (COR)'];
+  else if (!grade?.cor_file_key) return ['Certificate of Registration (COR)'];
+  else if (!grade?.grade_file_key) return ['Transcript of Records (TOR)'];
+  else return null;
+}
 
+function GetAdminComment(missingDoc: string[] | null) {
+  if (!missingDoc || missingDoc.length === 0) {
+    return 'Your submission is approved. Please wait for your stipend to be processed. You can check the status in the Stipend Tracking service.';
+  }
+
+  const docList = missingDoc.join(' and ');
+
+  return `Invalid ${docList}. Please upload the certified true copy of the document from the university registrar.`;
+}
+
+
+//Invalid Certificate of Registration. Please upload the certified true copy of the document from the university registrar.
 export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmissionModalProps) 
 {
   const user = JSON.parse(sessionStorage.getItem('user') ?? '');
   const gradeRecords = useCurrentScholarGrade(semester.year, semester.semester);
-  // console.log(gradeRecords);
+  const missingDoc = GetMissingDocument(gradeRecords.grade[0])
 
   let submissionData: GradeSubmission;
 
@@ -51,12 +70,10 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
     scholarId: user.spas_id,
     status: semester.status,
     dateSubmitted: gradeRecords.grade[0]?.updated_at?? new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    adminComment: semester.status === 'Resubmit' 
-      ? 'Invalid Certificate of Registration. Please upload the certified true copy of the document from the university registrar.'
-      : undefined,
+    adminComment: semester.status === 'Resubmit' ? GetAdminComment(missingDoc) : undefined,
     yearLevel: yearLabels[semester.year] || '1st Year',
     semester: semester.semester,
-    academicYear: semester.academicYear.slice(-9),
+    academicYear: semester.academicYear?.slice(-9),
     registrationForm: `${user.last_name}_COR.pdf`,
     registrationFormUrl: '#mock-reg-form-url',
     copyOfGrades: `${user.last_name}_Grades.pdf`,

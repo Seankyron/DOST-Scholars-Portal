@@ -20,67 +20,6 @@ const requirements = [
   'Registrar\'s official seal and signature present',
 ];
 
-// const mockCurriculum: CurriculumConfig = {
-//   midyearYears: [1, 3], 
-//   thesisYear: 4,
-//   ojtYear: 3,
-//   ojtSemester: 'Midyear',
-//   duration: 4, 
-// };
-
-// const submissionStatuses: Record<string, SubmissionStatus> = {
-//   '1-1st Semester': 'Approved',
-//   '1-2nd Semester': 'Approved',
-//   '1-Midyear': 'Approved', 
-//   '2-1st Semester': 'Approved',
-//   '2-2nd Semester': 'Pending', 
-//   '3-1st Semester': 'Approved',
-//   '3-2nd Semester': 'Resubmit', 
-//   '3-Midyear': 'Open', 
-//   '4-1st Semester': 'Not Available',
-//   '4-2nd Semester': 'Not Available',
-// };
-
-// const academicYearMapping: Record<number, string> = {
-//   1: 'AY 2023-2024',
-//   2: 'AY 2024-2025',
-//   3: 'AY 2025-2026',
-//   4: 'AY 2026-2027',
-//   5: 'AY 2027-2028',
-// };
-
-
-// const academicYearOptions = Object.values(academicYearMapping)
-//   .map(ay => ({ value: ay, label: ay }))
-//   .reverse(); // Show newest first
- 
-// const generatedSemesters: (SemesterAvailability & { academicYear: string })[] = [];
-// const courseDuration = mockCurriculum.duration; 
-
-// for (let year = 1; year <= courseDuration; year++) {
-//   const semesters: Semester[] = ['1st Semester', '2nd Semester'];
-  
-//   if (hasMidyear(mockCurriculum, year)) {
-//     semesters.push('Midyear');
-//   }
-
-//   for (const sem of semesters) {
-//     const statusKey = `${year}-${sem}`;
-//     const status = submissionStatuses[statusKey] || 'Not Available';
-    
-//     generatedSemesters.push({
-//       year: year,
-//       semester: sem,
-//       status: status,
-//       isAvailable: status !== 'Not Available',
-//       isCurrent: (year === 3 && sem === '2nd Semester'), 
-//       isPast: year < 3 || (year === 3 && sem === '1st Semester'), 
-//       isFuture: year > 3,
-//       academicYear: academicYearMapping[year] || 'N/A', // <-- ADDED
-//     });
-//   }
-// }
-
 const jlssScholarships = [ "JLSS, RA 7687", "JLSS, Merit", "JLSS, RA 10612", ];
 
 
@@ -152,8 +91,6 @@ export function GradeSubmissionPanel() {
       toast.info('This semester is not yet available for submission.');
     }
   };
-
-  // console.log(selectedSemester);
 
   const handleCloseModal = () => {
     setIsClosing(true);
