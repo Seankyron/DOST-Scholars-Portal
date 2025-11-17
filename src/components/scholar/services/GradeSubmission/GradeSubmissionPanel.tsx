@@ -11,6 +11,7 @@ import type { SubmissionStatus, CurriculumConfig, Semester } from '@/types';
 import { hasMidyear } from '@/lib/utils/curriculum'; 
 import { toast } from '@/components/ui/toaster';
 import { Select } from '@/components/ui/select'; 
+import { useCurrentScholarGrade, iGradeSubmissions } from '@/hooks/useCurrentScholarGrade';
 
 const requirements = [
   'Certified True Copy of complete grades and certificate of registration from University Registrar',
@@ -19,72 +20,130 @@ const requirements = [
   'Registrar\'s official seal and signature present',
 ];
 
-const mockCurriculum: CurriculumConfig = {
-  midyearYears: [1, 3], 
-  thesisYear: 4,
-  ojtYear: 3,
-  ojtSemester: 'Midyear',
-  duration: 4, 
-};
+// const mockCurriculum: CurriculumConfig = {
+//   midyearYears: [1, 3], 
+//   thesisYear: 4,
+//   ojtYear: 3,
+//   ojtSemester: 'Midyear',
+//   duration: 4, 
+// };
 
-const submissionStatuses: Record<string, SubmissionStatus> = {
-  '1-1st Semester': 'Approved',
-  '1-2nd Semester': 'Approved',
-  '1-Midyear': 'Approved', 
-  '2-1st Semester': 'Approved',
-  '2-2nd Semester': 'Pending', 
-  '3-1st Semester': 'Approved',
-  '3-2nd Semester': 'Resubmit', 
-  '3-Midyear': 'Open', 
-  '4-1st Semester': 'Not Available',
-  '4-2nd Semester': 'Not Available',
-};
+// const submissionStatuses: Record<string, SubmissionStatus> = {
+//   '1-1st Semester': 'Approved',
+//   '1-2nd Semester': 'Approved',
+//   '1-Midyear': 'Approved', 
+//   '2-1st Semester': 'Approved',
+//   '2-2nd Semester': 'Pending', 
+//   '3-1st Semester': 'Approved',
+//   '3-2nd Semester': 'Resubmit', 
+//   '3-Midyear': 'Open', 
+//   '4-1st Semester': 'Not Available',
+//   '4-2nd Semester': 'Not Available',
+// };
 
-const academicYearMapping: Record<number, string> = {
-  1: 'AY 2023-2024',
-  2: 'AY 2024-2025',
-  3: 'AY 2025-2026',
-  4: 'AY 2026-2027',
-  5: 'AY 2027-2028',
-};
+// const academicYearMapping: Record<number, string> = {
+//   1: 'AY 2023-2024',
+//   2: 'AY 2024-2025',
+//   3: 'AY 2025-2026',
+//   4: 'AY 2026-2027',
+//   5: 'AY 2027-2028',
+// };
 
-const academicYearOptions = Object.values(academicYearMapping)
-  .map(ay => ({ value: ay, label: ay }))
-  .reverse(); // Show newest first
 
-  const generatedSemesters: (SemesterAvailability & { academicYear: string })[] = [];
-const courseDuration = mockCurriculum.duration; 
+// const academicYearOptions = Object.values(academicYearMapping)
+//   .map(ay => ({ value: ay, label: ay }))
+//   .reverse(); // Show newest first
+ 
+// const generatedSemesters: (SemesterAvailability & { academicYear: string })[] = [];
+// const courseDuration = mockCurriculum.duration; 
 
-for (let year = 1; year <= courseDuration; year++) {
-  const semesters: Semester[] = ['1st Semester', '2nd Semester'];
+// for (let year = 1; year <= courseDuration; year++) {
+//   const semesters: Semester[] = ['1st Semester', '2nd Semester'];
   
-  if (hasMidyear(mockCurriculum, year)) {
-    semesters.push('Midyear');
-  }
+//   if (hasMidyear(mockCurriculum, year)) {
+//     semesters.push('Midyear');
+//   }
 
-  for (const sem of semesters) {
-    const statusKey = `${year}-${sem}`;
-    const status = submissionStatuses[statusKey] || 'Not Available';
+//   for (const sem of semesters) {
+//     const statusKey = `${year}-${sem}`;
+//     const status = submissionStatuses[statusKey] || 'Not Available';
     
-    generatedSemesters.push({
-      year: year,
-      semester: sem,
-      status: status,
-      isAvailable: status !== 'Not Available',
-      isCurrent: (year === 3 && sem === '2nd Semester'), 
-      isPast: year < 3 || (year === 3 && sem === '1st Semester'), 
-      isFuture: year > 3,
-      academicYear: academicYearMapping[year] || 'N/A', // <-- ADDED
-    });
-  }
+//     generatedSemesters.push({
+//       year: year,
+//       semester: sem,
+//       status: status,
+//       isAvailable: status !== 'Not Available',
+//       isCurrent: (year === 3 && sem === '2nd Semester'), 
+//       isPast: year < 3 || (year === 3 && sem === '1st Semester'), 
+//       isFuture: year > 3,
+//       academicYear: academicYearMapping[year] || 'N/A', // <-- ADDED
+//     });
+//   }
+// }
+
+const jlssScholarships = [ "JLSS, RA 7687", "JLSS, Merit", "JLSS, RA 10612", ];
+
+
+function GetAcademicYearOptions(batch: number, scholarshipType: string, courseDuration: number) 
+{  
+  const scholarshipDuration = jlssScholarships.includes(scholarshipType)? 
+                            (courseDuration == 4? 2 : 3) : (courseDuration);
+
+  const academicYearOptions = Array.from({ length: scholarshipDuration }, (_, i) => {
+    const label = `AY ${batch + scholarshipDuration - i - 1}-${batch + scholarshipDuration - i}`;
+    return { value: label, label, year: courseDuration--};
+  });
+
+  return academicYearOptions;
+}
+
+
+function GetGradeRecordBySemester(midyearClasses: number[],
+      academicYearOptions: {label: string, value: string, year: number}[],
+      grade?: iGradeSubmissions[] | null)
+{
+  academicYearOptions.reverse();
+
+  const nextYear = new Date().getFullYear() + 1;
+  const semesters: Semester[] = ['1st Semester', '2nd Semester', 'Midyear'];
+
+  const gradeRecords: SemesterAvailability[] = academicYearOptions.flatMap(option => {
+    const semCount = midyearClasses.includes(option.year) ? 3 : 2;
+    let year = Number(option.label.slice(-4));
+
+    return semesters.slice(0, semCount).map(semester => {
+      const entry = grade?.find(i => i.semester === semester && i.year_level === option.year);
+      // Uncomment if past semester should be closed when grade file is null.
+      // const status = entry?.status ?? (nextYear < year? 'Not Available' : (nextYear > year)? 'Closed' : 'Resubmit')
+      const status = entry?.status ?? (nextYear < year? 'Not Available' : 'Resubmit');
+
+      return {
+        academicYear: option.label,
+        isAvailable: grade?.some(i => i.semester === semester && i.year_level === option.year) ?? false,
+        isCurrent: (nextYear === year),
+        isFuture: (nextYear < year),
+        isPast: (nextYear > year),
+        semester,
+        status: (status) as SubmissionStatus,
+        year: option.year
+    }});
+  });
+
+  return gradeRecords;
 }
 
 export function GradeSubmissionPanel() {
   const [selectedSemester, setSelectedSemester] = useState<SemesterAvailability | null>(null);
   const [isClosing, setIsClosing] = useState(false);
   
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState('AY 2025-2026'); 
+  const user = JSON.parse(sessionStorage.getItem("user") ?? '');
 
+  const acadYearOptions = GetAcademicYearOptions(Number(user.batch), user.scholarship_type, user.course_duration);
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState(acadYearOptions[0]['label']); 
+
+  const { grade, loading, error } = useCurrentScholarGrade();
+  const gradeRecord = GetGradeRecordBySemester([...user.midyear_classes], [...acadYearOptions], grade);
+  
   const handleOpenModal = (semester: SemesterAvailability) => {
     if (semester.status !== 'Not Available') {
       setSelectedSemester(semester);
@@ -94,6 +153,8 @@ export function GradeSubmissionPanel() {
     }
   };
 
+  // console.log(selectedSemester);
+
   const handleCloseModal = () => {
     setIsClosing(true);
     setTimeout(() => {
@@ -102,7 +163,7 @@ export function GradeSubmissionPanel() {
     }, 250);
   };
 
-  const filteredSemesters = generatedSemesters.filter(
+  const filteredSemesters = gradeRecord.filter(
     (sem) => sem.academicYear === selectedAcademicYear
   );
 
@@ -132,7 +193,7 @@ export function GradeSubmissionPanel() {
         label="Select Academic Year"
         value={selectedAcademicYear}
         onChange={(e) => setSelectedAcademicYear(e.target.value)}
-        options={academicYearOptions}
+        options={acadYearOptions}
       />
 
       <SemesterGrid 

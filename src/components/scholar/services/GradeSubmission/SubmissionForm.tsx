@@ -59,7 +59,6 @@ export function SubmissionForm({
   const showRegForm = !isResubmit || (isResubmit && (comment.includes('registration') || comment.includes('form 5')));
   const showGradesForm = !isResubmit || (isResubmit && (comment.includes('grades') || comment.includes('tor')));
 
-
   return (
     <div className="space-y-6">
       

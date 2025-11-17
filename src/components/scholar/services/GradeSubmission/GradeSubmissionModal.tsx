@@ -19,6 +19,7 @@ import type { GradeSubmission, YearLevel } from '@/types';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { toast } from '@/components/ui/toaster';
 import { Edit } from 'lucide-react'; 
+import { useCurrentScholarGrade } from '@/hooks/useCurrentScholarGrade';
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;
@@ -37,30 +38,32 @@ const yearLabels: { [key: number]: YearLevel } = {
 const APPROVED_MESSAGE = 'Your submission is approved. Please wait for your stipend to be processed. You can check the status in the Stipend Tracking service.';
 
 
-export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmissionModalProps) {
-  
-  const mockSubmissionData: GradeSubmission = {
-    id: 'sub123',
-    scholarId: 'scholar123',
+export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmissionModalProps) 
+{
+  const user = JSON.parse(sessionStorage.getItem('user') ?? '');
+  const gradeRecords = useCurrentScholarGrade(semester.year, semester.semester);
+  // console.log(gradeRecords);
+
+  let submissionData: GradeSubmission;
+
+  submissionData = {
+    id: String(gradeRecords.grade[0]?.id ?? -1),
+    scholarId: user.spas_id,
     status: semester.status,
-    dateSubmitted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    dateSubmitted: gradeRecords.grade[0]?.updated_at?? new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     adminComment: semester.status === 'Resubmit' 
       ? 'Invalid Certificate of Registration. Please upload the certified true copy of the document from the university registrar.'
       : undefined,
     yearLevel: yearLabels[semester.year] || '1st Year',
     semester: semester.semester,
-    academicYear: '2023-2024',
-    registrationForm: 'De Larosa_COR.pdf',
+    academicYear: semester.academicYear.slice(-9),
+    registrationForm: `${user.last_name}_COR.pdf`,
     registrationFormUrl: '#mock-reg-form-url',
-    copyOfGrades: 'De Larosa_Grades.pdf',
+    copyOfGrades: `${user.last_name}_Grades.pdf`,
     copyOfGradesUrl: '#mock-grades-url',
   };
 
-  const [submission, setSubmission] = useState<GradeSubmission | null>(
-    (semester.status === 'Pending' || semester.status === 'Resubmit' || semester.status === 'Approved' || semester.status === 'Closed') 
-    ? mockSubmissionData
-    : null
-  );
+  const [submission, setSubmission] = useState<GradeSubmission | null>(submissionData);
 
   const [isEditing, setIsEditing] = useState(semester.status === 'Open' || semester.status === 'Resubmit');
   const [regForm, setRegForm] = useState<File | null>(null);
@@ -69,7 +72,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false); 
   
-  const scholarId = 'mock-scholar-id'; 
+  const scholarId = submissionData.id; 
   const { uploadFile } = useFileUpload('grade-submissions');
 
   const handleCloseAndReset = () => {
