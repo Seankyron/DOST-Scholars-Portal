@@ -18,6 +18,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ScholarStatus } from '@/types';
 import { cn } from '@/lib/utils/cn';
 import { useCurrentScholar } from "@/hooks/useCurrentScholar";
+import { useEffect } from 'react';
 
 
 // Mock data
@@ -59,6 +60,21 @@ function InfoItem({
 
 export function ProfileSection() {
   const { user, loading } = useCurrentScholar();
+
+  // Share variables to other pages. 
+  useEffect(() => {
+    if (user) {
+      sessionStorage.setItem("user", JSON.stringify({
+        spas_id: user.spas_id,
+        batch: user.year_awarded,
+        scholarship_type: user.scholarship_type,
+        course_duration: user.course_duration,
+        midyear_classes: user.midyear_classes,
+        first_name: user.first_name,
+        last_name: user.last_name,
+      }));
+    }
+  }, [user]);
 
   return (
     // SIMPLIFIED CONTAINER: Removed the outer gradient <div>
