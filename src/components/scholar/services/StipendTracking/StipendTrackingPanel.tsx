@@ -6,6 +6,7 @@ import { Select } from '@/components/ui/select';
 import type { SubmissionStatus, ScholarStatus, Allowance } from '@/types';
 import { FlippableStipendCard } from './FlippableStipendCard';
 import { StipendUpdates, type StipendUpdate } from './StipendUpdates';
+import { useCurrentScholarStipend } from '@/hooks/useCurrentScholarStipend';
 
 type StipendData = {
   received: number;
@@ -113,10 +114,31 @@ const mockStipendData: Record<string, StipendData> = {
   },
 };
 
+const jlssScholarships = [ "JLSS, RA 7687", "JLSS, Merit", "JLSS, RA 10612", ];
+const yearLabel = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
+
+function GetYearOptions(scholarship_type: string, course_duration: number)
+{
+  const scholarshipStart = jlssScholarships.includes(scholarship_type)? 3 : 1;
+  const scholarshipEnd = course_duration;
+
+  return [...Array(scholarshipEnd - scholarshipStart + 1).keys()]
+    .map(i => {
+      const year = scholarshipStart + i;
+      return { value: String(year), label: yearLabel[year - 1] };
+    });
+}
+
 export function StipendTrackingPanel() {
-  const [selectedYear, setSelectedYear] = useState('1');
+  const user = JSON.parse(sessionStorage.getItem('user') || 'null');
+  const yearOptions = GetYearOptions(user.scholarship_type, user.course_duration);
+  const { stipend, loading, error } = useCurrentScholarStipend(user.spas_id);
+
+  console.log('Stipend', stipend);
+
+  const [selectedYear, setSelectedYear] = useState(yearOptions[0].value);
   const [selectedSemester, setSelectedSemester] = useState('1');
-  const [combinedKey, setCombinedKey] = useState('1-1'); 
+  const [combinedKey, setCombinedKey] = useState(`${yearOptions[0].value}-1`); 
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
   
   useEffect(() => {
