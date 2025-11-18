@@ -23,6 +23,9 @@ import { iGradeSubmissions, useCurrentScholarGrade } from '@/hooks/scholar/useCu
 import {  } from '@/hooks/scholar/useDocumentUpload';
 import { createClient } from '@/lib/supabase/client';
 import { useCloudinaryUpload } from '@/hooks/scholar/useDocumentUpload';
+import { useSubmitGrade } from '@/hooks/scholar/useSubmitGrade';
+import { useUpdateGrade } from '@/hooks/scholar/useUpdateGrade';
+
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;
@@ -66,12 +69,14 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
   const gradeRecords = useCurrentScholarGrade(semester.year, semester.semester);
   const missingDoc = GetMissingDocument(gradeRecords.grade[0])
   const { uploadDocument } = useCloudinaryUpload();
+  const { submitGrade, loading, error, success } = useSubmitGrade();
+  const { updateGrade } = useUpdateGrade();
 
 
   let submissionData: GradeSubmission;
 
   submissionData = {
-    id: String(gradeRecords.grade[0]?.id ?? -1),
+    id: '-1',
     scholarId: user.spas_id,
     status: semester.status,
     dateSubmitted: gradeRecords.grade[0]?.updated_at?? new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -147,15 +152,16 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
   const handleConfirmSubmit = async () => {
     setIsConfirmOpen(false);
     const toastLoading = toast.loading('Submitting your documents...');
-    setIsLoading(true);
 
     try {
       let regFormUrl = submission?.registrationFormUrl || null;
       let gradesUrl = submission?.copyOfGradesUrl || null;
+      let update: boolean = false;
+
 
       // Upload Registration Form to Cloudinary
       if (showRegFormUpload && regForm) {
-        const uploadedRegFormUrl = await uploadDocument(regForm, `regForm-submissions/${user.spas_id}`);
+        const uploadedRegFormUrl = await uploadDocument(regForm, `DOST-Portal/regForm-submissions/${user.spas_id}`);
         if (!uploadedRegFormUrl) {
           throw new Error('Failed to upload Registration Form.');
         }
@@ -164,35 +170,41 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
 
       // Upload Grades file to Cloudinary
       if (showGradesFormUpload && gradesFile) {
-        const uploadedGradesUrl = await uploadDocument(gradesFile, `grade-submissions/${user.spas_id}`);
+        const uploadedGradesUrl = await uploadDocument(gradesFile, `DOST-Portal/grade-submissions/${user.spas_id}`);
         if (!uploadedGradesUrl) {
           throw new Error('Failed to upload Grades file.');
         }
         gradesUrl = uploadedGradesUrl.url;
       }
-
+      
       // Validate that all required files have URLs
       if (!regFormUrl || !gradesUrl) {
         throw new Error('File upload failed. Please ensure all documents are provided.');
       }
 
-      // Save submission record to Supabase
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('Grade Submission')
-        .upsert({
+      if (gradeRecords?.grade[0]?.id) { 
+        await updateGrade({
+          id: gradeRecords?.grade[0]?.id ?? 0,
           spas_id: user.spas_id,
-          year_level: semester.year,
+          year: semester.year,
           semester: semester.semester,
-          status: 'Pending',
-          cor_file_key: regFormUrl,
-          grade_file_key: gradesUrl,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          comment: submission?.adminComment || null,
+          regFormUrl: regFormUrl,
+          gradesUrl: gradesUrl,
+          comment: submission?.adminComment,
+          created_at: submission?.dateProcessed
         });
-
-      if (error) throw error;
+      }      
+      else { 
+        await submitGrade({
+          spas_id: user.spas_id,
+          year: semester.year,
+          semester: semester.semester,
+          regFormUrl: regFormUrl,
+          gradesUrl: gradesUrl,
+          comment: submission?.adminComment,
+          created_at: submission?.dateProcessed
+        });
+      }
 
       toast.dismiss(toastLoading);
       toast.success('Submission successful! Awaiting verification.');
@@ -201,7 +213,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
       setIsLoading(false);
       toast.dismiss(toastLoading);
       toast.error(err.message || 'Submission failed.');
-    }
+    } 
   };
 
   return (
