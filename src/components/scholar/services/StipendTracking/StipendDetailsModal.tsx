@@ -6,9 +6,7 @@ import {
   ModalContent,
   ModalHeader,
   ModalTitle,
-  ModalBody,
-  ModalFooter,
-  ModalClose,
+  ModalBody
 } from '@/components/ui/modal';
 import { FlippableStipendCard } from './FlippableStipendCard';
 import { StipendUpdates } from './StipendUpdates';
@@ -59,7 +57,7 @@ export function StipendDetailsModal({ isOpen, onClose, data, title }: StipendDet
               title={data.onHold ? 'On Hold' : 'Pending Release'}
               value={data.pending}
               tooltip={data.onHold ? 'Amount withheld pending requirements.' : 'Amount being processed.'}
-              variant={data.onHold ? 'warning' : 'pending'}
+              variant={data.onHold ? 'on hold' : 'pending'}
               breakdown={pendingAllowances}
               isFlipped={flippedCard === 'pending'}
               onFlip={() => handleFlip('pending')}
@@ -68,7 +66,7 @@ export function StipendDetailsModal({ isOpen, onClose, data, title }: StipendDet
               title="Expected Total"
               value={data.total}
               tooltip="Total expected allowance for this term."
-              variant="info"
+              variant="processing"
               breakdown={data.breakdown}
               isFlipped={flippedCard === 'total'}
               onFlip={() => handleFlip('total')}

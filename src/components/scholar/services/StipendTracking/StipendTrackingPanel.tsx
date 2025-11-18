@@ -5,92 +5,147 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, Wallet } from 'lucide-react';
 import { StipendSemCard } from './StipendSemCard';
 import { StipendDetailsModal } from './StipendDetailsModal';
-import { RecentStipendActivity } from './RecentStipendActivity'; // (See below)
+import { RecentStipendActivity } from './RecentStipendReleases';
 import { Select } from '@/components/ui/select';
+import { toast } from '@/components/ui/toaster';
 
-// --- Mock Data Logic ---
-// In a real app, fetch this data. 
-// We determine "locked" if grade_status is not Approved.
+
 const mockSemesters = [
   {
     id: '1-1',
-    yearTitle: 'First Year',
+    yearTitle: '1st Year',
     semester: '1st Semester',
     academicYear: 'AY 2023-2024',
-    gradeStatus: 'Approved', // Unlocked
-    stipendStatus: 'Released',
+    gradeStatus: 'Approved',
+    stipendStatus: 'On hold',
     data: {
-       received: 45000, pending: 0, onHold: false, total: 45000,
+       received: 24000,
+       pending: 22000,
+       onHold: true,
+       total: 46000,
        breakdown: [
-         { name: 'Monthly Stipend (Aug-Dec)', amount: 40000, status: 'Released' },
-         { name: 'Book Allowance', amount: 5000, status: 'Released' }
+         { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
+         { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
+         { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
+         { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'On hold' },
+         { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'On hold' },
+         { name: 'Book Allowance', amount: 5000, status: 'On hold' },
+         { name: 'Clothing Allowance', amount: 1000, status: 'On hold' },
        ],
-       updates: [{ message: 'Full stipend released on Dec 20, 2023.', type: 'success' }]
+       updates: [
+         {
+           message: 'Stipend On Hold: Your 1st Semester 2024 stipend (₱22,000) is on hold.',
+           type: 'warning',
+         },
+         {
+           message: 'Admin Note: Your stipend is on hold pending submission of your Form 5.',
+           type: 'info',
+         },
+       ]
     }
   },
   {
     id: '1-2',
-    yearTitle: 'First Year',
+    yearTitle: '1st Year',
     semester: '2nd Semester',
     academicYear: 'AY 2023-2024',
-    gradeStatus: 'Approved', // Unlocked
-    stipendStatus: 'Partial',
+    gradeStatus: 'Approved',
+    stipendStatus: 'Released',
     data: {
-       received: 24000, pending: 22000, onHold: true, total: 46000,
+       received: 45000,
+       pending: 0,
+       onHold: false,
+       total: 45000,
        breakdown: [
-         { name: 'Monthly Stipend (3 mos)', amount: 24000, status: 'Released' },
-         { name: 'Monthly Stipend (2 mos)', amount: 16000, status: 'On hold' },
-         { name: 'Book Allowance', amount: 5000, status: 'On hold' }
+         { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
+         { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
+         { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
+         { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Released' },
+         { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Released' },
+         { name: 'Book Allowance', amount: 5000, status: 'Released' },
        ],
        updates: [
-         { message: 'Partial release processed.', type: 'success' },
-         { message: 'Remaining balance on hold pending Form 5.', type: 'warning' }
+         {
+           message: 'Your stipend (₱45,000) for this semester has been fully released.',
+           type: 'success',
+         },
        ]
     }
   },
   {
     id: '2-1',
-    yearTitle: 'Second Year',
+    yearTitle: '2nd Year',
     semester: '1st Semester',
     academicYear: 'AY 2024-2025',
-    gradeStatus: 'Pending', // Locked!
-    stipendStatus: 'Locked',
-    data: null
+    gradeStatus: 'Approved',
+    stipendStatus: 'Processing',
+    data: {
+       received: 0,
+       pending: 45000,
+       onHold: false,
+       total: 45000,
+       breakdown: [
+         { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Pending' },
+         { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Pending' },
+         { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Pending' },
+         { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Pending' },
+         { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Pending' },
+         { name: 'Book Allowance', amount: 5000, status: 'Pending' },
+       ],
+       updates: [
+         {
+           message: 'Your grade submission has been approved. Your stipend is now processing. Please wait 21 working days.',
+           type: 'info',
+         },
+       ]
+    }
   },
   {
     id: '2-2',
-    yearTitle: 'Second Year',
+    yearTitle: '2nd Year',
     semester: '2nd Semester',
     academicYear: 'AY 2024-2025',
-    gradeStatus: 'Not Available', // Locked!
+    gradeStatus: 'Pending',
     stipendStatus: 'Locked',
     data: null
   }
 ];
 
-// Helper for Recent Activity
 const recentActivities = [
-  { id: 1, title: 'Partial Release - First Year, 2nd Sem', amount: '₱24,000', date: '2 days ago', status: 'Released' },
-  { id: 2, title: 'Full Release - First Year, 1st Sem', amount: '₱45,000', date: '5 months ago', status: 'Released' },
+  { 
+    id: 1, 
+    title: '1st Year - 2nd Semester', // Changed from "Full Release..." 
+    amount: '₱45,000', 
+    date: 'Mar 20, 2024', 
+    status: 'Released' 
+  },
+  { 
+    id: 2, 
+    title: '1st Year - 1st Semester', // Changed from "Partial Release..."
+    amount: '₱24,000', 
+    date: 'Oct 15, 2023', 
+    status: 'Released' // The status badge clarifies the action
+  },
 ];
 
 
 export function StipendTrackingPanel() {
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState('AY 2023-2024');
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState('All');
   const [selectedSemester, setSelectedSemester] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Filter grid by year (optional) or show all grouped by year. 
-  // Here we just filter by AY to match Grade Submission Panel style
-  const filteredSemesters = mockSemesters.filter(
-     s => s.academicYear === selectedAcademicYear || s.stipendStatus === 'Locked' // Simplified logic
-  );
-
   const handleCardClick = (sem: any) => {
-    if (sem.stipendStatus === 'Locked') return;
+    if (sem.stipendStatus === 'Locked') {
+      toast.info("You must submit your grades for this semester first.");
+      return;
+    }
     setSelectedSemester(sem);
     setIsModalOpen(true);
   };
+
+  const filteredSemesters = selectedAcademicYear === 'All' 
+    ? mockSemesters 
+    : mockSemesters.filter(s => s.academicYear === selectedAcademicYear);
 
   return (
     <div className="space-y-6">
@@ -98,7 +153,7 @@ export function StipendTrackingPanel() {
         Stipend Tracking
       </h2>
 
-      {/* 1. Guidelines Card (Matches LOA) */}
+      {/* 1. Guidelines Card */}
       <Card className="bg-dost-title/5 border-dost-title/20">
         <CardHeader className="pb-3">
           <CardTitle className="font-bold text-dost-title flex items-center gap-2 text-lg">
@@ -126,6 +181,7 @@ export function StipendTrackingPanel() {
          value={selectedAcademicYear}
          onChange={(e) => setSelectedAcademicYear(e.target.value)}
          options={[
+            { value: 'All', label: 'View All' },
             { value: 'AY 2024-2025', label: 'AY 2024-2025' },
             { value: 'AY 2023-2024', label: 'AY 2023-2024' }
          ]}
@@ -133,9 +189,7 @@ export function StipendTrackingPanel() {
 
       {/* 3. Semester Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {mockSemesters
-          .filter(s => s.academicYear === selectedAcademicYear || (s.stipendStatus === 'Locked' && s.academicYear > selectedAcademicYear)) // Simple filter logic for demo
-          .map((sem) => (
+        {filteredSemesters.map((sem) => (
           <StipendSemCard 
             key={sem.id}
             title={`${sem.yearTitle} - ${sem.semester}`}
@@ -147,7 +201,7 @@ export function StipendTrackingPanel() {
         ))}
       </div>
 
-      {/* 4. Recent Activity List (New component or inline) */}
+      {/* 4. Recent Activity List */}
       <RecentStipendActivity activities={recentActivities} />
 
       {/* 5. Details Modal */}
