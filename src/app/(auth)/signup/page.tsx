@@ -230,11 +230,11 @@ export default function SignupPage() {
         const fileFormData = new FormData();
         fileFormData.append('file', formData.curriculumFile);
         // "bucket" here just means the top-level folder in Cloudinary
-        fileFormData.append('bucket', 'curriculums'); 
+        fileFormData.append('bucket', 'scholars'); 
 
         console.log(fileFormData);
         // 2. Call your new API upload handler
-        const uploadResponse = await fetch('/api/upload', {
+        const uploadResponse = await fetch('/api/auth/upload-curriculum', {
           method: 'POST',
           body: fileFormData,
           // No 'Content-Type' header, browser sets it for FormData

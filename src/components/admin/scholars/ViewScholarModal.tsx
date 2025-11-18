@@ -57,6 +57,13 @@ export function ViewScholarModal({
     (scholar.thesis4thYear && '4th Year') ||
     'N/A';
 
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  
+  const fileKey = String(scholar.curriculumFile?.name || ''); 
+  console.log("File Key: ", fileKey);
+
+  const fileUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${fileKey}.pdf`;
+
   return (
     <Modal open={open} onOpenChange={onClose}>
       <ModalContent size="4xl">
@@ -175,16 +182,16 @@ export function ViewScholarModal({
                 <Label className="block text-sm font-medium text-gray-700 mb-1.5 mt-4">
                   Course Curriculum (PDF)
                 </Label>
-                {scholar.curriculumFile?.url ? (
+                {fileUrl ? (
                   <a
-                    href={scholar.curriculumFile.url}
+                    href={fileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 p-3 bg-gray-50 rounded-md border border-gray-300 text-blue-600 hover:text-blue-800 hover:bg-gray-100"
                   >
                     <FileText className="h-5 w-5 flex-shrink-0" />
                     <span className="truncate">
-                      {scholar.curriculumFile.name}
+                      {scholar.scholarId} - Curriculum.pdf
                     </span>
                   </a>
                 ) : (

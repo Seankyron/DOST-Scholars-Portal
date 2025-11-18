@@ -25,7 +25,6 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Call your new API route
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {

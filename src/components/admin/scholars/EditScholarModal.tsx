@@ -98,6 +98,13 @@ export function EditScholarModal({
     { value: '5', label: '5 Years' },
   ];
 
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  
+  const fileKey = String(scholar.curriculumFile?.name || ''); 
+  console.log("File Key: ", fileKey);
+
+  const fileUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${fileKey}.pdf`;
+
   return (
     <Modal open={open} onOpenChange={onClose}>
       <ModalContent size="4xl">
@@ -338,9 +345,14 @@ export function EditScholarModal({
                 }}
                 accept="application/pdf"
               />
-              <p className="text-sm text-gray-500">
-                Current file: {scholar.curriculumFile?.name || 'None'}
-              </p>
+              <a 
+                href={fileUrl}
+                target="_blank"
+                rel="noopener noreferrer">
+                <p className="text-sm text-gray-500">
+                  Current file: {scholar.scholarId} - Curriculum File.pdf
+                </p>
+              </a>
 
               <Select
                   label="Initial Status"
