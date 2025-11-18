@@ -1,4 +1,3 @@
-// src/components/scholar/layout/NavigationTabs.tsx
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,6 +5,7 @@ import { scholarNavigation } from '@/config/navigation';
 import { ServiceTilesGrid } from '../home/ServiceTilesGrid';
 import { Card, CardContent } from '@/components/ui/card';
 import { DirectoriesPanel } from '../directories/DirectoriesPanel';
+import { RecentActivity } from './RecentActivity'; 
 
 // Mock panels for content
 const MockPanel = ({ title }: { title: string }) => (
@@ -21,7 +21,6 @@ const MockPanel = ({ title }: { title: string }) => (
 export function NavigationTabs() {
   return (
     <Tabs defaultValue="service" className="w-full">
-      {/* The blue bar, with p-1 to create the inset border */}
       <TabsList className="grid w-full grid-cols-4 bg-dost-title rounded-lg p-1 h-auto">
         {scholarNavigation.map((nav) => (
           <TabsTrigger
@@ -46,7 +45,13 @@ export function NavigationTabs() {
 
       {/* Content panes */}
       <TabsContent value="service" className="mt-6">
-        <ServiceTilesGrid />
+        <div className="flex flex-col gap-6">
+          <ServiceTilesGrid />
+          
+          <div className="h-[500px]">
+             <RecentActivity />
+          </div>
+        </div>
       </TabsContent>
 
       <TabsContent value="directories" className="mt-6">

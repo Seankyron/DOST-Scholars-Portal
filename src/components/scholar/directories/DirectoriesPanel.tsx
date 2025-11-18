@@ -195,9 +195,8 @@ export function DirectoriesPanel() {
               value={group.province}
               className="m-0"
             >
-              {/* THIS IS THE 2-COLUMN GRID FOR THE CARDS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* --- Column 1: PSTO Card --- */}
+              <div className="space-y-6">
+                {/* --- PSTO Card --- */}
                 <Card className="shadow-md">
                   <CardHeader>
                     <CardTitle className="text-lg text-dost-title flex items-center gap-2">
@@ -216,7 +215,7 @@ export function DirectoriesPanel() {
                   </CardContent>
                 </Card>
 
-                {/* --- Column 2: SAO Card --- */}
+                {/* --- SAO Card --- */}
                 <Card className="shadow-md">
                   <CardHeader>
                     <CardTitle className="text-lg text-dost-title flex items-center gap-2">

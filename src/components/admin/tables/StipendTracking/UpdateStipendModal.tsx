@@ -33,7 +33,6 @@ export function UpdateStipendModal({
   stipendDetails,
   onSave,
 }: UpdateStipendModalProps) {
-  // (State and handlers remain the same)
   const [breakdown, setBreakdown] = useState(stipendDetails.stipend.breakdown);
   const [updates, setUpdates] = useState(stipendDetails.stipend.updates);
   const [customUpdateMsg, setCustomUpdateMsg] = useState('');
@@ -50,7 +49,6 @@ export function UpdateStipendModal({
   };
 
   const handleAddCustomUpdate = () => {
-    // (This function remains the same)
     if (customUpdateMsg.trim() === '') {
       toast.error('Update message cannot be empty.');
       return;
@@ -64,7 +62,6 @@ export function UpdateStipendModal({
   };
 
   const handleSaveChanges = () => {
-    // (This function remains the same)
     const newReceived = breakdown
       .filter((item) => item.status === 'Released')
       .reduce((sum, item) => sum + item.amount, 0);
@@ -143,7 +140,6 @@ export function UpdateStipendModal({
 
             {/* --- RIGHT COLUMN (Actions & Updates) --- */}
             <section className="md:col-span-2 space-y-4">
-              {/* (Custom Updates & History sections remain the same) */}
               <div className="space-y-2">
                 <Label className="text-base font-semibold text-gray-800">
                   Add Custom Update
