@@ -14,6 +14,8 @@ export function ServiceTilesGrid() {
       openPanel('grade-submission'); 
     } else if (serviceId === 'stipend-tracking') {
       openPanel('stipend-tracking');
+    } else if (serviceId === 'leave-of-absence') {
+      openPanel('leave-of-absence');
     } else {
       toast.info(`${serviceTitle} service is not yet built!`);
     }

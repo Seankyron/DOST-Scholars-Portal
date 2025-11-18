@@ -151,7 +151,7 @@ export function StipendTrackingPanel() {
         Stipend Tracking
       </h2>
 
-      <Card className="bg-yellow-50 border-yellow-200">
+      <Card className="bg-blue-50 border-blue-200">
         <CardContent className="p-4">
           <p className="text-sm text-yellow-800">
             This module tracks your stipend releases per semester. Stipends are
