@@ -157,7 +157,7 @@ export function ReferralLetterModal({ isOpen, onClose, data }: ReferralLetterMod
                         className="bg-red-600 hover:bg-red-700 text-white"
                         onClick={() => console.log("Request Resubmission Clicked")}
                     >
-                        Request Resubmission
+                        REQUEST RESUBMISSION
                     </Button>
 
                     {/* Approve */}
@@ -165,7 +165,7 @@ export function ReferralLetterModal({ isOpen, onClose, data }: ReferralLetterMod
                         className="bg-green-600 hover:bg-green-700 text-white"
                         onClick={() => console.log("Approve Clicked")}
                     >
-                        Approve
+                        APPROVE
                     </Button>
 
                 </ModalFooter>

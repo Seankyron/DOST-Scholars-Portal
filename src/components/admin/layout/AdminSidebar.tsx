@@ -1,3 +1,4 @@
+// Updated AdminSidebar with non-collapsible Services and collapsible Practical Training
 'use client';
 
 import Link from 'next/link';
@@ -14,32 +15,28 @@ interface AdminSidebarProps {
     onClose: () => void;
 }
 
-/* ===========================================
-   🧩 Recursive Sidebar Item (with Collapse)
-=========================================== */
+/* ==================================================
+   🧩 Sidebar Item (Recursive Only for Practical Training)
+================================================== */
 function SidebarItem({ item, pathname, onClose, level = 0 }: any) {
     const isActive = item.href === pathname;
     const Icon = item.icon;
-
-    // indent based on level
     const indent = level * 16;
 
-    // collapse state (only for items with children)
+    // Only Practical Training should collapse
+    const isCollapsible = item.label === 'Practical Training';
+
     const [open, setOpen] = useState(false);
 
-    // If item has children (collapsible parent)
-    if (item.children) {
+    if (isCollapsible && item.children) {
         return (
             <div className={level === 0 ? 'pt-4' : ''}>
-
-                {/* Section title only for top-level menu groups like "Services" */}
                 {level === 0 && (
                     <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider border-t pt-4">
                         {item.label}
                     </h3>
                 )}
 
-                {/* Collapsible trigger */}
                 <button
                     onClick={() => setOpen(!open)}
                     style={{ marginLeft: indent }}
@@ -51,7 +48,6 @@ function SidebarItem({ item, pathname, onClose, level = 0 }: any) {
                     {Icon && <Icon className="h-5 w-5 text-dost-title" />}
                     <span>{item.label}</span>
 
-                    {/* Arrow Icon right side */}
                     <div className="ml-auto">
                         {open ? (
                             <ChevronDown className="h-4 w-4 text-gray-600" />
@@ -61,7 +57,6 @@ function SidebarItem({ item, pathname, onClose, level = 0 }: any) {
                     </div>
                 </button>
 
-                {/* Children menu (only visible when open) */}
                 {open && (
                     <div className="mt-1 space-y-1">
                         {item.children.map((child: any) => (
@@ -79,7 +74,29 @@ function SidebarItem({ item, pathname, onClose, level = 0 }: any) {
         );
     }
 
-    /* =============== Normal clickable link (no children) =============== */
+    // NON-COLLAPSIBLE version for Services & others with children
+    if (item.children && !isCollapsible) {
+        return (
+            <div className="pt-4">
+                <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider border-t pt-4">
+                    {item.label}
+                </h3>
+                <div className="mt-1 space-y-1">
+                    {item.children.map((child: any) => (
+                        <SidebarItem
+                            key={child.label}
+                            item={child}
+                            pathname={pathname}
+                            onClose={onClose}
+                            level={level + 1}
+                        />
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    // Standard clickable link
     return (
         <Link
             href={item.href}
@@ -87,24 +104,20 @@ function SidebarItem({ item, pathname, onClose, level = 0 }: any) {
             style={{ marginLeft: indent }}
             className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors",
-                isActive
-                    ? "bg-dost-title text-white"
-                    : "text-gray-700 hover:bg-gray-100"
+                isActive ? "bg-dost-title text-white" : "text-gray-700 hover:bg-gray-100"
             )}
         >
             {Icon && (
-                <Icon
-                    className={cn("h-5 w-5", !isActive && "text-dost-title")}
-                />
+                <Icon className={cn("h-5 w-5", !isActive && "text-dost-title")} />
             )}
             {item.label}
         </Link>
     );
 }
 
-/* ===========================================
+/* ==================================================
    📌 Main Sidebar Component
-=========================================== */
+================================================== */
 export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     const pathname = usePathname();
 
@@ -125,16 +138,10 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             >
                 <div className="flex items-center justify-between h-20 bg-dost-title px-4">
                     <div className="flex items-center">
-                        <Image
-                            src="/dost-logo.png"
-                            alt="DOST-SEI Logo"
-                            width={48}
-                            height={48}
-                        />
-                        <h1 className="ml-3 text-xl font-bold text-white">
-                            Admin Portal
-                        </h1>
+                        <Image src="/dost-logo.png" alt="DOST-SEI Logo" width={48} height={48} />
+                        <h1 className="ml-3 text-xl font-bold text-white">Admin Portal</h1>
                     </div>
+
                     <Button
                         variant="ghost"
                         size="sm"
@@ -147,7 +154,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
                 <nav className="flex-1 overflow-y-hidden">
                     <div className="h-full overflow-y-auto scrollbar-thin px-4 py-6 space-y-2">
-                        {adminNavigation.map((item) => (
+                        {adminNavigation.map((item: any) => (
                             <SidebarItem
                                 key={item.label}
                                 item={item}

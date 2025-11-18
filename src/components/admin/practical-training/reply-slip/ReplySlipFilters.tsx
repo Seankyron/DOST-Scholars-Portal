@@ -5,6 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { Check, X } from 'lucide-react';
 
+interface ReplySlipFiltersProps {
+    filters: {
+        year: string;
+        status: string;
+        plan: string;
+        search: string;
+    };
+    setFilters: (value: any) => void;
+}
 
 export default function ReplySlipFilters({ filters, setFilters }: any) {
     return (

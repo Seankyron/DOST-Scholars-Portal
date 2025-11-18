@@ -30,7 +30,17 @@ const MOCK_DATA = [
     },
 ];
 
-export default function ReplySlipTable() {
+interface ReplySlipTableProps {
+    filters: {
+        year: string;
+        status: string;
+        plan: string;
+        search: string;
+    };
+    setFilters: (value: any) => void;
+}
+
+export default function ReplySlipTable({ filters, setFilters }: ReplySlipTableProps) {
 
     const [selectedRow, setSelectedRow] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -71,6 +81,21 @@ export default function ReplySlipTable() {
     return (
         <div className="bg-white shadow-md rounded-lg mt-6">
 
+            {/* Title + Search Bar */}
+            <div className="flex items-center justify-between px-4 py-3">
+                <h2 className="text-xl font-bold text-gray-800">Referral Letter</h2>
+
+                <input
+                    type="text"
+                    placeholder="Search scholar..."
+                    className="border rounded-lg px-3 py-2 w-64"
+                    value={filters.search}
+                    onChange={(e) =>
+                        setFilters({ ...filters, search: e.target.value })
+                    }
+                />
+            </div>
+
             {/* TABLE */}
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -88,13 +113,19 @@ export default function ReplySlipTable() {
                     </thead>
 
                     <tbody>
-                        {MOCK_DATA.map((row, i) => (
-                            <ReplySlipRow
-                                key={i}
-                                row={row}
-                                onView={() => handleOpenModal(row)}
-                            />
-                        ))}
+                        {MOCK_DATA
+                            .filter((r) =>
+                                filters.search
+                                    ? r.name.toLowerCase().includes(filters.search.toLowerCase())
+                                    : true
+                            )
+                            .map((row, i) => (
+                                <ReplySlipRow
+                                    key={i}
+                                    row={row}
+                                    onView={() => handleOpenModal(row)}
+                                />
+                            ))}
                     </tbody>
                 </table>
             </div>

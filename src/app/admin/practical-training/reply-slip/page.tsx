@@ -19,7 +19,10 @@ export default function ReplySlipPage() {
 
             <ReplySlipFilters filters={filters} setFilters={setFilters} />
 
-            <ReplySlipTable filters={filters} />
+            <ReplySlipTable 
+                filters={filters} 
+                setFilters={setFilters}
+            />
         </div>
     );
 }

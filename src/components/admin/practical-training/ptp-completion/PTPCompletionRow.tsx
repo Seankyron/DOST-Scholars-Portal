@@ -2,7 +2,7 @@ import StatusBadge from '../badges/StatusBadge';
 import TypeBadge from '../badges/TypeBadge';
 import { Eye, Check, X } from 'lucide-react';
 
-export default function ReplySlipRow({ row, onView }: any) {
+export default function PTPCompletionRow({ row, onView }: any) {
   return (
     <tr className="border-b hover:bg-gray-50">
       <td className="p-3">
