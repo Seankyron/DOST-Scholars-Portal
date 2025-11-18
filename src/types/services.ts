@@ -11,6 +11,21 @@ export type SubmissionStatus =
   | 'Not Available'
   | 'Released';
 
+export type StipendPeriodStatus =
+  | 'Released'
+  | 'Processing'
+  | 'On hold'
+  | 'Not Available';
+
+  export interface StipendSemesterAvailability {
+  year: number;
+  semester: Semester;
+  status: StipendPeriodStatus;
+  academicYear: string;
+  isGradeApproved: boolean; // Crucial for opening the card
+}
+// ..
+
 export interface BaseSubmission {
   id: string;
   scholarId: string;
@@ -38,7 +53,7 @@ export interface StipendTracking extends BaseSubmission {
   expectedTotal: number;
   totalReceived: number;
   pendingAmount: number;
-  releaseType: 'Complete' | 'Partial' | 'On hold' | 'To Be Updated';
+  releaseType: 'Released' | 'Pending' | 'On hold' | 'Processing';
   allowances: {
     month1?: number;
     month2?: number;
@@ -54,7 +69,7 @@ export interface StipendTracking extends BaseSubmission {
 export type Allowance = {
   name: string;
   amount: number;
-  status: 'Released' | 'Pending' | 'On hold';
+  status: 'Released' | 'Pending' | 'On hold' | 'Processing';
 };
 
 export type StipendUpdate = {
