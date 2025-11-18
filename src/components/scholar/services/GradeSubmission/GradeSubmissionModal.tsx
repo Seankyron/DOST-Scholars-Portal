@@ -20,6 +20,9 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { toast } from '@/components/ui/toaster';
 import { Edit } from 'lucide-react'; 
 import { iGradeSubmissions, useCurrentScholarGrade } from '@/hooks/useCurrentScholarGrade';
+import {  } from '@/hooks/useDocumentUpload';
+import { createClient } from '@/lib/supabase/client';
+import { useCloudinaryUpload } from '@/hooks/useDocumentUpload';
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;
@@ -62,6 +65,8 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
   const user = JSON.parse(sessionStorage.getItem('user') ?? '');
   const gradeRecords = useCurrentScholarGrade(semester.year, semester.semester);
   const missingDoc = GetMissingDocument(gradeRecords.grade[0])
+  const { uploadDocument } = useCloudinaryUpload();
+
 
   let submissionData: GradeSubmission;
 
@@ -135,42 +140,102 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
     }
     
     setIsConfirmOpen(true);
+    handleConfirmSubmit();
+    setIsLoading(false);
   };
   
+  // const handleConfirmSubmit = async () => {
+  //   setIsConfirmOpen(false);
+  //   setIsLoading(true);
+  //   toast.loading('Submitting your documents...');
+
+  //   try {
+  //     let regFormUrl = submission?.registrationFormUrl || null;
+  //     let gradesUrl = submission?.copyOfGradesUrl || null;
+
+  //     if (showRegFormUpload && regForm) {
+  //       const regFormPath = `${scholarId}/${semester.year}-${semester.semester}-regform.${regForm.name.split('.').pop()}`;
+  //       regFormUrl = await uploadFile(regForm, regFormPath, { acceptedTypes: ['.pdf'] });
+  //     }
+
+  //     if (showGradesFormUpload && gradesFile) {
+  //       const gradesPath = `${scholarId}/${semester.year}-${semester.semester}-grades.${gradesFile.name.split('.').pop()}`;
+  //       gradesUrl = await uploadFile(gradesFile, gradesPath, { acceptedTypes: ['.pdf'] });
+  //     }
+      
+  //     if (!regFormUrl || !gradesUrl) {
+  //       throw new Error('File upload failed. Please ensure all documents are provided.');
+  //     }
+
+  //     console.log('Registration Form URL:', regFormUrl);
+  //     console.log('Grades URL:', gradesUrl);
+      
+  //     await new Promise(resolve => setTimeout(resolve, 1500));
+      
+  //     toast.success('Submission successful! Awaiting verification.');
+  //     handleCloseAndReset();
+
+  //   } catch (error: any) {
+  //     toast.error(error.message || 'Submission failed.');
+  //     setIsLoading(false); 
+  //   }
+  // };
+
   const handleConfirmSubmit = async () => {
     setIsConfirmOpen(false);
-    setIsLoading(true);
     toast.loading('Submitting your documents...');
+    setIsLoading(true);
 
     try {
       let regFormUrl = submission?.registrationFormUrl || null;
       let gradesUrl = submission?.copyOfGradesUrl || null;
 
+      // Upload Registration Form to Cloudinary
       if (showRegFormUpload && regForm) {
-        const regFormPath = `${scholarId}/${semester.year}-${semester.semester}-regform.${regForm.name.split('.').pop()}`;
-        regFormUrl = await uploadFile(regForm, regFormPath, { acceptedTypes: ['.pdf'] });
+        const uploadedRegFormUrl = await uploadDocument(regForm, `regForm-submissions/${user.spas_id}`);
+        if (!uploadedRegFormUrl) {
+          throw new Error('Failed to upload Registration Form.');
+        }
+        regFormUrl = uploadedRegFormUrl;
       }
 
+      // Upload Grades file to Cloudinary
       if (showGradesFormUpload && gradesFile) {
-        const gradesPath = `${scholarId}/${semester.year}-${semester.semester}-grades.${gradesFile.name.split('.').pop()}`;
-        gradesUrl = await uploadFile(gradesFile, gradesPath, { acceptedTypes: ['.pdf'] });
+        const uploadedGradesUrl = await uploadDocument(gradesFile, `grade-submissions/${user.spas_id}`);
+        if (!uploadedGradesUrl) {
+          throw new Error('Failed to upload Grades file.');
+        }
+        gradesUrl = uploadedGradesUrl;
       }
-      
+
+      // Validate that all required files have URLs
       if (!regFormUrl || !gradesUrl) {
         throw new Error('File upload failed. Please ensure all documents are provided.');
       }
 
-      console.log('Registration Form URL:', regFormUrl);
-      console.log('Grades URL:', gradesUrl);
-      
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      // Save submission record to Supabase
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('Grade Submission')
+        .upsert({
+          spas_id: user.spas_id,
+          year_level: semester.year,
+          semester: semester.semester,
+          status: 'Pending',
+          cor_file_key: regFormUrl,
+          grade_file_key: gradesUrl,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          comment: submission?.adminComment || null,
+        });
+
+      if (error) throw error;
+
       toast.success('Submission successful! Awaiting verification.');
       handleCloseAndReset();
-
-    } catch (error: any) {
-      toast.error(error.message || 'Submission failed.');
-      setIsLoading(false); 
+    } catch (err: any) {
+      setIsLoading(false);
+      toast.error(err.message || 'Submission failed.');
     }
   };
 
