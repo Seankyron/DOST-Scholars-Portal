@@ -121,9 +121,7 @@ export function BannerUpload({ onAddBanner }: BannerUploadProps) {
       
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create event');
-
-      // 3. Call the parent's refetch function
-      onAddBanner(); // <-- FIX 2
+      onAddBanner(); 
 
       // 4. Reset form
       setTitle('');
@@ -139,7 +137,6 @@ export function BannerUpload({ onAddBanner }: BannerUploadProps) {
   };
 
   return (
-    // ... (The form JSX remains unchanged from our previous fix) ...
     <form onSubmit={handleSubmit} className="space-y-4">
       <div
         className={cn(
