@@ -557,25 +557,6 @@ dost-scholars-portal/
 │       └── globals.css                       # Global styles + Tailwind
 │
 ├── supabase/
-│   ├── migrations/
-│   │   ├── 001_create_scholars_table.sql
-│   │   ├── 002_create_profiles_table.sql
-│   │   ├── 003_create_grade_submissions_table.sql
-│   │   ├── 004_create_stipend_tracking_table.sql
-│   │   ├── 005_create_ptp_referral_table.sql
-│   │   ├── 006_create_ptp_completion_table.sql
-│   │   ├── 007_create_thesis_allowance_table.sql
-│   │   ├── 008_create_travel_clearance_table.sql
-│   │   ├── 009_create_shifting_transferring_table.sql
-│   │   ├── 010_create_reimbursement_table.sql
-│   │   ├── 011_create_leave_of_absence_table.sql
-│   │   ├── 012_create_request_forms_table.sql
-│   │   ├── 013_create_support_feedback_table.sql
-│   │   ├── 014_create_event_banners_table.sql
-│   │   ├── 015_create_storage_buckets.sql
-│   │   ├── 016_create_admin_comments_table.sql
-│   │   └── 017_create_rls_policies.sql
-│   │
 │   ├── functions/
 │   │   ├── send-verification-email/
 │   │   │   └── index.ts
