@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import TravelClearanceCard from "./TravelClearanceCard";
-import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/shared/Pagination";
 import type { TravelClearance } from "@/app/admin/travel-clearance/page";
 
 interface Props {
   data: TravelClearance[];
   onView: (item: TravelClearance) => void;
 }
-
 
 export default function TravelClearanceList({ data, onView }: Props) {
   const [page, setPage] = useState(1);
@@ -24,36 +23,27 @@ export default function TravelClearanceList({ data, onView }: Props) {
 
   return (
     <>
+      {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {paginated.map((item) => (
-            <TravelClearanceCard key={item.id} item={item} onView={onView} />
+          <TravelClearanceCard key={item.id} item={item} onView={onView} />
         ))}
       </div>
 
+        <p className="text-sm text-gray-700 sm:justify-self-start sm:text-left mt-4">
+            Showing {(page - 1) * itemsPerPage + 1} –
+            {Math.min(page * itemsPerPage, data.length)} of {data.length} Travel Clearances
+        </p>
+
+
       {/* Pagination */}
-      <div className="flex justify-center mt-6 items-center gap-3">
-        <Button
-          variant="outline"
-          disabled={page === 1}
-          onClick={() => setPage(page - 1)}
-        >
-          &lt;
-        </Button>
-
-        <span className="px-4 py-1 border rounded">{page}</span>
-
-        <Button
-          variant="outline"
-          disabled={page === totalPages}
-          onClick={() => setPage(page + 1)}
-        >
-          &gt;
-        </Button>
+      <div className="mt-6 flex justify-center">
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
-
-      <p className="text-center mt-3 text-sm text-gray-500">
-        Showing {paginated.length} of {data.length} travel clearance
-      </p>
     </>
   );
 }
