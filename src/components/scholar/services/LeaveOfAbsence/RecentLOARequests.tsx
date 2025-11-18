@@ -6,15 +6,15 @@ import { formatRelativeTime } from '@/lib/utils/date';
 import type { SubmissionStatus, LOAReason } from '@/types';
 import { Button } from '@/components/ui/button';
 
-// Mock data for demonstration
+// Mock data with Status and Date Submitted
 const mockRequests = [
   {
     id: 1,
     reason: 'Medical/Personal' as LOAReason,
     semester: '1st Semester', 
-    academicYear: 'AY 2021-2022', 
-    status: 'Resubmit' as SubmissionStatus,
-    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    academicYear: 'AY 2024-2025',
+    status: 'Resubmit' as SubmissionStatus, // <--- STATUS
+    dateSubmitted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // <--- DATE SUBMITTED (2 days ago)
     adminComment: 'Please attach a clearer copy of your Medical Certificate.'
   },
   {
@@ -22,8 +22,8 @@ const mockRequests = [
     reason: 'Exchange Student Program' as LOAReason,
     semester: '2nd Semester',
     academicYear: 'AY 2023-2024',
-    status: 'Approved' as SubmissionStatus,
-    timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+    status: 'Approved' as SubmissionStatus, // <--- STATUS
+    dateSubmitted: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // <--- DATE SUBMITTED (30 days ago)
   },
 ];
 
@@ -51,14 +51,18 @@ export function RecentLOARequests({ onViewDetails }: RecentLOARequestsProps) {
                   onClick={() => onViewDetails(req)}
                 >
                   <div className="flex-1 min-w-0">
-                    {/* Modified Title Format: Reason - Semester | AY */}
+                    {/* Title: Reason - Semester | AY */}
                     <p className="text-sm font-semibold text-gray-900 truncate">
                       {req.reason} - {req.semester} | {req.academicYear}
                     </p>
+                    
+                    {/* Date Submitted Display */}
                     <p className="text-xs text-gray-400 mt-0.5">
-                      Submitted {formatRelativeTime(req.timestamp)}
+                      Submitted {formatRelativeTime(req.dateSubmitted)}
                     </p>
                   </div>
+
+                  {/* Status Badge Display */}
                   <StatusBadge
                     status={req.status} 
                     className="ml-2 shrink-0"
