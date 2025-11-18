@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { Json } from "@/lib/supabase/type";
 
 
 interface iStipend {
@@ -12,7 +13,7 @@ interface iStipend {
   unreleased: number;
   status: string;
   grade_submission_id?: string | null;
-  expected_total_amount: number;
+  allowance_breakdown?: Json | null;
 }
 
 export function useCurrentScholarStipend(spas_id: string)
@@ -30,7 +31,7 @@ export function useCurrentScholarStipend(spas_id: string)
             .from('Stipend Tracking')
             .select(`id, spas_id, year_level, semester, 
               stipend_type, received, unreleased, status, 
-              grade_submission_id, expected_total_amount`)
+              grade_submission_id, allowance_breakdown`)
             .eq('spas_id', spas_id)
         
         const { data, error } = await query;

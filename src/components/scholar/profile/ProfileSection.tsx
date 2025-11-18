@@ -17,7 +17,7 @@ import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ScholarStatus } from '@/types';
 import { cn } from '@/lib/utils/cn';
-import { useCurrentScholar } from "@/hooks/useCurrentScholar";
+import { useCurrentScholar } from "@/hooks/scholar/useCurrentScholar";
 import { useEffect } from 'react';
 
 

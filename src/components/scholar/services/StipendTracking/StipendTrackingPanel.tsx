@@ -6,7 +6,7 @@ import { Select } from '@/components/ui/select';
 import type { SubmissionStatus, ScholarStatus, Allowance } from '@/types';
 import { FlippableStipendCard } from './FlippableStipendCard';
 import { StipendUpdates, type StipendUpdate } from './StipendUpdates';
-import { useCurrentScholarStipend } from '@/hooks/useCurrentScholarStipend';
+import { useCurrentScholarStipend } from '@/hooks/scholar/useCurrentScholarStipend';
 
 type StipendData = {
   received: number;
@@ -131,7 +131,7 @@ function GetYearOptions(scholarship_type: string, course_duration: number)
 
 export function StipendTrackingPanel() {
   const user = JSON.parse(sessionStorage.getItem('user') || 'null');
-  const yearOptions = GetYearOptions(user.scholarship_type, user.course_duration);
+  const yearOptions = GetYearOptions('Merit', user.course_duration);
   const { stipend, loading, error } = useCurrentScholarStipend(user.spas_id);
 
   console.log('Stipend', stipend);

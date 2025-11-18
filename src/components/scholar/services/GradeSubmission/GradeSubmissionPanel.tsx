@@ -11,7 +11,7 @@ import type { SubmissionStatus, CurriculumConfig, Semester } from '@/types';
 import { hasMidyear } from '@/lib/utils/curriculum'; 
 import { toast } from '@/components/ui/toaster';
 import { Select } from '@/components/ui/select'; 
-import { useCurrentScholarGrade, iGradeSubmissions } from '@/hooks/useCurrentScholarGrade';
+import { useCurrentScholarGrade, iGradeSubmissions } from '@/hooks/scholar/useCurrentScholarGrade';
 
 const requirements = [
   'Certified True Copy of complete grades and certificate of registration from University Registrar',

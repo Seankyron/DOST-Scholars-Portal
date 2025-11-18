@@ -19,10 +19,10 @@ import type { GradeSubmission, YearLevel } from '@/types';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { toast } from '@/components/ui/toaster';
 import { Edit } from 'lucide-react'; 
-import { iGradeSubmissions, useCurrentScholarGrade } from '@/hooks/useCurrentScholarGrade';
-import {  } from '@/hooks/useDocumentUpload';
+import { iGradeSubmissions, useCurrentScholarGrade } from '@/hooks/scholar/useCurrentScholarGrade';
+import {  } from '@/hooks/scholar/useDocumentUpload';
 import { createClient } from '@/lib/supabase/client';
-import { useCloudinaryUpload } from '@/hooks/useDocumentUpload';
+import { useCloudinaryUpload } from '@/hooks/scholar/useDocumentUpload';
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;
