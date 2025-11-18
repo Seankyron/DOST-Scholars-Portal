@@ -10,4 +10,6 @@ export interface SemesterAvailability {
   semester: Semester;
   status: SubmissionStatus;
   year: number;
+  gradeFileKey: string | null;
+  corFileKey: string | null;
 }

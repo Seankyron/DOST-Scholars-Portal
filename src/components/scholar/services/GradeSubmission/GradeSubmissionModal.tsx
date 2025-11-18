@@ -80,9 +80,9 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
     semester: semester.semester,
     academicYear: semester.academicYear?.slice(-9),
     registrationForm: `${user.last_name}_COR.pdf`,
-    registrationFormUrl: '#mock-reg-form-url',
+    registrationFormUrl: semester.corFileKey ?? '',
     copyOfGrades: `${user.last_name}_Grades.pdf`,
-    copyOfGradesUrl: '#mock-grades-url',
+    copyOfGradesUrl: semester.gradeFileKey ?? '',
   };
 
   const [submission, setSubmission] = useState<GradeSubmission | null>(submissionData);
@@ -143,47 +143,10 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
     handleConfirmSubmit();
     setIsLoading(false);
   };
-  
-  // const handleConfirmSubmit = async () => {
-  //   setIsConfirmOpen(false);
-  //   setIsLoading(true);
-  //   toast.loading('Submitting your documents...');
-
-  //   try {
-  //     let regFormUrl = submission?.registrationFormUrl || null;
-  //     let gradesUrl = submission?.copyOfGradesUrl || null;
-
-  //     if (showRegFormUpload && regForm) {
-  //       const regFormPath = `${scholarId}/${semester.year}-${semester.semester}-regform.${regForm.name.split('.').pop()}`;
-  //       regFormUrl = await uploadFile(regForm, regFormPath, { acceptedTypes: ['.pdf'] });
-  //     }
-
-  //     if (showGradesFormUpload && gradesFile) {
-  //       const gradesPath = `${scholarId}/${semester.year}-${semester.semester}-grades.${gradesFile.name.split('.').pop()}`;
-  //       gradesUrl = await uploadFile(gradesFile, gradesPath, { acceptedTypes: ['.pdf'] });
-  //     }
-      
-  //     if (!regFormUrl || !gradesUrl) {
-  //       throw new Error('File upload failed. Please ensure all documents are provided.');
-  //     }
-
-  //     console.log('Registration Form URL:', regFormUrl);
-  //     console.log('Grades URL:', gradesUrl);
-      
-  //     await new Promise(resolve => setTimeout(resolve, 1500));
-      
-  //     toast.success('Submission successful! Awaiting verification.');
-  //     handleCloseAndReset();
-
-  //   } catch (error: any) {
-  //     toast.error(error.message || 'Submission failed.');
-  //     setIsLoading(false); 
-  //   }
-  // };
 
   const handleConfirmSubmit = async () => {
     setIsConfirmOpen(false);
-    toast.loading('Submitting your documents...');
+    const toastLoading = toast.loading('Submitting your documents...');
     setIsLoading(true);
 
     try {
@@ -196,7 +159,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
         if (!uploadedRegFormUrl) {
           throw new Error('Failed to upload Registration Form.');
         }
-        regFormUrl = uploadedRegFormUrl;
+        regFormUrl = uploadedRegFormUrl.url;
       }
 
       // Upload Grades file to Cloudinary
@@ -205,7 +168,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
         if (!uploadedGradesUrl) {
           throw new Error('Failed to upload Grades file.');
         }
-        gradesUrl = uploadedGradesUrl;
+        gradesUrl = uploadedGradesUrl.url;
       }
 
       // Validate that all required files have URLs
@@ -231,10 +194,12 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
 
       if (error) throw error;
 
+      toast.dismiss(toastLoading);
       toast.success('Submission successful! Awaiting verification.');
       handleCloseAndReset();
     } catch (err: any) {
       setIsLoading(false);
+      toast.dismiss(toastLoading);
       toast.error(err.message || 'Submission failed.');
     }
   };

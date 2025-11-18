@@ -64,7 +64,9 @@ function GetGradeRecordBySemester(midyearClasses: number[],
         isPast: (nextYear > year),
         semester,
         status: (status) as SubmissionStatus,
-        year: option.year
+        year: option.year,
+        gradeFileKey: entry?.grade_file_key ?? null,
+        corFileKey: entry?.cor_file_key ?? null
     }});
   });
 

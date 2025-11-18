@@ -16,8 +16,7 @@ export function useCloudinaryUpload() {
       }
 
       const data = await res.json();
-      toast.success(`Uploaded "${file.name}" successfully!`);
-      return data.publicId;
+      return data;
     } catch (err: any) {
       toast.error(err.message || 'Upload failed');
       return null;

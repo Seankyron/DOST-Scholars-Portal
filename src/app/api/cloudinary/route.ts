@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     // Upload using upload_stream
     const result: any = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder, resource_type: 'auto' }, // 'auto' lets Cloudinary detect PDF
+        { folder, access_mode: 'public', }, // 'auto' lets Cloudinary detect PDF
         (err, res) => {
           if (err) return reject(err);
           resolve(res);
