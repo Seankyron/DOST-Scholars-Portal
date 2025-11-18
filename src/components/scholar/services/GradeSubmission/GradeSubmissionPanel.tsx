@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check } from 'lucide-react';
+import { AlertCircle, Check } from 'lucide-react';
 import { SemesterGrid } from './SemesterGrid';
 import { RecentSubmissions } from './RecentSubmissions';
 import { GradeSubmissionModal } from './GradeSubmissionModal';
@@ -12,13 +12,6 @@ import { hasMidyear } from '@/lib/utils/curriculum';
 import { toast } from '@/components/ui/toaster';
 import { Select } from '@/components/ui/select'; 
 
-const requirements = [
-  'Certified True Copy of complete grades and certificate of registration from University Registrar',
-  'Clear scanned copy or high-quality photo',
-  'All subjects and grades clearly visible',
-  'Registrar\'s official seal and signature present',
-];
-
 const mockCurriculum: CurriculumConfig = {
   midyearYears: [1, 3], 
   thesisYear: 4,
@@ -27,6 +20,7 @@ const mockCurriculum: CurriculumConfig = {
   duration: 4, 
 };
 
+// ... (SubmissionStatuses and AcademicYearMapping logic remains the same) ...
 const submissionStatuses: Record<string, SubmissionStatus> = {
   '1-1st Semester': 'Approved',
   '1-2nd Semester': 'Approved',
@@ -50,22 +44,19 @@ const academicYearMapping: Record<number, string> = {
 
 const academicYearOptions = Object.values(academicYearMapping)
   .map(ay => ({ value: ay, label: ay }))
-  .reverse(); // Show newest first
+  .reverse();
 
-  const generatedSemesters: (SemesterAvailability & { academicYear: string })[] = [];
+// Adaptive Semester Generation Logic
+const generatedSemesters: (SemesterAvailability & { academicYear: string })[] = [];
 const courseDuration = mockCurriculum.duration; 
 
 for (let year = 1; year <= courseDuration; year++) {
   const semesters: Semester[] = ['1st Semester', '2nd Semester'];
-  
-  if (hasMidyear(mockCurriculum, year)) {
-    semesters.push('Midyear');
-  }
+  if (hasMidyear(mockCurriculum, year)) semesters.push('Midyear');
 
   for (const sem of semesters) {
     const statusKey = `${year}-${sem}`;
     const status = submissionStatuses[statusKey] || 'Not Available';
-    
     generatedSemesters.push({
       year: year,
       semester: sem,
@@ -74,7 +65,7 @@ for (let year = 1; year <= courseDuration; year++) {
       isCurrent: (year === 3 && sem === '2nd Semester'), 
       isPast: year < 3 || (year === 3 && sem === '1st Semester'), 
       isFuture: year > 3,
-      academicYear: academicYearMapping[year] || 'N/A', // <-- ADDED
+      academicYear: academicYearMapping[year] || 'N/A',
     });
   }
 }
@@ -82,7 +73,6 @@ for (let year = 1; year <= courseDuration; year++) {
 export function GradeSubmissionPanel() {
   const [selectedSemester, setSelectedSemester] = useState<SemesterAvailability | null>(null);
   const [isClosing, setIsClosing] = useState(false);
-  
   const [selectedAcademicYear, setSelectedAcademicYear] = useState('AY 2025-2026'); 
 
   const handleOpenModal = (semester: SemesterAvailability) => {
@@ -112,19 +102,29 @@ export function GradeSubmissionPanel() {
         Grade Submission
       </h2>
       
-      <Card className='bg-yellow-50 border-yellow-200'>
-        <CardHeader>
-          <CardTitle className="font-bold text-yellow-800">Grade Submission Requirements</CardTitle>
+      <Card className="bg-dost-title/5 border-dost-title/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="font-bold text-dost-title flex items-center gap-2 text-lg">
+            <AlertCircle className="h-5 w-5" />
+            Guidelines & Requirements
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            {requirements.map((req, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-yellow-800">{req}</span>
-              </li>
-            ))}
-          </ul>
+        <CardContent className="space-y-4 text-sm text-gray-700">
+          <p>
+            Scholars must submit their grades and registration forms at the end of every semester to process their stipend. Ensure all documents are clear and readable.
+          </p>
+          <div className="bg-white/60 p-4 rounded-lg border border-blue-100">
+             <ul className="space-y-2 list-disc list-inside text-gray-700">
+                <li> <strong>Certified True Copy of Grades</strong> from the University Registrar.
+                </li>
+                <li> <strong>Certificate of Registration (Form 5)</strong> for the semester.
+                </li>
+                <li>Files must be clear scanned copies (PDF preferred).
+                </li>
+                <li>Registrar's official seal and signature must be visible.
+                </li>
+             </ul>
+          </div>
         </CardContent>
       </Card>
 
@@ -135,6 +135,7 @@ export function GradeSubmissionPanel() {
         options={academicYearOptions}
       />
 
+      {/* Semester Grid serves as the "Selection" UI here */}
       <SemesterGrid 
         semesters={filteredSemesters} 
         onSelectSemester={handleOpenModal}

@@ -9,4 +9,5 @@ export interface SemesterAvailability {
   isPast: boolean;
   isFuture: boolean;
   status: SubmissionStatus;
+  academicYear?: string;
 }

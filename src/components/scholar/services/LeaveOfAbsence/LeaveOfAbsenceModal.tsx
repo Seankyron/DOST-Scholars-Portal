@@ -124,11 +124,6 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
         }
     }
 
-    // --- SUBMISSION ---
-
-    setIsLoading(true);
-    toast.loading('Submitting application...');
-
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -157,30 +152,7 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
 
         <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin space-y-6">
           
-          {/* 1. Status & Date Submission Display (Visible if request exists) */}
-          {existingRequest && !isEditing && (
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                    <span className="text-xs font-semibold text-gray-500 uppercase">Current Status</span>
-                    <div><StatusBadge status={status} /></div>
-                </div>
-                <div className="flex flex-col gap-1">
-                    <span className="text-xs font-semibold text-gray-500 uppercase">Date Submitted</span>
-                    <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        {formatDate(existingRequest.timestamp || existingRequest.dateSubmitted)}
-                    </div>
-                </div>
-                {existingRequest.semester && (
-                   <div className="flex flex-col gap-1 sm:col-span-2 border-t border-gray-200 pt-3 mt-1">
-                      <span className="text-xs font-semibold text-gray-500 uppercase">Effectivity</span>
-                      <p className="text-sm font-medium text-gray-900">
-                         {existingRequest.semester} | {existingRequest.academicYear}
-                      </p>
-                   </div>
-                )}
-            </div>
-          )}
+          
 
           {/* 2. Admin Comment Alert */}
           {showAdminAlert && (
@@ -222,6 +194,29 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
                 checked={isConfirmed}
                 onChange={(e) => setIsConfirmed(e.target.checked)}
               />
+            </div>
+          )}
+          {existingRequest && !isEditing && (
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase">Current Status</span>
+                    <div><StatusBadge status={status} /></div>
+                </div>
+                <div className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase">Date Submitted</span>
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        {formatDate(existingRequest.timestamp || existingRequest.dateSubmitted)}
+                    </div>
+                </div>
+                {existingRequest.semester && (
+                   <div className="flex flex-col gap-1 sm:col-span-2 border-t border-gray-200 pt-3 mt-1">
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Effectivity</span>
+                      <p className="text-sm font-medium text-gray-900">
+                         {existingRequest.semester} | {existingRequest.academicYear}
+                      </p>
+                   </div>
+                )}
             </div>
           )}
         </ModalBody>
