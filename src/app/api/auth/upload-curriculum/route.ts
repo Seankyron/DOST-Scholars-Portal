@@ -4,9 +4,9 @@ import { randomUUID } from 'crypto'; // For creating unique filenames
 
 // Configure Cloudinary with your secret keys (runs on the server)
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+  api_secret: process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET,
   secure: true,
 });
 
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
         {
           // We put all unverified curriculums in one "pending" folder
           // This makes them easy to find or clean up later.
-          folder: `dost-portal/curriculums`,
+          folder: `dost-portal/pending-curriculums`,
           public_id: uniqueFilename,
           resource_type: 'auto', // 'auto' will handle PDF
         },

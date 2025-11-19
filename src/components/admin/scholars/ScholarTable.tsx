@@ -112,9 +112,10 @@ export function ScholarTable({
         (scholar: ScholarViewRow) => {
           const midyearClasses = scholar.midyear_classes || [];
           const ojt = (scholar.ojt || {}) as {
-            year?: string;
-            semester?: string;
+            ojtYear: number | null;
+            ojtSemester: string | null;
           };
+          console.log(`Scholar: ${scholar.spas_id}; ${ojt.ojtSemester}`)
           const curriculumFile = scholar.curriculum_file_key
             ? { name: scholar.curriculum_file_key, url: '' }
             : undefined;
@@ -147,8 +148,8 @@ export function ScholarTable({
             thesis2ndYear: scholar.thesis_year === 2,
             thesis3rdYear: scholar.thesis_year === 3,
             thesis4thYear: scholar.thesis_year === 4,
-            ojtYear: ojt.year || 'N/A',
-            ojtSemester: ojt.semester || 'N/A',
+            ojtYear: formatYear(ojt.ojtYear) || 'N/A',
+            ojtSemester: ojt.ojtSemester || 'N/A',
             curriculumFile: curriculumFile,
           };
         }

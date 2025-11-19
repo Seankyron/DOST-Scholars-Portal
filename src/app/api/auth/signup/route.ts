@@ -5,9 +5,9 @@ import { v2 as cloudinary } from 'cloudinary'; // Import Cloudinary
 
 // Configure Cloudinary (needed for the rename operation)
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+  api_secret: process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET,
   secure: true,
 });
 
@@ -74,6 +74,9 @@ export async function POST(request: Request) {
 
       finalFileKey = renameResult.public_id; // This is the new, final key
 
+      await cloudinary.uploader.destroy(pendingFileKey);
+      console.log(`Deleted Cloudinary file: ${pendingFileKey}`);
+      
       // --- Step 3: FIX. Update public."User" with the *final* key ---
       // This is the step that was missing. We now update the
       // 'public."User"' table directly, correcting the

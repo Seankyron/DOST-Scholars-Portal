@@ -27,6 +27,15 @@ const InfoRow = ({ label, value }: { label: string; value?: React.ReactNode }) =
     <p className="text-sm font-semibold text-gray-800">{value || 'N/A'}</p>
   </div>
 );
+const formatYear = (year: number | null): string => {
+  if (year === null) return 'N/A';
+  if (year > 4) return 'Graduated';
+  if (year === 1) return '1st Year';
+  if (year === 2) return '2nd Year';
+  if (year === 3) return '3rd Year';
+  if (year === 4) return '4th Year';
+  return 'N/A';
+};
 
 export function ViewScholarModal({
   scholar,
@@ -58,9 +67,7 @@ export function ViewScholarModal({
     'N/A';
 
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  
-  const fileKey = String(scholar.curriculumFile?.name || ''); 
-  console.log("File Key: ", fileKey);
+  const fileKey = String(scholar.curriculumFile?.name || '');
 
   const fileUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${fileKey}.pdf`;
 

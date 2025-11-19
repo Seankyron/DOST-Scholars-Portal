@@ -133,7 +133,7 @@ export default function ScholarManagementPage() {
       router.refresh(); // Refresh the table data
     } catch (error: any) {
       console.error(error);
-      toast.error('Error: ${error.message}');
+      toast.error( `Error: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
