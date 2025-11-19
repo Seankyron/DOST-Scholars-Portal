@@ -19,7 +19,6 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
 import { formatDate } from '@/lib/utils/date';
 
-// ---------- Reusable Info Item ----------
 function InfoItem({ label, value }: { label: string; value: any }) {
   return (
     <div>
@@ -29,7 +28,6 @@ function InfoItem({ label, value }: { label: string; value: any }) {
   );
 }
 
-// ---------- Reusable File Display Box ----------
 function FileDisplay({ label, fileName }: { label: string; fileName: string }) {
   return (
     <div>
@@ -53,7 +51,7 @@ function FileDisplay({ label, fileName }: { label: string; fileName: string }) {
 interface ThesisAllowanceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  percentage: string;   // passed without trailing '%'
+  percentage: string;   
   data: {
     scholarInfo: {
       name: string;
