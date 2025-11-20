@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check } from 'lucide-react';
+import { AlertCircle, Check } from 'lucide-react';
 import { SemesterGrid } from './SemesterGrid';
 import { RecentSubmissions } from './RecentSubmissions';
 import { GradeSubmissionModal } from './GradeSubmissionModal';
@@ -112,19 +112,29 @@ export function GradeSubmissionPanel() {
         Grade Submission
       </h2>
       
-      <Card className='bg-yellow-50 border-yellow-200'>
-        <CardHeader>
-          <CardTitle className="font-bold text-yellow-800">Grade Submission Requirements</CardTitle>
+      <Card className="bg-dost-title/5 border-dost-title/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="font-bold text-dost-title flex items-center gap-2 text-lg">
+            <AlertCircle className="h-5 w-5" />
+            Guidelines & Requirements
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            {requirements.map((req, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-yellow-800">{req}</span>
-              </li>
-            ))}
-          </ul>
+        <CardContent className="space-y-4 text-sm text-gray-700">
+          <p>
+            Scholars must submit their grades and registration forms at the end of every semester to process their stipend. Ensure all documents are clear and readable.
+          </p>
+          <div className="bg-white/60 p-4 rounded-lg border border-blue-100">
+             <ul className="space-y-2 list-disc list-inside text-gray-700">
+                <li> <strong>Certified True Copy of Grades</strong> from the University Registrar.
+                </li>
+                <li> <strong>Certificate of Registration (Form 5)</strong> for the semester.
+                </li>
+                <li>Files must be clear scanned copies (PDF preferred).
+                </li>
+                <li>Registrar's official seal and signature must be visible.
+                </li>
+             </ul>
+          </div>
         </CardContent>
       </Card>
 
@@ -135,6 +145,7 @@ export function GradeSubmissionPanel() {
         options={acadYearOptions}
       />
 
+      {/* Semester Grid serves as the "Selection" UI here */}
       <SemesterGrid 
         semesters={filteredSemesters} 
         onSelectSemester={handleOpenModal}

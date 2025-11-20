@@ -25,6 +25,8 @@ export type {
   LeaveOfAbsence,
   RequestForm,
   SupportFeedback,
+  StipendPeriodStatus, // <-- ADDED
+  StipendSemesterAvailability, // <-- ADDED
 } from './services';
 
 export type {
