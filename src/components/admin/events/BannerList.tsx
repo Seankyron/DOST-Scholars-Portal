@@ -19,7 +19,7 @@ interface BannerListProps {
   onDelete: (id: number) => void;
 }
 
-export function BannerList({ banners, onEdit, onDelete }: BannerListProps) { // <-- FIX 3: Remove 'loading' from props
+export function BannerList({ banners, onEdit, onDelete }: BannerListProps) { 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
 
@@ -28,19 +28,6 @@ export function BannerList({ banners, onEdit, onDelete }: BannerListProps) { // 
     setIsDeleteOpen(true);
   };
 
-  // FIX 4: Remove the loading state block
-  // The parent component (page.tsx) now handles this.
-  /*
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-40">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-  */
-
-  // FIX 5: Adjust the empty state check
   if (banners.length === 0) {
     return (
       <div className="flex justify-center items-center h-40">

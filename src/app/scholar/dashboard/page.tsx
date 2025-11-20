@@ -1,10 +1,9 @@
-// src/app/scholar/dashboard/page.tsx
 'use client';
 
 import { ProfileSection } from '@/components/scholar/profile/ProfileSection';
 import { EventBannerSection } from '@/components/scholar/event-banner/EventBannerSection';
 import { NavigationTabs } from '@/components/scholar/layout/NavigationTabs';
-import { RecentActivity } from '@/components/scholar/layout/RecentActivity';
+// Removed RecentActivity import
 import { WelcomeHeader } from '@/components/scholar/layout/WelcomeHeader';
 import { Card } from '@/components/ui/card';
 import {
@@ -24,7 +23,6 @@ function DashboardContentWrapper() {
   return (
     <div className="space-y-6">
       <NavigationTabs />
-      <RecentActivity />
     </div>
   );
 }

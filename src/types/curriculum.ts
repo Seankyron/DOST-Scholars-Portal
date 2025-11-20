@@ -9,7 +9,11 @@ export interface SemesterAvailability {
   isPast: boolean;
   semester: Semester;
   status: SubmissionStatus;
+<<<<<<< HEAD
   year: number;
   gradeFileKey: string | null;
   corFileKey: string | null;
+=======
+  academicYear?: string;
+>>>>>>> merge
 }

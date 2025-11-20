@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { GradeSubmissionPanel } from '../services/GradeSubmission/GradeSubmissionPanel';
 import { StipendTrackingPanel } from '../services/StipendTracking/StipendTrackingPanel';
+import { LeaveOfAbsencePanel } from '../services/LeaveOfAbsence/LeaveOfAbsencePanel';
 import { cn } from '@/lib/utils/cn'; 
 
 const MockServicePanel = ({ title }: { title: string }) => (
@@ -28,6 +29,8 @@ export function ServicePanelOverlay({ className }: { className?: string }) {
         return <GradeSubmissionPanel />;
       case 'stipend-tracking':
         return <StipendTrackingPanel />;
+      case 'leave-of-absence':
+        return <LeaveOfAbsencePanel />;
       default:
         const serviceTitle = activeService
           ? activeService.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')

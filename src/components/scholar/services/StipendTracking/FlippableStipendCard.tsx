@@ -12,7 +12,7 @@ interface FlippableStipendCardProps {
   title: string;
   value: number;
   tooltip: string;
-  variant: 'success' | 'warning' | 'info' | 'pending';
+  variant: 'success' | 'on hold' | 'pending' | 'processing';
   breakdown: Allowance[];
   isFlipped: boolean;
   onFlip: () => void;
@@ -54,9 +54,9 @@ export function FlippableStipendCard({
 }: FlippableStipendCardProps) {
   const frontVariants = {
     success: 'bg-green-50 border-green-200 text-green-800',
-    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-    info: 'bg-blue-50 border-blue-200 text-blue-800',
-    pending: 'bg-gray-50 border-gray-200 text-gray-800',
+    pending: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+    processing: 'bg-blue-50 border-blue-200 text-blue-800',
+    'on hold': 'bg-purple-50 border-purple-200 text-purple-800',
   };
 
   return (
