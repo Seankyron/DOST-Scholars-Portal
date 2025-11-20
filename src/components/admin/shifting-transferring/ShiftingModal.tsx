@@ -90,9 +90,147 @@ export function ShiftingModal({ isOpen, onClose, data }: ShiftingModalProps) {
             <ModalTitle>Documents Submitted</ModalTitle>
           </ModalHeader>
 
-          <ModalBody className="max-h-[70vh] overflow-y-auto p-6 space-y-8">
+          <ModalBody className="max-h-[70vh] overflow-y-auto p-6 space-y-10">
 
-            {/* TWO-COLUMN FILE GRID */}
+            {/* =============== 2-COLUMN WRAPPER LIKE THESIS MODAL =============== */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+
+              {/* LEFT SECTION ====================================== */}
+              <div className="space-y-8">
+
+                {/* SCHOLAR INFO */}
+                <section>
+                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
+                    Scholar Information
+                  </h2>
+
+                  <div className="space-y-3 pt-2">
+                    <div>
+                      <Label>Name</Label>
+                      <p className="p-2">
+                        Juan Dela Cruz</p>
+                    </div>
+
+                    <div>
+                      <Label>Contact Number</Label>
+                      <p className="p-2">
+                        09123456789</p>
+                    </div>
+
+                    <div>
+                      <Label>Date of Birth</Label>
+                      <p className="p-2">
+                        1999-05-12</p>
+                    </div>
+
+                    <div>
+                      <Label>Complete Address</Label>
+                      <p className="p-2">
+                        Brgy. Example, City, Province
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* YEAR OF AWARD / PLACEMENT */}
+                <section>
+                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
+                    Year of Award and Study Placement
+                  </h2>
+
+                  <div className="space-y-3 pt-2">
+                    <div>
+                      <Label>Scholarship Type</Label>
+                      <p className="p-2">
+                        JLSS</p>
+                    </div>
+
+                    <div>
+                      <Label>Batch / Year Awarded</Label>
+                      <p className="p-2">
+                        2022</p>
+                    </div>
+
+                    <div>
+                      <Label>School / University</Label>
+                      <p className="p-2">
+                        Polytechnic University
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label>Program / Course</Label>
+                      <p className="p-2">
+                        BS Information Technology
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+              </div>
+
+              {/* RIGHT SECTION ====================================== */}
+              <div className="space-y-8">
+
+                {/* SUBMISSION DETAILS */}
+                <section>
+                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
+                    Submission Details
+                  </h2>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+
+                    <div>
+                      <Label>Year & Semester</Label>
+                      <p className="p-2">2025 - 1st Sem</p>
+                    </div>
+
+                    <div>
+                      <Label>Academic Year</Label>
+                      <p className="p-2">2025-2026</p>
+                    </div>
+
+                    <div>
+                      <Label>Date Submitted</Label>
+                      <p className="p-2">Nov 18, 2025</p>
+                    </div>
+
+                    <div>
+                      <Label>Reason</Label>
+                      <p className="p-2">Shifting</p>
+                    </div>
+
+                    <div>
+                      <Label>New School</Label>
+                      <p className="p-2">
+                        FEU Institute of Tech
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label>New Course</Label>
+                      <p className="p-2">
+                        BS Computer Science
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label>Effectivity</Label>
+                      <p className="p-2">2026 1st Sem</p>
+                    </div>
+
+                    <div>
+                      <Label>OJT (New Course)</Label>
+                      <p className="p-2">Required</p>
+                    </div>
+
+                  </div>
+                </section>
+
+              </div>
+            </div>
+
+            {/* FILES SECTION (UNCHANGED) */}
             <section>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FileDisplay label="Application Form:" fileName={files.applicationForm} />
@@ -113,7 +251,7 @@ export function ShiftingModal({ isOpen, onClose, data }: ShiftingModalProps) {
               </div>
             </section>
 
-            {/* FULL-WIDTH COMMENTS */}
+            {/* COMMENTS (UNCHANGED) */}
             <section className="w-full">
               <Label className="text-sm font-semibold text-gray-700">Comments</Label>
               <textarea
@@ -126,7 +264,6 @@ export function ShiftingModal({ isOpen, onClose, data }: ShiftingModalProps) {
             </section>
           </ModalBody>
 
-          {/* BUTTONS */}
           <ModalFooter>
             <Button
               className="bg-red-600 hover:bg-red-700"
