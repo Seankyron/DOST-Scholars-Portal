@@ -17,10 +17,27 @@ import { toast } from "@/components/ui/toaster";
 
 import { useState } from "react";
 
-function FileDisplay({ label, fileName }: { label: string; fileName: string }) {
+interface ReimbursementData {
+  id: number;
+  scholarName: string;
+  type: string;
+  university: string;
+  reimbursement: string;
+  status: string;
+  dateSubmitted: string;
+
+  yearSem: string;
+  academicYear: string;
+  reimbursementType: string;
+  reason: string;
+  receipt: string;
+}
+
+function FileDisplay({ fileName }: { fileName: string }) {
   return (
     <div>
-      <Label className="text-sm font-medium text-gray-700">{label}</Label>
+      <Label className="text-sm font-medium text-gray-700">Receipt</Label>
+
       <div className="flex items-center justify-between p-3 pl-4 border rounded-lg bg-gray-50 mt-1">
         <span className="text-sm font-medium text-gray-800 truncate">
           {fileName || "No File"}
@@ -39,39 +56,23 @@ function FileDisplay({ label, fileName }: { label: string; fileName: string }) {
   );
 }
 
-interface ShiftingModalProps {
+export default function ReimbursementModal({
+  isOpen,
+  onClose,
+  data,
+}: {
   isOpen: boolean;
   onClose: () => void;
-  data: {
-    files: {
-      applicationForm: string;
-      certAdmission: string;
-      certAccreditedSubjects: string;
-      certYearLevel: string;
-      certGrades: string;
-      programStudy: string;
-    };
-  };
-}
-
-export function ShiftingModal({ isOpen, onClose, data }: ShiftingModalProps) {
+  data: ReimbursementData | null;
+}) {
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
   const [comments, setComments] = useState("");
 
-  const {
-    files = {   
-      applicationForm: "",
-      certAdmission: "",
-      certAccreditedSubjects: "",
-      certYearLevel: "",
-      certGrades: "",
-      programStudy: "",
-    },
-  } = data || {};
+  if (!data) return null;
 
   const handleApprove = () => {
-    toast.success("Application Approved");
+    toast.success("Reimbursement Approved");
     setIsApproveOpen(false);
     onClose();
   };
@@ -87,15 +88,14 @@ export function ShiftingModal({ isOpen, onClose, data }: ShiftingModalProps) {
       <Modal open={isOpen} onOpenChange={onClose}>
         <ModalContent size="4xl">
           <ModalHeader>
-            <ModalTitle>Documents Submitted</ModalTitle>
+            <ModalTitle>Reimbursement Details</ModalTitle>
           </ModalHeader>
 
           <ModalBody className="max-h-[70vh] overflow-y-auto p-6 space-y-10">
-
+            {/* GRID LAYOUT */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-
+              {/* LEFT COLUMN */}
               <div className="space-y-8">
-
                 {/* SCHOLAR INFO */}
                 <section>
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
@@ -105,70 +105,48 @@ export function ShiftingModal({ isOpen, onClose, data }: ShiftingModalProps) {
                   <div className="space-y-3 pt-2">
                     <div>
                       <Label>Name</Label>
-                      <p className="p-2">
-                        Juan Dela Cruz</p>
+                      <p className="p-2">{data.scholarName}</p>
                     </div>
 
                     <div>
-                      <Label>Contact Number</Label>
-                      <p className="p-2">
-                        09123456789</p>
+                      <Label>Scholarship Type</Label>
+                      <p className="p-2">{data.type}</p>
                     </div>
 
                     <div>
-                      <Label>Date of Birth</Label>
-                      <p className="p-2">
-                        1999-05-12</p>
+                      <Label>University</Label>
+                      <p className="p-2">{data.university}</p>
                     </div>
 
                     <div>
-                      <Label>Complete Address</Label>
-                      <p className="p-2">
-                        Brgy. Example, City, Province
-                      </p>
+                      <Label>Status</Label>
+                      <p className="p-2">{data.status}</p>
                     </div>
                   </div>
                 </section>
 
-                {/* YEAR OF AWARD / PLACEMENT */}
+                {/* STUDY PLACEMENT */}
                 <section>
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                    Year of Award and Study Placement
+                    Year of Award & Placement
                   </h2>
 
                   <div className="space-y-3 pt-2">
                     <div>
-                      <Label>Scholarship Type</Label>
-                      <p className="p-2">
-                        JLSS</p>
+                      <Label>Reimbursement Type</Label>
+                      <p className="p-2">{data.reimbursementType}</p>
                     </div>
 
                     <div>
-                      <Label>Batch / Year Awarded</Label>
-                      <p className="p-2">
-                        2022</p>
-                    </div>
-
-                    <div>
-                      <Label>School / University</Label>
-                      <p className="p-2">
-                        Polytechnic University
-                      </p>
-                    </div>
-
-                    <div>
-                      <Label>Program / Course</Label>
-                      <p className="p-2">
-                        BS Information Technology
-                      </p>
+                      <Label>Brief Reason</Label>
+                      <p className="p-2">{data.reason}</p>
                     </div>
                   </div>
                 </section>
-
               </div>
 
+              {/* RIGHT COLUMN */}
               <div className="space-y-8">
-
                 {/* SUBMISSION DETAILS */}
                 <section>
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
@@ -176,77 +154,37 @@ export function ShiftingModal({ isOpen, onClose, data }: ShiftingModalProps) {
                   </h2>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-
                     <div>
                       <Label>Year & Semester</Label>
-                      <p className="p-2">2025 - 1st Sem</p>
+                      <p className="p-2">{data.yearSem}</p>
                     </div>
 
                     <div>
                       <Label>Academic Year</Label>
-                      <p className="p-2">2025-2026</p>
+                      <p className="p-2">{data.academicYear}</p>
                     </div>
 
                     <div>
                       <Label>Date Submitted</Label>
-                      <p className="p-2">Nov 18, 2025</p>
+                      <p className="p-2">{data.dateSubmitted}</p>
                     </div>
 
                     <div>
-                      <Label>Reason</Label>
-                      <p className="p-2">Shifting</p>
+                      <Label>Reimbursement Type</Label>
+                      <p className="p-2">{data.reimbursementType}</p>
                     </div>
 
-                    <div>
-                      <Label>New School</Label>
-                      <p className="p-2">
-                        FEU Institute of Tech
-                      </p>
+                    <div className="col-span-2">
+                      <Label>Brief Reason</Label>
+                      <p className="p-2">{data.reason}</p>
                     </div>
 
-                    <div>
-                      <Label>New Course</Label>
-                      <p className="p-2">
-                        BS Computer Science
-                      </p>
+                    <div className="col-span-2">
+                      <FileDisplay fileName={data.receipt} />
                     </div>
-
-                    <div>
-                      <Label>Effectivity</Label>
-                      <p className="p-2">2026 1st Sem</p>
-                    </div>
-
-                    <div>
-                      <Label>OJT (New Course)</Label>
-                      <p className="p-2">Required</p>
-                    </div>
-
                   </div>
                 </section>
-
-              </div>
-            </div>
-
-            <section>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FileDisplay label="Application Form:" fileName={files.applicationForm} />
-                <FileDisplay label="Certification of Admission:" fileName={files.certAdmission} />
-                <FileDisplay
-                  label="Certification of Accredited Subjects:"
-                  fileName={files.certAccreditedSubjects}
-                />
-                <FileDisplay
-                  label="Certification of Year Level:"
-                  fileName={files.certYearLevel}
-                />
-                <FileDisplay label="Certification of Grades:" fileName={files.certGrades} />
-                <FileDisplay
-                  label="Approved Program of Study:"
-                  fileName={files.programStudy}
-                />
-              </div>
-            </section>
-
+                {/* COMMENTS */}
             <section className="w-full">
               <Label className="text-sm font-semibold text-gray-700">Comments</Label>
               <textarea
@@ -254,9 +192,13 @@ export function ShiftingModal({ isOpen, onClose, data }: ShiftingModalProps) {
                 rows={4}
                 value={comments}
                 onChange={(e) => setComments(e.target.value)}
-                placeholder="Enter remarks or instructions for the scholar..."
+                placeholder="Enter remarks or instructions..."
               />
             </section>
+              </div>
+            </div>
+
+            
           </ModalBody>
 
           <ModalFooter>
@@ -277,12 +219,13 @@ export function ShiftingModal({ isOpen, onClose, data }: ShiftingModalProps) {
         </ModalContent>
       </Modal>
 
+      {/* Confirm Dialogs */}
       <ConfirmDialog
         isOpen={isApproveOpen}
         onClose={() => setIsApproveOpen(false)}
         onConfirm={handleApprove}
-        title="Approve Application"
-        description="Are you sure you want to approve this application?"
+        title="Approve Reimbursement"
+        description="Are you sure you want to approve this reimbursement?"
         confirmText="Yes, approve"
         variant="info"
       />
@@ -293,7 +236,7 @@ export function ShiftingModal({ isOpen, onClose, data }: ShiftingModalProps) {
         onConfirm={handleResubmit}
         title="Request Resubmission"
         description="Are you sure you want to request resubmission?"
-        confirmText="Yes, request resubmission"
+        confirmText="Yes, request"
         variant="danger"
       />
     </>

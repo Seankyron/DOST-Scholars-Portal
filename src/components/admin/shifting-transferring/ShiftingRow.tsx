@@ -1,5 +1,6 @@
 import { Eye, Check, X } from "lucide-react";
-
+import StatusBadge from "../practical-training/badges/StatusBadge";
+import TypeBadge from "../practical-training/badges/TypeBadge";
 
 export default function ShiftingRow({ row, onView }: any) {
   return (
@@ -7,13 +8,17 @@ export default function ShiftingRow({ row, onView }: any) {
 
       <td className="p-3">{row.scholar}</td>
 
-      <td className="p-3">{row.type}</td>
+      <td className="p-3">
+        <TypeBadge type = {row.type}/>
+        </td>
 
       <td className="p-3">{row.university}</td>
 
       <td className="p-3">{row.application}</td>
 
-      <td className="p-3">{row.status}</td>
+      <td className="p-3">
+        <StatusBadge status = {row.status}/>
+        </td>
 
       <td className="p-3">{row.date}</td>
 

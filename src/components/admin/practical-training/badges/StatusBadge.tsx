@@ -1,11 +1,19 @@
 export default function StatusBadge({ status }: any) {
+  const normalized = status?.toLowerCase();
+
   const styles: Record<string, string> = {
-    approved: 'bg-green-100 text-green-700',
-    pending: 'bg-yellow-100 text-yellow-700',
-    completed: 'bg-green-100 text-green-700',
+    approved: "bg-green-100 text-green-700",
+    pending: "bg-yellow-100 text-yellow-700",
+    completed: "bg-green-100 text-green-700",
   };
 
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[status] || ''}`}>{status ? status.charAt(0).toUpperCase() + status.slice(1) : ''}</span>
+    <span
+      className={`px-3 py-1 rounded-full text-xs font-medium ${
+        styles[normalized] || ""
+      }`}
+    >
+      {status ? status.charAt(0).toUpperCase() + status.slice(1) : ""}
+    </span>
   );
 }
