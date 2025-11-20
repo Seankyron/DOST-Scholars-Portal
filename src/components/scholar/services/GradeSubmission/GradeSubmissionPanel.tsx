@@ -13,7 +13,6 @@ import { toast } from '@/components/ui/toaster';
 import { Select } from '@/components/ui/select'; 
 import { useCurrentScholarGrade, iGradeSubmissions } from '@/hooks/scholar/useCurrentScholarGrade';
 
-<<<<<<< HEAD
 const requirements = [
   'Certified True Copy of complete grades and certificate of registration from University Registrar',
   'Clear scanned copy or high-quality photo',
@@ -23,7 +22,6 @@ const requirements = [
 
 const jlssScholarships = [ "JLSS, RA 7687", "JLSS, Merit", "JLSS, RA 10612", ];
 
-=======
 const mockCurriculum: CurriculumConfig = {
   midyearYears: [1, 3], 
   thesisYear: 4,
@@ -45,14 +43,12 @@ const submissionStatuses: Record<string, SubmissionStatus> = {
   '4-1st Semester': 'Not Available',
   '4-2nd Semester': 'Not Available',
 };
->>>>>>> merge
 
 function GetAcademicYearOptions(batch: number, scholarshipType: string, courseDuration: number) 
 {  
   const scholarshipDuration = jlssScholarships.includes(scholarshipType)? 
                             (courseDuration == 4? 2 : 3) : (courseDuration);
 
-<<<<<<< HEAD
   const academicYearOptions = Array.from({ length: scholarshipDuration }, (_, i) => {
     const label = `AY ${batch + scholarshipDuration - i - 1}-${batch + scholarshipDuration - i}`;
     return { value: label, label, year: courseDuration--};
@@ -96,7 +92,6 @@ function GetGradeRecordBySemester(midyearClasses: number[],
   });
 
   return gradeRecords;
-=======
 const academicYearOptions = Object.values(academicYearMapping)
   .map(ay => ({ value: ay, label: ay }))
   .reverse();
@@ -123,18 +118,14 @@ for (let year = 1; year <= courseDuration; year++) {
       academicYear: academicYearMapping[year] || 'N/A',
     });
   }
->>>>>>> merge
 }
 
 export function GradeSubmissionPanel() {
   const [selectedSemester, setSelectedSemester] = useState<SemesterAvailability | null>(null);
   const [isClosing, setIsClosing] = useState(false);
-<<<<<<< HEAD
   
   const user = JSON.parse(sessionStorage.getItem("user") ?? '');
-=======
   const [selectedAcademicYear, setSelectedAcademicYear] = useState('AY 2025-2026'); 
->>>>>>> merge
 
   const acadYearOptions = GetAcademicYearOptions(Number(user.batch), user.scholarship_type, user.course_duration);
   const [selectedAcademicYear, setSelectedAcademicYear] = useState(acadYearOptions[0]['label']); 
