@@ -3,9 +3,9 @@ import { v2 as cloudinary } from 'cloudinary';
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
-  api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!,
-  api_secret: process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET!,
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+  api_secret: process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET,
   secure: true,
 });
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      publicId: result.public_id,
+      key: result.public_id,
       url: result.secure_url,
     });
   } catch (err: any) {

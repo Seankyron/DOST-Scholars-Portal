@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Modal, 
   ModalContent, 
@@ -12,21 +12,18 @@ import {
 } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, Calendar } from 'lucide-react'; 
+import { Edit, Calendar, Loader2 } from 'lucide-react'; 
 import { SubmissionForm } from './SubmissionForm';
 import { AdminCommentAlert } from '../../../shared/AdminCommenAlert';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatDate } from '@/lib/utils/date';
-import type { SemesterAvailability, GradeSubmission, YearLevel } from '@/types'; 
-import { useFileUpload } from '@/hooks/useFileUpload';
+import type { SemesterAvailability, YearLevel } from '@/types'; 
+import type { GradeSubmission, SubmissionStatus } from '@/types/services'; 
 import { toast } from '@/components/ui/toaster';
-import { iGradeSubmissions, useCurrentScholarGrade } from '@/hooks/scholar/useCurrentScholarGrade';
-import {  } from '@/hooks/scholar/useDocumentUpload';
-import { createClient } from '@/lib/supabase/client';
+import { type iGradeSubmissions, useCurrentScholarGrade } from '@/hooks/scholar/useCurrentScholarGrade';
 import { useCloudinaryUpload } from '@/hooks/scholar/useDocumentUpload';
 import { useSubmitGrade } from '@/hooks/scholar/useSubmitGrade';
 import { useUpdateGrade } from '@/hooks/scholar/useUpdateGrade';
-
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;
@@ -44,238 +41,171 @@ const yearLabels: { [key: number]: YearLevel } = {
 
 const APPROVED_MESSAGE = 'Your submission is approved. Please wait for your stipend to be processed. You can check the status in the Stipend Tracking service.';
 
-function GetMissingDocument(grade: iGradeSubmissions | null = null)
-{
+// Helper to determine missing docs based on DB columns
+function GetMissingDocument(grade: iGradeSubmissions | null = null) {
   if (!grade) return ['Transcript of Records (TOR)', 'Certificate of Registration (COR)'];
-  else if (!grade?.cor_file_key) return ['Certificate of Registration (COR)'];
-  else if (!grade?.grade_file_key) return ['Transcript of Records (TOR)'];
-  else return null;
+  if (!grade.cor_file_key && !grade.grade_file_key) return ['Transcript of Records (TOR)', 'Certificate of Registration (COR)'];
+  if (!grade.cor_file_key) return ['Certificate of Registration (COR)'];
+  if (!grade.grade_file_key) return ['Transcript of Records (TOR)'];
+  return null;
 }
 
+// Helper to generate admin comment
 function GetAdminComment(missingDoc: string[] | null) {
   if (!missingDoc || missingDoc.length === 0) {
-    return 'Your submission is approved. Please wait for your stipend to be processed. You can check the status in the Stipend Tracking service.';
+    return APPROVED_MESSAGE;
   }
-
   const docList = missingDoc.join(' and ');
-
-  return `Invalid ${docList}. Please upload the certified true copy of the document from the university registrar.`;
+  return `Invalid or missing ${docList}. Please upload the certified true copy of the document.`;
 }
 
-
-//Invalid Certificate of Registration. Please upload the certified true copy of the document from the university registrar.
-export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmissionModalProps) 
-{
-  const user = JSON.parse(sessionStorage.getItem('user') ?? '');
-  const gradeRecords = useCurrentScholarGrade(semester.year, semester.semester);
-  const missingDoc = GetMissingDocument(gradeRecords.grade[0])
-  const { uploadDocument } = useCloudinaryUpload();
-  const { submitGrade, loading, error, success } = useSubmitGrade();
-  const { updateGrade } = useUpdateGrade();
-
-
-  let submissionData: GradeSubmission;
-
-  submissionData = {
-    id: '-1',
-    scholarId: user.spas_id,
-    status: semester.status,
-    dateSubmitted: gradeRecords.grade[0]?.updated_at?? new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    adminComment: semester.status === 'Resubmit' ? GetAdminComment(missingDoc) : undefined,
-    yearLevel: yearLabels[semester.year] || '1st Year',
-    semester: semester.semester,
-    academicYear: semester.academicYear?.slice(-9),
-    registrationForm: `${user.last_name}_COR.pdf`,
-    registrationFormUrl: semester.corFileKey ?? '',
-    copyOfGrades: `${user.last_name}_Grades.pdf`,
-    copyOfGradesUrl: semester.gradeFileKey ?? '',
-  };
-
-  const [submission, setSubmission] = useState<GradeSubmission | null>(submissionData);
-const APPROVED_MESSAGE = 'Your submission is approved. Please wait for your stipend to be processed.';
-
 export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmissionModalProps) {
-  
-  // --- Mock Data Loading ---
-  const mockSubmissionData: GradeSubmission = {
-    id: 'sub123',
-    scholarId: 'scholar123',
-    status: semester.status,
-    dateSubmitted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    adminComment: semester.status === 'Resubmit' 
-      ? 'Invalid Certificate of Registration. Please upload the certified true copy.'
-      : undefined,
-    yearLevel: yearLabels[semester.year] || '1st Year',
-    semester: semester.semester,
-    academicYear: semester.academicYear || 'N/A',
-    registrationForm: 'De Larosa_COR.pdf',
-    registrationFormUrl: '#',
-    copyOfGrades: 'De Larosa_Grades.pdf',
-    copyOfGradesUrl: '#',
-  };
+  // 1. Get User Info Safely
+  const userStr = typeof window !== 'undefined' ? sessionStorage.getItem('user') : null;
+  const user = userStr ? JSON.parse(userStr) : null;
 
-  const hasSubmission = semester.status !== 'Open' && semester.status !== 'Not Available';
-  const initialSubmission = hasSubmission ? mockSubmissionData : null;
+  // 2. Fetch Real Data
+  const { grade, loading: dataLoading } = useCurrentScholarGrade(semester.year, semester.semester);
+  const currentGradeRecord = grade?.[0] || null;
 
-  // --- State ---
-  const [submission, setSubmission] = useState<GradeSubmission | null>(initialSubmission);
-  
-  // Derived State (Moved up so handleSubmit can access them)
-  const status = submission?.status || semester.status;
-  const adminComment = submission?.adminComment;
-  const isResubmit = status === 'Resubmit';
-  
-  // Initial Mode: Edit if 'Open' or 'Resubmit'. View otherwise.
-  const [isEditing, setIsEditing] = useState(semester.status === 'Open' || isResubmit);
-  
+  // 3. Hooks for Actions
+  const { uploadDocument } = useCloudinaryUpload(); 
+  const { submitGrade, loading: submitLoading } = useSubmitGrade();
+  const { updateGrade, loading: updateLoading } = useUpdateGrade();
+
+  // 4. State
+  const [isEditing, setIsEditing] = useState(false);
   const [regForm, setRegForm] = useState<File | null>(null);
   const [gradesFile, setGradesFile] = useState<File | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+
+  // 5. Determine Status and UI Mode
+  const rawStatus = currentGradeRecord?.status || semester.status;
+  const dbStatus = (rawStatus || 'Open') as SubmissionStatus;
   
-  const scholarId = submissionData.id; 
-  const { uploadFile } = useFileUpload('grade-submissions');
-  const scholarId = 'mock-scholar-id'; 
+  const isResubmit = dbStatus === 'Resubmit';
+  const hasSubmission = !!currentGradeRecord;
 
-  const handleCloseAndReset = () => {
-    setIsLoading(false);
-    setRegForm(null);
-    setGradesFile(null);
-    setIsConfirmed(false);
-    onClose(); 
-  };
+  const missingDocs = isResubmit ? GetMissingDocument(currentGradeRecord) : null;
+  const adminComment = isResubmit ? GetAdminComment(missingDocs) : undefined;
 
+  // Initialize Edit Mode based on status
+  useEffect(() => {
+    if (isOpen) {
+      setIsEditing(dbStatus === 'Open' || dbStatus === 'Resubmit');
+      setRegForm(null);
+      setGradesFile(null);
+      setIsConfirmed(false);
+    }
+  }, [isOpen, dbStatus]);
+
+  // 6. Construct the Submission Object for the UI
+  const submissionData: GradeSubmission | null = hasSubmission ? {
+    id: currentGradeRecord.id.toString(),
+    scholarId: user?.spas_id || '',
+    status: dbStatus,
+    dateSubmitted: currentGradeRecord.updated_at || new Date().toISOString(),
+    adminComment: adminComment,
+    yearLevel: yearLabels[semester.year] || '1st Year',
+    semester: semester.semester,
+    academicYear: semester.academicYear?.slice(-9) || 'N/A',
+    registrationForm: currentGradeRecord.cor_file_key || '', 
+    copyOfGrades: currentGradeRecord.grade_file_key || '',
+  } : null;
+
+  const isLoading = submitLoading || updateLoading;
+
+  // 7. Handle Submit Logic
   const handleSubmit = async () => {
-    // 1. Universal Check: Confirmation
+    if (!user) {
+      toast.error("User session not found. Please log in again.");
+      return;
+    }
+
     if (!isConfirmed) {
-       toast.error('Please confirm that your documents are correct.');
+      toast.error('Please confirm that your documents are correct.');
+      return;
+    }
+
+    if (!hasSubmission && (!regForm || !gradesFile)) {
+      toast.error('Please upload both the Registration Form and Copy of Grades.');
+      return;
+    }
+
+    if (isResubmit && !regForm && !gradesFile) {
+       toast.error('Please upload the corrected documents.');
        return;
     }
-    
-    setIsConfirmOpen(true);
-    handleConfirmSubmit();
-    setIsLoading(false);
-  };
 
-  const handleConfirmSubmit = async () => {
-    setIsConfirmOpen(false);
-    const toastLoading = toast.loading('Submitting your documents...');
+    const toastId = toast.loading('Submitting documents...');
 
     try {
-      let regFormUrl = submission?.registrationFormUrl || null;
-      let gradesUrl = submission?.copyOfGradesUrl || null;
-      let update: boolean = false;
-
-
-      // Upload Registration Form to Cloudinary
-      if (showRegFormUpload && regForm) {
-        const uploadedRegFormUrl = await uploadDocument(regForm, `DOST-Portal/regForm-submissions/${user.spas_id}`);
-        if (!uploadedRegFormUrl) {
-          throw new Error('Failed to upload Registration Form.');
-        }
-        regFormUrl = uploadedRegFormUrl.url;
-      }
-
-      // Upload Grades file to Cloudinary
-      if (showGradesFormUpload && gradesFile) {
-        const uploadedGradesUrl = await uploadDocument(gradesFile, `DOST-Portal/grade-submissions/${user.spas_id}`);
-        if (!uploadedGradesUrl) {
-          throw new Error('Failed to upload Grades file.');
-        }
-        gradesUrl = uploadedGradesUrl.url;
-      }
+      let regFormKey = currentGradeRecord?.cor_file_key || '';
+      let gradesKey = currentGradeRecord?.grade_file_key || '';
       
-      // Validate that all required files have URLs
-      if (!regFormUrl || !gradesUrl) {
-        throw new Error('File upload failed. Please ensure all documents are provided.');
-      }
+      // This isn't a URL, it's the "bucket" or "folder context" for your API
+      const uploadContext = `dost-portal/${user.spas_id}/grade-submissions`; 
 
-      if (gradeRecords?.grade[0]?.id) { 
-        await updateGrade({
-          id: gradeRecords?.grade[0]?.id ?? 0,
-          spas_id: user.spas_id,
-          year: semester.year,
-          semester: semester.semester,
-          regFormUrl: regFormUrl,
-          gradesUrl: gradesUrl,
-          comment: submission?.adminComment,
-          created_at: submission?.dateProcessed
-        });
-      }      
-      else { 
-        await submitGrade({
-          spas_id: user.spas_id,
-          year: semester.year,
-          semester: semester.semester,
-          regFormUrl: regFormUrl,
-          gradesUrl: gradesUrl,
-          comment: submission?.adminComment,
-          created_at: submission?.dateProcessed
-        });
-      }
-
-      toast.dismiss(toastLoading);
-      toast.success('Submission successful! Awaiting verification.');
-      handleCloseAndReset();
-    } catch (err: any) {
-      setIsLoading(false);
-      toast.dismiss(toastLoading);
-      toast.error(err.message || 'Submission failed.');
-    } 
-
-    if (isResubmit) {
-        const comment = (adminComment || '').toLowerCase();
-        
-        const needsRegForm = comment.includes('registration') || comment.includes('form 5');
-        const needsGrades = comment.includes('grades') || comment.includes('tor') || comment.includes('transcript');
-
-        if (needsRegForm && !regForm) {
-            toast.error('Please re-upload your Registration Form / Form 5.');
-            return;
-        }
-
-        if (needsGrades && !gradesFile) {
-            toast.error('Please re-upload your Copy of Grades.');
-            return;
-        }
-    }
-
-    // 3. New Submission Logic: Both files required
-    if (semester.status === 'Open' && (!regForm || !gradesFile)) {
-        toast.error('Please upload all required files.');
-        return;
-    }
-
-
-    try {
-      // Upload Logic
+      // Upload Reg Form if a new one is selected
       if (regForm) {
-        const path = `${scholarId}/${semester.year}-${semester.semester}-regform.${regForm.name.split('.').pop()}`;
-        await uploadFile(regForm, path, { acceptedTypes: ['.pdf'] });
+        // Pass the file and the "bucket" name to your hook
+        // Your hook calls /api/upload, which handles the `${userId}/${bucket}/filename` logic
+        const result = await uploadDocument(regForm, uploadContext);
+        
+        // --- FIX: Strict checking for the key ---
+        if (!result || !result.key) {
+            console.error("Upload result missing key:", result);
+            throw new Error('Failed to upload Registration Form: No key returned');
+        }
+        regFormKey = result.key;
       }
+
+      // Upload Grades if a new one is selected
       if (gradesFile) {
-        const path = `${scholarId}/${semester.year}-${semester.semester}-grades.${gradesFile.name.split('.').pop()}`;
-        await uploadFile(gradesFile, path, { acceptedTypes: ['.pdf'] });
+        const result = await uploadDocument(gradesFile, uploadContext);
+        
+        // --- FIX: Strict checking for the key ---
+        if (!result || !result.key) {
+            console.error("Upload result missing key:", result);
+            throw new Error('Failed to upload Copy of Grades: No key returned');
+        }
+        gradesKey = result.key;
       }
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toast.success('Submission successful! Awaiting verification.');
-      handleCloseAndReset();
+      const payload = {
+        spas_id: user.spas_id,
+        year_level: semester.year,
+        semester: semester.semester,
+        cor_file_key: regFormKey,
+        grade_file_key: gradesKey,
+      };
 
+      if (hasSubmission) {
+        await updateGrade({
+          id: currentGradeRecord.id,
+          ...payload,
+          status: 'Pending' 
+        });
+      } else {
+        await submitGrade(payload);
+      }
+
+      toast.dismiss(toastId);
+      toast.success('Submission successful! Awaiting verification.');
+      onClose();
     } catch (error: any) {
-      toast.error('Submission failed.');
-      setIsLoading(false); 
+      toast.dismiss(toastId);
+      console.error("Submission Error:", error);
+      toast.error(error.message || 'Submission failed. Please try again.');
     }
   };
 
-  // Alert Logic
-  const showAdminAlert = hasSubmission && (isResubmit || status === 'Approved');
-  
+  const showAdminAlert = hasSubmission && (isResubmit || dbStatus === 'Approved');
   let alertMessage = adminComment || 'No comment provided.';
-  if (status === 'Approved') alertMessage = APPROVED_MESSAGE;
+  if (dbStatus === 'Approved') alertMessage = APPROVED_MESSAGE;
 
   return (
-    <Modal open={isOpen} onOpenChange={handleCloseAndReset}>
+    <Modal open={isOpen} onOpenChange={onClose}>
       <ModalContent size="2xl">
         <ModalHeader>
           <ModalTitle>
@@ -289,60 +219,62 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
         
         <ModalBody className="space-y-6 max-h-[70vh] overflow-y-auto scrollbar-thin">
           
-          {/* 1. Metadata Banner */}
-          
-
-          {/* 2. Admin Feedback Loop */}
-          {showAdminAlert && (
-            <AdminCommentAlert status={status} comment={alertMessage} />
-          )}
-
-          {/* 3. Smart Form */}
-          <SubmissionForm
-            semester={semester}
-            submission={submission}
-            regForm={regForm}
-            setRegForm={setRegForm}
-            gradesFile={gradesFile}
-            setGradesFile={setGradesFile}
-            // Logic Props for Smart Validation
-            isReadOnly={!isEditing}
-            isResubmit={isResubmit}
-            adminComment={adminComment}
-          />
-
-          {/* 4. Confirmation Checkbox (Only in Edit Mode) */}
-          {isEditing && (
-             <div className="pt-4 border-t">
-                <Checkbox
-                    label="I confirm that the uploaded documents are correct, clear, and authentic."
-                    checked={isConfirmed}
-                    onChange={(e) => setIsConfirmed(e.target.checked)}
-                />
+          {dataLoading && (
+             <div className="flex justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-dost-blue" />
              </div>
           )}
 
-          {hasSubmission && !isEditing && (
-             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <div className="flex flex-col gap-1">
-                     <span className="text-xs font-semibold text-gray-500 uppercase">Current Status</span>
-                     <div><StatusBadge status={status} /></div>
+          {!dataLoading && (
+            <>
+              {showAdminAlert && (
+                <AdminCommentAlert status={dbStatus} comment={alertMessage} />
+              )}
+
+              <SubmissionForm
+                semester={semester}
+                submission={submissionData}
+                regForm={regForm}
+                setRegForm={setRegForm}
+                gradesFile={gradesFile}
+                setGradesFile={setGradesFile}
+                isReadOnly={!isEditing}
+                isResubmit={isResubmit}
+                adminComment={adminComment}
+              />
+
+              {isEditing && (
+                 <div className="pt-4 border-t">
+                    <Checkbox
+                        label="I confirm that the uploaded documents are correct, clear, and authentic."
+                        checked={isConfirmed}
+                        onChange={(e) => setIsConfirmed(e.target.checked)}
+                    />
                  </div>
-                 <div className="flex flex-col gap-1">
-                     <span className="text-xs font-semibold text-gray-500 uppercase">Date Submitted</span>
-                     <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
-                         <Calendar className="h-4 w-4 text-gray-500" />
-                         {submission ? formatDate(submission.dateSubmitted) : 'N/A'}
+              )}
+
+              {hasSubmission && !isEditing && (
+                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <div className="flex flex-col gap-1">
+                         <span className="text-xs font-semibold text-gray-500 uppercase">Current Status</span>
+                         <div><StatusBadge status={dbStatus} /></div>
+                     </div>
+                     <div className="flex flex-col gap-1">
+                         <span className="text-xs font-semibold text-gray-500 uppercase">Date Submitted</span>
+                         <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
+                             <Calendar className="h-4 w-4 text-gray-500" />
+                             {submissionData ? formatDate(submissionData.dateSubmitted) : 'N/A'}
+                         </div>
                      </div>
                  </div>
-             </div>
+              )}
+            </>
           )}
 
         </ModalBody>
         
         <ModalFooter>
           {isEditing ? (
-            /* EDIT MODE FOOTER */
             <>
               <ModalClose asChild>
                 <Button type="button" variant="outline" disabled={isLoading}>
@@ -352,20 +284,19 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
               <Button
                 type="button"
                 onClick={handleSubmit} 
-                isLoading={isLoading}
                 disabled={isLoading}
               >
+                {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {isResubmit ? 'Submit Corrections' : 'Submit Grades'}
               </Button>
             </>
           ) : (
-            /* VIEW MODE FOOTER */
             <>
               <ModalClose asChild>
                 <Button variant="outline">Close</Button>
               </ModalClose>
               
-              {status === 'Pending' && (
+              {(dbStatus === 'Pending' || dbStatus === 'Resubmit') && (
                 <Button onClick={() => setIsEditing(true)}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Response

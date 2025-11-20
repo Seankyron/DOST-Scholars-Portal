@@ -8,7 +8,7 @@ export function useCloudinaryUpload() {
       formData.append('file', file);
       formData.append('folder', folder);
 
-      const res = await fetch('/api/cloudinary', { method: 'POST', body: formData });
+      const res = await fetch('/api/scholar', { method: 'POST', body: formData });
 
       if (!res.ok) {
         const data = await res.json();

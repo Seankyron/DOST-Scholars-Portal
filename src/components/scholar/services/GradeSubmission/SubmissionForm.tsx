@@ -49,8 +49,8 @@ export function SubmissionForm({
   // Helper to get display name
   const regFileName = regForm?.name || submission?.registrationForm || "No file uploaded";
   const gradesFileName = gradesFile?.name || submission?.copyOfGrades || "No file uploaded";
-  const regFileUrl = submission?.registrationFormUrl;
-  const gradesFileUrl = submission?.copyOfGradesUrl;
+  const regFileUrl = submission?.registrationForm;
+  const gradesFileUrl = submission?.copyOfGrades;
 
   return (
     <div className="space-y-6">

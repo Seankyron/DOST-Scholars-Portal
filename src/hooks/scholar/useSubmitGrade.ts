@@ -4,10 +4,10 @@ import { createClient } from '@/lib/supabase/client';
 
 interface SubmissionData {
   spas_id: string;
-  year: number; 
+  year_level: number; 
   semester: string;
-  regFormUrl: string;
-  gradesUrl: string;
+  cor_file_key: string;
+  grade_file_key: string;
   comment?: string | null;
   created_at?: string | null;
 }
@@ -31,11 +31,11 @@ export const useSubmitGrade = () => {
         .upsert(
           {
             spas_id: data.spas_id,
-            year_level: data.year,
+            year_level: data.year_level,
             semester: data.semester,
             status: 'Pending',
-            cor_file_key: data.regFormUrl,
-            grade_file_key: data.gradesUrl,
+            cor_file_key: data.cor_file_key,
+            grade_file_key: data.grade_file_key,
             updated_at: new Date().toISOString(),
             created_at: data.created_at ?? new Date().toISOString(),
             comment: data.comment || null,

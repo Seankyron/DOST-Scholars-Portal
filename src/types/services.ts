@@ -40,9 +40,7 @@ export interface GradeSubmission extends BaseSubmission {
   semester: Semester;
   academicYear: string;
   registrationForm: string;
-  registrationFormUrl?: string; // --- MODIFICATION: Added this property ---
   copyOfGrades: string;
-  copyOfGradesUrl?: string; // --- MODIFICATION: Added this property ---
   curriculumFile?: string;
 }
 

@@ -4,10 +4,11 @@ import { Json } from "@/lib/supabase/type";
 
 
 interface iStipend {
+  updated_at: string | number | Date;
   id: string;
   spas_id: string;
   year_level: number;
-  semester: number;
+  semester: string;
   stipend_type: string;
   received: number;
   unreleased: number;

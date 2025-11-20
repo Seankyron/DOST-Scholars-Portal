@@ -1,144 +1,141 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, Check } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { SemesterGrid } from './SemesterGrid';
 import { RecentSubmissions } from './RecentSubmissions';
 import { GradeSubmissionModal } from './GradeSubmissionModal';
-import type { SemesterAvailability } from '@/types/curriculum';
-import type { SubmissionStatus, CurriculumConfig, Semester } from '@/types'; 
-import { hasMidyear } from '@/lib/utils/curriculum'; 
 import { toast } from '@/components/ui/toaster';
-import { Select } from '@/components/ui/select'; 
-import { useCurrentScholarGrade, iGradeSubmissions } from '@/hooks/scholar/useCurrentScholarGrade';
+import { Select } from '@/components/ui/select';
+import { useCurrentScholarGrade, type iGradeSubmissions } from '@/hooks/scholar/useCurrentScholarGrade';
+import type { SemesterAvailability, SubmissionStatus, Semester } from '@/types';
 
-const requirements = [
-  'Certified True Copy of complete grades and certificate of registration from University Registrar',
-  'Clear scanned copy or high-quality photo',
-  'All subjects and grades clearly visible',
-  'Registrar\'s official seal and signature present',
-];
+// 1. Constants
+const jlssScholarships = ["JLSS, RA 7687", "JLSS, Merit", "JLSS, RA 10612"];
 
-const jlssScholarships = [ "JLSS, RA 7687", "JLSS, Merit", "JLSS, RA 10612", ];
+// 2. Helper: Generate Academic Year Options
+function GetAcademicYearOptions(batch: number, scholarshipType: string, courseDuration: number) {
+  // Logic: If JLSS, duration is usually shorter (2 or 3 years), else use full course duration
+  // Adjust this logic based on your exact business rules for JLSS vs Merit/RA7687
+  const scholarshipDuration = jlssScholarships.includes(scholarshipType)
+    ? (courseDuration === 4 ? 2 : 3)
+    : courseDuration;
 
-const mockCurriculum: CurriculumConfig = {
-  midyearYears: [1, 3], 
-  thesisYear: 4,
-  ojtYear: 3,
-  ojtSemester: 'Midyear',
-  duration: 4, 
-};
-
-// ... (SubmissionStatuses and AcademicYearMapping logic remains the same) ...
-const submissionStatuses: Record<string, SubmissionStatus> = {
-  '1-1st Semester': 'Approved',
-  '1-2nd Semester': 'Approved',
-  '1-Midyear': 'Approved', 
-  '2-1st Semester': 'Approved',
-  '2-2nd Semester': 'Pending', 
-  '3-1st Semester': 'Approved',
-  '3-2nd Semester': 'Resubmit', 
-  '3-Midyear': 'Open', 
-  '4-1st Semester': 'Not Available',
-  '4-2nd Semester': 'Not Available',
-};
-
-function GetAcademicYearOptions(batch: number, scholarshipType: string, courseDuration: number) 
-{  
-  const scholarshipDuration = jlssScholarships.includes(scholarshipType)? 
-                            (courseDuration == 4? 2 : 3) : (courseDuration);
-
-  const academicYearOptions = Array.from({ length: scholarshipDuration }, (_, i) => {
-    const label = `AY ${batch + scholarshipDuration - i - 1}-${batch + scholarshipDuration - i}`;
-    return { value: label, label, year: courseDuration--};
+  // Generate array of years
+  const options = Array.from({ length: scholarshipDuration }, (_, i) => {
+    // Example: Batch 2021, Duration 4
+    // i=0: 2021 + 0 = 2021 -> AY 2021-2022 (Year 1)
+    // i=3: 2021 + 3 = 2024 -> AY 2024-2025 (Year 4)
+    const startYear = batch + i;
+    const label = `AY ${startYear}-${startYear + 1}`;
+    return { value: label, label, year: i + 1 }; // year is 1-based index
   });
 
-  return academicYearOptions;
+  // Return reversed so latest year is first
+  return options.reverse();
 }
 
+// 3. Helper: Transform DB Data into UI Semesters
+function GetGradeRecordBySemester(
+  midyearClasses: number[],
+  academicYearOptions: { label: string; value: string; year: number }[],
+  grade?: iGradeSubmissions[] | null
+) {
+  // 1. Determine the "Current" academic year based on system time
+  const currentSystemYear = new Date().getFullYear(); 
+  
+  // Optional: You can make this more precise by checking the month
+  // e.g., if (month < 6) currentSystemYear = currentSystemYear - 1;
 
-function GetGradeRecordBySemester(midyearClasses: number[],
-      academicYearOptions: {label: string, value: string, year: number}[],
-      grade?: iGradeSubmissions[] | null)
-{
-  academicYearOptions.reverse();
-
-  const nextYear = new Date().getFullYear() + 1;
   const semesters: Semester[] = ['1st Semester', '2nd Semester', 'Midyear'];
 
-  const gradeRecords: SemesterAvailability[] = academicYearOptions.flatMap(option => {
+  const gradeRecords: SemesterAvailability[] = academicYearOptions.flatMap((option) => {
     const semCount = midyearClasses.includes(option.year) ? 3 : 2;
-    let year = Number(option.label.slice(-4));
+    
+    // Extract 2024 from "AY 2024-2025"
+    const academicYearStart = parseInt(option.label.split(' ')[1].split('-')[0]);
 
-    return semesters.slice(0, semCount).map(semester => {
-      const entry = grade?.find(i => i.semester === semester && i.year_level === option.year);
-      // Uncomment if past semester should be closed when grade file is null.
-      // const status = entry?.status ?? (nextYear < year? 'Not Available' : (nextYear > year)? 'Closed' : 'Resubmit')
-      const status = entry?.status ?? (nextYear < year? 'Not Available' : 'Resubmit');
+    return semesters.slice(0, semCount).map((semester) => {
+      // Check if DB has data for this slot
+      const entry = grade?.find(
+        (i) => i.semester === semester && i.year_level === option.year
+      );
+
+      // --- LOCKING LOGIC STARTS HERE ---
+      let status: SubmissionStatus = 'Not Available'; // Default to Locked
+
+      if (entry) {
+        // CASE 1: Data exists. Use the real status.
+        status = entry.status as SubmissionStatus;
+      }
+      // --- LOCKING LOGIC ENDS HERE ---
 
       return {
         academicYear: option.label,
-        isAvailable: grade?.some(i => i.semester === semester && i.year_level === option.year) ?? false,
-        isCurrent: (nextYear === year),
-        isFuture: (nextYear < year),
-        isPast: (nextYear > year),
+        // isAvailable controls the UI visual (grayed out vs colored)
+        isAvailable: status !== 'Not Available',
+        isCurrent: academicYearStart === currentSystemYear,
+        isFuture: academicYearStart > currentSystemYear,
+        isPast: academicYearStart < currentSystemYear,
         semester,
-        status: (status) as SubmissionStatus,
+        status: status,
         year: option.year,
         gradeFileKey: entry?.grade_file_key ?? null,
-        corFileKey: entry?.cor_file_key ?? null
-    }});
+        corFileKey: entry?.cor_file_key ?? null,
+      };
+    });
   });
 
   return gradeRecords;
-const academicYearOptions = Object.values(academicYearMapping)
-  .map(ay => ({ value: ay, label: ay }))
-  .reverse();
-
-// Adaptive Semester Generation Logic
-const generatedSemesters: (SemesterAvailability & { academicYear: string })[] = [];
-const courseDuration = mockCurriculum.duration; 
-
-for (let year = 1; year <= courseDuration; year++) {
-  const semesters: Semester[] = ['1st Semester', '2nd Semester'];
-  if (hasMidyear(mockCurriculum, year)) semesters.push('Midyear');
-
-  for (const sem of semesters) {
-    const statusKey = `${year}-${sem}`;
-    const status = submissionStatuses[statusKey] || 'Not Available';
-    generatedSemesters.push({
-      year: year,
-      semester: sem,
-      status: status,
-      isAvailable: status !== 'Not Available',
-      isCurrent: (year === 3 && sem === '2nd Semester'), 
-      isPast: year < 3 || (year === 3 && sem === '1st Semester'), 
-      isFuture: year > 3,
-      academicYear: academicYearMapping[year] || 'N/A',
-    });
-  }
 }
 
 export function GradeSubmissionPanel() {
   const [selectedSemester, setSelectedSemester] = useState<SemesterAvailability | null>(null);
   const [isClosing, setIsClosing] = useState(false);
-  
-  const user = JSON.parse(sessionStorage.getItem("user") ?? '');
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState('AY 2025-2026'); 
 
-  const acadYearOptions = GetAcademicYearOptions(Number(user.batch), user.scholarship_type, user.course_duration);
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState(acadYearOptions[0]['label']); 
+  // 1. Get User Data safely
+  const userStr = typeof window !== 'undefined' ? sessionStorage.getItem('user') : null;
+  const user = userStr ? JSON.parse(userStr) : null;
 
-  const { grade, loading, error } = useCurrentScholarGrade();
-  const gradeRecord = GetGradeRecordBySemester([...user.midyear_classes], [...acadYearOptions], grade);
-  
+  // If no user, return early or show loading (prevents crash)
+  if (!user) return <div className="p-4 text-center">Loading user data...</div>;
+
+  // 2. Generate Options
+  const acadYearOptions = GetAcademicYearOptions(
+    Number(user.batch), // Ensure this matches DB column name
+    user.scholarship_type,
+    user.course_duration
+  );
+
+  // 3. State for Dropdown
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState(acadYearOptions[0]?.label || '');
+
+  // 4. Fetch Grade Data
+  const { grade, loading } = useCurrentScholarGrade();
+  console.log(grade)
+  // 5. Calculate Grid Data
+  const gradeRecord = GetGradeRecordBySemester(
+    user.midyear_classes || [], // Ensure array
+    acadYearOptions,
+    grade
+  );
+
+  // 6. Handlers
   const handleOpenModal = (semester: SemesterAvailability) => {
+    // STRICT LOCK: Do not open if status is 'Not Available'
     if (semester.status !== 'Not Available') {
       setSelectedSemester(semester);
       setIsClosing(false);
     } else {
-      toast.info('This semester is not yet available for submission.');
+      // Optional: Give specific feedback based on why it's locked
+      if (semester.isFuture) {
+        toast.info(`You cannot submit grades for a future semester yet.`);
+      } else if (semester.isPast) {
+        toast.error(`Submission for this semester is closed. Please contact your coordinator.`);
+      } else {
+        toast.info('This semester is currently locked.');
+      }
     }
   };
 
@@ -147,9 +144,10 @@ export function GradeSubmissionPanel() {
     setTimeout(() => {
       setSelectedSemester(null);
       setIsClosing(false);
-    }, 250);
+    }, 250); // Match animation duration
   };
 
+  // 7. Filter for Grid Display
   const filteredSemesters = gradeRecord.filter(
     (sem) => sem.academicYear === selectedAcademicYear
   );
@@ -159,7 +157,7 @@ export function GradeSubmissionPanel() {
       <h2 className="text-3xl text-center font-bold text-dost-title mb-4">
         Grade Submission
       </h2>
-      
+
       <Card className="bg-dost-title/5 border-dost-title/20">
         <CardHeader className="pb-3">
           <CardTitle className="font-bold text-dost-title flex items-center gap-2 text-lg">
@@ -172,36 +170,36 @@ export function GradeSubmissionPanel() {
             Scholars must submit their grades and registration forms at the end of every semester to process their stipend. Ensure all documents are clear and readable.
           </p>
           <div className="bg-white/60 p-4 rounded-lg border border-blue-100">
-             <ul className="space-y-2 list-disc list-inside text-gray-700">
-                <li> <strong>Certified True Copy of Grades</strong> from the University Registrar.
-                </li>
-                <li> <strong>Certificate of Registration (Form 5)</strong> for the semester.
-                </li>
-                <li>Files must be clear scanned copies (PDF preferred).
-                </li>
-                <li>Registrar's official seal and signature must be visible.
-                </li>
-             </ul>
+            <ul className="space-y-2 list-disc list-inside text-gray-700">
+              <li><strong>Certified True Copy of Grades</strong> from the University Registrar.</li>
+              <li><strong>Certificate of Registration (Form 5)</strong> for the semester.</li>
+              <li>Files must be clear scanned copies (PDF preferred).</li>
+              <li>Registrar's official seal and signature must be visible.</li>
+            </ul>
           </div>
         </CardContent>
       </Card>
 
-      <Select 
-        label="Select Academic Year"
-        value={selectedAcademicYear}
-        onChange={(e) => setSelectedAcademicYear(e.target.value)}
-        options={acadYearOptions}
-      />
+      <div className="w-full max-w-xs">
+        <Select
+          label="Select Academic Year"
+          value={selectedAcademicYear}
+          onChange={(e) => setSelectedAcademicYear(e.target.value)}
+          options={acadYearOptions}
+        />
+      </div>
 
-      {/* Semester Grid serves as the "Selection" UI here */}
-      <SemesterGrid 
-        semesters={filteredSemesters} 
+      {/* Grid Display */}
+      <SemesterGrid
+        semesters={filteredSemesters}
         onSelectSemester={handleOpenModal}
         academicYear={selectedAcademicYear}
       />
 
+      {/* Recent Submissions Feed */}
       <RecentSubmissions onSelectSubmission={handleOpenModal} />
 
+      {/* Modal */}
       {(selectedSemester || isClosing) && (
         <GradeSubmissionModal
           isOpen={!!selectedSemester && !isClosing}
