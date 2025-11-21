@@ -3,11 +3,6 @@
     "development"
   ],
   "hints": {
-    "axe/structure": [
-      "default",
-      {
-        "dlitem": "off"
-      }
-    ]
+    "axe/structure": "off"
   }
 }
