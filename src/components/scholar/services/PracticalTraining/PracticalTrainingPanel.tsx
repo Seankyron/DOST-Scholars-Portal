@@ -114,7 +114,7 @@ export function PracticalTrainingPanel() {
                    variant="outline" 
                    size="sm" 
                    asChild
-                   className="w-full bg-white hover:bg-blue-50 text-dost-title border-blue-200 justify-start"
+                   className="w-full bg-white hover:bg-blue-50 text-dost-title border-blue-200"
                  >
                     <a href="/templates/ptp/Forms_126-128_PTP.pdf" download target="_blank" rel="noopener noreferrer">
                       <Download className="h-3 w-3 mr-2" />
@@ -125,7 +125,7 @@ export function PracticalTrainingPanel() {
                    variant="outline" 
                    size="sm" 
                    asChild
-                   className="w-full bg-white hover:bg-blue-50 text-dost-title border-blue-200 justify-start"
+                   className="w-full bg-white hover:bg-blue-50 text-dost-title border-blue-200"
                  >
                     <a href="/templates/ptp/DTR.pdf" download target="_blank" rel="noopener noreferrer">
                       <Download className="h-3 w-3 mr-2" />

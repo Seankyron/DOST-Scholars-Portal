@@ -1,17 +1,25 @@
 'use client';
 
+import { LucideIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils/cn';
 import { ChevronRight } from 'lucide-react';
 
-interface ReasonSelectorProps {
+interface ShiftingOptionSelectorProps {
   title: string;
   description: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   onClick: () => void;
+  className?: string;
 }
 
-export function ReasonSelector({ title, description, icon: Icon, onClick }: ReasonSelectorProps) {
+export function ShiftingOptionSelector({ 
+  title, 
+  description, 
+  icon: Icon, 
+  onClick, 
+  className 
+}: ShiftingOptionSelectorProps) {
   return (
     <Card
       onClick={onClick}

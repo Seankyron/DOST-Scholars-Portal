@@ -17,7 +17,7 @@ export const downloadableFiles = {
     {
       name: 'Reply Slip Template',
       filename: 'ptp_reply_slip.pdf',
-      url: '/templates/ptp/reply_slip.pdf',
+      url: '/templates/ptp/Reply Slip_4A.pdf',
       size: '500 KB',
     },
     {
@@ -42,20 +42,20 @@ export const downloadableFiles = {
   'travel-clearance': [
     {
       name: 'Travel Clearance Request Form',
-      filename: 'travel_request_form.pdf',
-      url: '/templates/travel-clearance/request_form.pdf',
+      filename: 'ClearanceRequestForm.pdf',
+      url: '/templates/travel-clearance/ClearanceRequestForm.pdf',
       size: '600 KB',
     },
     {
       name: 'Deed of Undertaking Template',
-      filename: 'deed_of_undertaking.pdf',
-      url: '/templates/travel-clearance/deed_of_undertaking.pdf',
+      filename: 'DeedOfUndertaking.pdf',
+      url: '/templates/travel-clearance/DeedOfUndertaking.pdf',
       size: '550 KB',
     },
     {
       name: 'Guarantee Letter Template',
-      filename: 'guarantee_letter.pdf',
-      url: '/templates/travel-clearance/guarantee_letter.pdf',
+      filename: 'guarantee-letter-template.pdf',
+      url: '/templates/travel-clearance/guarantee-letter-template.pdf',
       size: '480 KB',
     },
   ],
@@ -68,24 +68,24 @@ export const downloadableFiles = {
     },
     {
       name: 'Thesis Manuscript Guide',
-      filename: 'manuscript_guide.pdf',
-      url: '/templates/thesis/manuscript_guide.pdf',
+      filename: 'THESIS TEMPLATE.pdf',
+      url: '/templates/thesis/THESIS TEMPLATE.pdf',
       size: '1.2 MB',
     },
   ],
   'leave-of-absence': [
     {
       name: 'LOA Application Form',
-      filename: 'loa_application.pdf',
-      url: '/templates/leave-of-absence/application_form.pdf',
+      filename: 'STSD-Application-Form-for-LOA.pdf',
+      url: '/templates/leave-of-absence/STSD-Application-Form-for-LOA_V3-04-18-2024-for RO4A only.pdf',
       size: '520 KB',
     },
   ],
   'shifting-transferring': [
     {
       name: 'Shifting/Transferring Application Form',
-      filename: 'shifting_application.pdf',
-      url: '/templates/shifting-transferring/application_form.pdf',
+      filename: 'STSD-124-Rev-4-Application-Form.pdf',
+      url: '/templates/shifting-transferring/STSD-124-Rev-4-Application-Form-for-Shift-Transfer.pdf',
       size: '580 KB',
     },
     {

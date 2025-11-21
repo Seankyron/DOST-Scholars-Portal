@@ -72,10 +72,6 @@ export type Allowance = {
   status: 'Released' | 'Pending' | 'On hold' | 'Processing';
 };
 
-export type StipendUpdate = {
-  message: string;
-  type: 'info' | 'warning' | 'success';
-};
 
 export type PTPPlan = 'undertake_ptp' | 'cannot_participate' | 'ojt_midyear_and_ptp';
 
