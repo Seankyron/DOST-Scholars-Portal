@@ -1,6 +1,5 @@
 'use client';
 
-import { StatusBadge } from '@/components/shared/StatusBadge';
 import { InfoTooltip } from '@/components/shared/InfoToolTip';
 import { cn } from '@/lib/utils/cn';
 import type { StipendSemesterAvailability } from '@/types';
