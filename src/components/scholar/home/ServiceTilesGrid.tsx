@@ -26,6 +26,8 @@ export function ServiceTilesGrid() {
       openPanel('shifting-transferring');
     } else if (serviceId === 'request-forms') {
       openPanel('request-forms');
+    } else if (serviceId === 'reimbursement') {
+      openPanel('reimbursement');
     } else {
       toast.info(`${serviceTitle} service is not yet built!`);
     }

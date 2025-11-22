@@ -4,19 +4,19 @@ import { LucideIcon, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils/cn';
 
-interface RequestOptionSelectorProps {
+interface ReimbursementOptionSelectorProps {
   title: string;
   description: string;
   icon: LucideIcon;
   onClick: () => void;
 }
 
-export function RequestOptionSelector({ 
+export function ReimbursementOptionSelector({ 
   title, 
   description, 
   icon: Icon, 
   onClick 
-}: RequestOptionSelectorProps) {
+}: ReimbursementOptionSelectorProps) {
   return (
     <Card
       onClick={onClick}
