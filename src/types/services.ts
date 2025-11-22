@@ -9,7 +9,8 @@ export type SubmissionStatus =
   | 'Closed' 
   | 'Open' 
   | 'Not Available'
-  | 'Released';
+  | 'Released'
+  | 'Resolved';
 
 export type StipendPeriodStatus =
   | 'Released'
@@ -22,7 +23,7 @@ export type StipendPeriodStatus =
   semester: Semester;
   status: StipendPeriodStatus;
   academicYear: string;
-  isGradeApproved: boolean; // Crucial for opening the card
+  isGradeApproved: boolean; 
 }
 // ..
 

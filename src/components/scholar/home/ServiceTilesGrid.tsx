@@ -28,6 +28,8 @@ export function ServiceTilesGrid() {
       openPanel('request-forms');
     } else if (serviceId === 'reimbursement') {
       openPanel('reimbursement');
+    } else if (serviceId === 'support-feedback') {
+      openPanel('support-feedback');
     } else {
       toast.info(`${serviceTitle} service is not yet built!`);
     }

@@ -61,9 +61,9 @@ export function RequestFormsPanel() {
              </ul>
           </div>
           <Separator className="bg-blue-200" />
-          <p className="text-xs italic text-gray-500">
-             Note: Approved documents will be sent to your registered email address or made available for download in this portal.
-          </p>
+          <div className="text-xs text-gray-700 italic max-w-4xl">
+             <strong>Note:</strong> Approved documents will be sent to your registered email address or made available for download in this portal.
+          </div>
         </CardContent>
       </Card>
 

@@ -13,49 +13,47 @@ import { TravelClearancePanel } from '../services/TravelClearance/TravelClearanc
 import { ShiftingTransferringPanel } from '../services/ShiftingTransferring/ShiftingTransferringPanel';
 import { RequestFormsPanel } from '../services/RequestForms/RequestFormsPanel';
 import { ReimbursementPanel } from '../services/Reimbursement/ReimbursementPanel';
+import { SupportFeedbackPanel } from '../services/SupportFeedback/SupportFeedbackPanel';
 import { cn } from '@/lib/utils/cn'; 
 
-const MockServicePanel = ({ title }: { title: string }) => (
-  <div className="p-6">
-    <h2 className="text-3xl font-bold text-dost-title mb-4">{title}</h2>
-    <Card>
-      <CardContent className="p-6">
-        <p>This service is not yet implemented.</p>
-      </CardContent>
-    </Card>
-  </div>
-);
 
 export function ServicePanelOverlay({ className }: { className?: string }) {
   const { closePanel, activeService } = useServicePanelContext();
 
   const renderService = () => {
-    switch (activeService) {
-      case 'grade-submission':
-        return <GradeSubmissionPanel />;
-      case 'stipend-tracking':
-        return <StipendTrackingPanel />;
-      case 'leave-of-absence':
-        return <LeaveOfAbsencePanel />;
-      case 'practical-training':
-        return <PracticalTrainingPanel/>;
-      case 'thesis-allowance':
-        return <ThesisAllowancePanel/>;
-      case 'travel-clearance':
-        return <TravelClearancePanel/>;
-      case 'shifting-transferring':
-        return <ShiftingTransferringPanel/>;
-      case 'request-forms':
-        return <RequestFormsPanel />;
-      case 'reimbursement':
-        return <ReimbursementPanel />;
-      default:
-        const serviceTitle = activeService
-          ? activeService.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-          : 'Service';
-        return <MockServicePanel title={serviceTitle} />;
+  switch (activeService) {
+    case 'grade-submission':
+      return <GradeSubmissionPanel />;
+    case 'stipend-tracking':
+      return <StipendTrackingPanel />;
+    case 'leave-of-absence':
+      return <LeaveOfAbsencePanel />;
+    case 'practical-training':
+      return <PracticalTrainingPanel />;
+    case 'thesis-allowance':
+      return <ThesisAllowancePanel />;
+    case 'travel-clearance':
+      return <TravelClearancePanel />;
+    case 'shifting-transferring':
+      return <ShiftingTransferringPanel />;
+    case 'request-forms':
+      return <RequestFormsPanel />;
+    case 'reimbursement':
+      return <ReimbursementPanel />;
+    case 'support-feedback':
+      return <SupportFeedbackPanel />;
+    default: {
+      const service = activeService ?? "service";
+
+      const serviceTitle = service
+        .split('-')
+        .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+
+      return <div>{serviceTitle}</div>;
     }
-  };
+  }
+};
   
   if (!activeService) return null;
 

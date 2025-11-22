@@ -154,7 +154,7 @@ export function ThesisAllowancePanel() {
 
           <Separator className="bg-blue-200" />
 
-          <div className="text-xs text-gray-700 italic max-w-4xl">
+          <div className="text-xs text-gray-700 italic max-w-3xl">
               <strong>Note:</strong> Processing of financial assistance is subject to the availability of funds for the purpose and to pertinent government accounting and auditing rules.
           </div>
         </CardContent>

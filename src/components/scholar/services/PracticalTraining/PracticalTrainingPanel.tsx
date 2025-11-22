@@ -150,7 +150,7 @@ export function PracticalTrainingPanel() {
           </div>
 
           {/* Footer Note */}
-          <div className="text-xs text-gray-700 italic max-w-4xl">
+          <div className="text-xs text-gray-700 italic max-w-3xl">
               <strong>Note:</strong> If your OJT is scheduled during midyear, also submit your <strong>Certified Complete Grades</strong> and <strong>Official Registration Form</strong> through the <strong>Grade Submission</strong> module.
           </div>
         </CardContent>
