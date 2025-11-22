@@ -11,6 +11,7 @@ import { PracticalTrainingPanel } from '../services/PracticalTraining/PracticalT
 import { ThesisAllowancePanel } from '../services/ThesisAllowance/ThesisAllowancePanel';
 import { TravelClearancePanel } from '../services/TravelClearance/TravelClearancePanel';
 import { ShiftingTransferringPanel } from '../services/ShiftingTransferring/ShiftingTransferringPanel';
+import { RequestFormsPanel } from '../services/RequestForms/RequestFormsPanel';
 import { cn } from '@/lib/utils/cn'; 
 
 const MockServicePanel = ({ title }: { title: string }) => (
@@ -43,6 +44,8 @@ export function ServicePanelOverlay({ className }: { className?: string }) {
         return <TravelClearancePanel/>;
       case 'shifting-transferring':
         return <ShiftingTransferringPanel/>;
+      case 'request-forms':
+        return <RequestFormsPanel />;
       default:
         const serviceTitle = activeService
           ? activeService.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')

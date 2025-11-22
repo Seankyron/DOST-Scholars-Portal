@@ -171,3 +171,17 @@ export interface SupportFeedback extends BaseSubmission {
   response?: string;
   dateResponded?: string;
 }
+
+export type RequestFormType = 
+  | 'Certificate of Scholarship' 
+  | 'Letter of Endorsement' 
+  | 'Certificate of Grades' 
+  | 'Certificate of Good Moral'
+  | 'Financial Breakdown'
+  | 'Other';
+
+export interface RequestFormSubmission extends BaseSubmission {
+  requestType: RequestFormType;
+  reason: string;
+  otherDetails?: string; // For addressee or specific instructions
+}
