@@ -62,7 +62,8 @@ export function ScholarHeader() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/scholar/settings">
+              {/* Connect to the Profile/Settings page you created */}
+              <Link href="/scholar/profile">
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </Link>

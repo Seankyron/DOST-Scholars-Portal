@@ -7,11 +7,13 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Select } from '@/components/ui/select'; 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner'; 
-import { Loader2, Save } from 'lucide-react';
+import { toast } from '@/components/ui/toaster';
+import { Loader2, Save, User, MapPin, Phone, ArrowLeft } from 'lucide-react';
+import { PROVINCES } from '@/lib/utils/constants';
+import Link from 'next/link';
 
 // Validation Schema
 const profileSchema = z.object({
@@ -23,7 +25,9 @@ const profileSchema = z.object({
   dateOfBirth: z.string().refine((date) => !isNaN(Date.parse(date)), {
     message: "Invalid date",
   }),
-  completeAddress: z.string().min(5, "Address is too short"),
+  addressProvince: z.string().min(1, "Province is required"),
+  addressCity: z.string().min(1, "City/Municipality is required"),
+  addressBrgy: z.string().min(1, "Barangay/Street is required"),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -36,7 +40,9 @@ const INITIAL_DATA = {
   suffix: '',
   contactNumber: '09171234567',
   dateOfBirth: '2003-01-15',
-  completeAddress: 'Brgy. San Vicente, San Pablo City, Laguna',
+  addressProvince: 'Laguna',
+  addressCity: 'San Pablo City',
+  addressBrgy: 'Brgy. San Vicente',
 };
 
 export function ProfileSettings() {
@@ -64,81 +70,137 @@ export function ProfileSettings() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-t-4 border-t-dost-blue shadow-sm">
-        <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-          <CardDescription>
-            Update your personal details here. Some academic fields cannot be changed.
-          </CardDescription>
+      <Card className="shadow-md bg-white">
+        <CardHeader className="pb-8">
+          <div className="flex items-center justify-between">
+            <div>
+                <CardTitle className="text-xl text-dost-title">Personal Information</CardTitle>
+                <CardDescription>
+                    Update your personal details and contact information.
+                </CardDescription>
+            </div>
+            {/* Optional: Top 'Back' button for better navigation on mobile */}
+            <Button asChild variant="ghost" size="sm" className="hidden sm:flex text-gray-500">
+                <Link href="/scholar/dashboard">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Dashboard
+                </Link>
+            </Button>
+          </div>
         </CardHeader>
         
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="space-y-6">
-            {/* Name Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" {...form.register('firstName')} />
-                {form.formState.errors.firstName && (
-                  <p className="text-xs text-red-500">{form.formState.errors.firstName.message}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="middleName">Middle Name</Label>
-                <Input id="middleName" {...form.register('middleName')} placeholder="Optional" />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="surname">Surname</Label>
-                <Input id="surname" {...form.register('surname')} />
-                {form.formState.errors.surname && (
-                  <p className="text-xs text-red-500">{form.formState.errors.surname.message}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="suffix">Suffix</Label>
-                <Input id="suffix" {...form.register('suffix')} className="w-full md:w-32" placeholder="e.g. Jr." />
-              </div>
-            </div>
+          {/* Fieldset disables all inputs when submitting */}
+          <fieldset disabled={isSaving} className="group">
+            <CardContent className="space-y-8 pt-6">
+                
+                {/* Identity Section */}
+                <div className="space-y-4">
+                <div className="flex items-center gap-2 text-dost-title mb-2">
+                    <User className="h-4 w-4" />
+                    <h3 className="font-medium text-sm uppercase tracking-wider">Identity Details</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input id="firstName" {...form.register('firstName')} />
+                        {form.formState.errors.firstName && (
+                            <p className="text-xs text-red-500">{form.formState.errors.firstName.message}</p>
+                        )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Label htmlFor="middleName">Middle Name</Label>
+                        <Input id="middleName" {...form.register('middleName')} placeholder="Optional" />
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Label htmlFor="surname">Surname</Label>
+                        <Input id="surname" {...form.register('surname')} />
+                        {form.formState.errors.surname && (
+                            <p className="text-xs text-red-500">{form.formState.errors.surname.message}</p>
+                        )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <Label htmlFor="suffix">Suffix</Label>
+                        <Input id="suffix" {...form.register('suffix')} placeholder="e.g. Jr., III" />
+                    </div>
 
-            <Separator />
+                    <div className="space-y-2">
+                        <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                        <Input type="date" id="dateOfBirth" {...form.register('dateOfBirth')} />
+                        {form.formState.errors.dateOfBirth && (
+                            <p className="text-xs text-red-500">{form.formState.errors.dateOfBirth.message}</p>
+                        )}
+                    </div>
+                </div>
+                </div>
 
-            {/* Contact & Bio Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div className="space-y-2">
-                <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                <Input type="date" id="dateOfBirth" {...form.register('dateOfBirth')} />
-                 {form.formState.errors.dateOfBirth && (
-                  <p className="text-xs text-red-500">{form.formState.errors.dateOfBirth.message}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="contactNumber">Contact Number</Label>
-                <Input id="contactNumber" {...form.register('contactNumber')} placeholder="09xxxxxxxxx" />
-                 {form.formState.errors.contactNumber && (
-                  <p className="text-xs text-red-500">{form.formState.errors.contactNumber.message}</p>
-                )}
-              </div>
+                <Separator />
 
-              <div className="col-span-1 md:col-span-2 space-y-2">
-                <Label htmlFor="completeAddress">Complete Address</Label>
-                <Textarea 
-                  id="completeAddress" 
-                  {...form.register('completeAddress')} 
-                  className="min-h-[80px] resize-none"
-                />
-                 {form.formState.errors.completeAddress && (
-                    <p className="text-xs text-red-500">{form.formState.errors.completeAddress.message}</p>
-                  )}
-              </div>
-            </div>
-          </CardContent>
+                {/* Address & Contact Section */}
+                <div className="space-y-4">
+                <div className="flex items-center gap-2 text-dost-title mb-2">
+                    <MapPin className="h-4 w-4" />
+                    <h3 className="font-medium text-sm uppercase tracking-wider">Address & Contact</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <Select
+                        label="Province"
+                        {...form.register('addressProvince')}
+                        options={PROVINCES.map((p) => ({ value: p, label: p }))}
+                        error={form.formState.errors.addressProvince?.message}
+                        placeholder="Select Province"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                    <Label htmlFor="addressCity">City / Municipality</Label>
+                    <Input id="addressCity" {...form.register('addressCity')} />
+                    {form.formState.errors.addressCity && (
+                        <p className="text-xs text-red-500">{form.formState.errors.addressCity.message}</p>
+                    )}
+                    </div>
+
+                    <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="addressBrgy">Barangay, Street, House/Unit No.</Label>
+                    <Input 
+                        id="addressBrgy" 
+                        {...form.register('addressBrgy')} 
+                        placeholder="e.g. Brgy. San Vicente, 123 Rizal St."
+                    />
+                    {form.formState.errors.addressBrgy && (
+                        <p className="text-xs text-red-500">{form.formState.errors.addressBrgy.message}</p>
+                    )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="contactNumber">Active Contact Number</Label>
+                        <div className="relative">
+                        <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input 
+                            id="contactNumber" 
+                            {...form.register('contactNumber')} 
+                            className="pl-9"
+                            placeholder="09xxxxxxxxx" 
+                        />
+                        </div>
+                        {form.formState.errors.contactNumber && (
+                        <p className="text-xs text-red-500">{form.formState.errors.contactNumber.message}</p>
+                    )}
+                    </div>
+                </div>
+                </div>
+            </CardContent>
+          </fieldset>
           
-          <CardFooter className="flex justify-end border-t px-6 py-4 bg-gray-50/50 rounded-b-xl">
-            <Button type="submit" disabled={isSaving} className="min-w-[140px]">
+          <CardFooter className="flex justify-end border-t px-6 py-4 bg-gray-50/50">
+
+            <Button type="submit" disabled={isSaving} className="w-full sm:w-auto min-w-[140px] bg-dost-title hover:bg-dost-title/90">
               {isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

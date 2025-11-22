@@ -147,14 +147,14 @@ export function ProfileSection() {
                 </div>
                 
                 {/* Edit Button Overlay */}
-                <button
+                <Button
                     onClick={handleEditClick}
                     disabled={isUploading}
-                    className="absolute bottom-0 right-0 p-2 bg-dost-title text-white rounded-full shadow-md hover:bg-blue-700 transition-colors z-10 border-2 border-white"
+                    className="absolute bottom-0 right-0 p-2 bg-dost-title text-white rounded-full shadow-md hover:bg-blue-600 transition-colors z-10 border-2 border-white"
                     title="Change Profile Photo"
                 >
                     <Camera className="h-4 w-4" />
-                </button>
+                </Button>
 
                 {/* Hidden File Input */}
                 <input 
@@ -184,7 +184,7 @@ export function ProfileSection() {
           <div className="flex flex-col space-y-4 md:col-span-3">
             <div className="space-y-2 text-center md:text-left">
               <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
-                <h2 className="text-2xl font-bold text-dost-blue">
+                <h2 className="text-2xl font-bold text-dost-title">
                   {mockScholar.firstName} {mockScholar.surname}
                 </h2>
                 <div className="flex items-center gap-2">
