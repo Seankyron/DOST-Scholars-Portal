@@ -1,3 +1,4 @@
+import type { ServiceId } from '@/hooks/useServicePanel';
 import type { YearLevel, Semester } from './scholar';
 
 export type SubmissionStatus = 
@@ -185,4 +186,14 @@ export interface RequestFormSubmission extends BaseSubmission {
   requestType: RequestFormType;
   reason: string;
   otherDetails?: string; // For addressee or specific instructions
+}
+
+export interface DashboardActivity {
+  id: string | number;
+  type: string; // The service category (e.g. "Grade Submission")
+  title: string; // The main header (e.g. "3rd Year - 1st Sem")
+  subtitle?: string; // Extra details (e.g. "AY 2024-2025" or "Singapore")
+  status: SubmissionStatus;
+  date: string; // ISO string
+  serviceId: ServiceId; // For navigation handling
 }
