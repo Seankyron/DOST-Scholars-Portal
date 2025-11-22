@@ -11,7 +11,7 @@ import { Select } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FileUpload } from '@/components/ui/file-upload';
 import { 
-  SCHOLARSHIP_TYPES, 
+  SCHOLARSHIP_TYPES,    
   UNIVERSITIES, 
   YEAR_LEVELS, 
   SEMESTERS,
@@ -322,6 +322,16 @@ export default function SignupPage() {
     { value: '5', label: '5 years' },
   ];
 
+  const PREFIX = "+63";
+
+  const today = new Date();
+const maxDate = today.toISOString().split("T")[0];
+
+// Calculate date 100 years ago
+const minDateObj = new Date();
+minDateObj.setFullYear(minDateObj.getFullYear() - 100);
+const minDate = minDateObj.toISOString().split("T")[0];
+
   const provinceOptions = PROVINCES.map(p => ({ value: p, label: p }));
 
   return (
@@ -396,16 +406,38 @@ export default function SignupPage() {
               onChange={(e) => updateFormData('dateOfBirth', e.target.value)}
               error={errors.dateOfBirth}
               required
+              max={maxDate}
+              min={minDate}
             />
+
             <Input
-              label="Active Contact Number"
-              type="tel"
-              value={formData.contactNumber}
-              onChange={(e) => updateFormData('contactNumber', e.target.value)}
-              error={errors.contactNumber}
-              placeholder="+63 912 345 6789"
-              required
+            label="Active Contact Number"
+            type="tel"
+            value={formData.contactNumber}
+            onChange={(e) => {
+                let v = e.target.value;
+
+                // Remove non-digits except the prefix
+                v = v.replace(/\D/g, "");
+
+                // Re-add the prefix ALWAYS
+                if (!v.startsWith("639")) {
+                v = "63" + v.replace(/^63?/, "");
+                }
+
+                // Final value with +
+                v = "+" + v;
+
+                // Limit max = +639 + 9 digits → total 13
+                if (v.length > 13) v = v.slice(0, 13);
+
+                updateFormData("contactNumber", v);
+            }}
+            inputMode="numeric"
+            placeholder="+639123456789"
+            maxLength={13}
             />
+
           </div>
 
           <h4 className="text-sm font-medium text-gray-700 pt-2">Complete Address</h4>

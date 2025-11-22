@@ -101,9 +101,8 @@ export default function PTPCompletionTable({ filters, setFilters }: PTPCompletio
 
   return (
     <div className="bg-white shadow-md rounded-lg mt-6">
-      {/* Title + Search */}
       <div className="flex items-center justify-between px-4 py-3">
-        <h2 className="text-xl font-bold text-gray-800">Practical Training Program Completion</h2>
+        <h2 className="text-xl font-bold text-gray-800 cursor-default">Practical Training Program Completion</h2>
 
         <input
           type="text"
@@ -114,19 +113,18 @@ export default function PTPCompletionTable({ filters, setFilters }: PTPCompletio
         />
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
-            <tr>
-              <th></th>
-              <th>Scholar</th>
-              <th>Type</th>
-              <th>University</th>
-              <th>Training Year</th>
-              <th>Status</th>
-              <th>Plan</th>
-              <th>Actions</th>
+            <tr className="border-b hover:bg-gray-50 cursor-default">
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700"></th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Scholar</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Type</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">University</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Training Year</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Plan</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
             </tr>
           </thead>
 
@@ -145,13 +143,12 @@ export default function PTPCompletionTable({ filters, setFilters }: PTPCompletio
 
         <div className="p-4 grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
 
-        <p className="text-sm text-gray-700 sm:justify-self-start sm:text-left">
+        <p className="text-sm text-gray-700 sm:justify-self-start sm:text-left cursor-default">
         Showing {filtered.length === 0 ? 0 : (page - 1) * pageSize + 1}
         –
         {Math.min(page * pageSize, filtered.length)} of {filtered.length} PTP Completion responses
         </p>
 
-      {/* Pagination */}
       <Pagination
         currentPage={page}
         totalPages={Math.ceil(filtered.length / pageSize)}
@@ -160,7 +157,6 @@ export default function PTPCompletionTable({ filters, setFilters }: PTPCompletio
 
       </div>
 
-      {/* Modal */}
       <CompletionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

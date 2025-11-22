@@ -23,7 +23,6 @@ export default function TravelClearancePage() {
   const [selected, setSelected] = useState<TravelClearance | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  // Dummy data for now
   const data: TravelClearance[] = [
     {
       id: 1,
@@ -66,7 +65,6 @@ export default function TravelClearancePage() {
         onView={handleView}
       />
 
-      {/* Modal */}
       {selected && (
   <TravelClearanceModal
     isOpen={showModal}
@@ -85,7 +83,6 @@ export default function TravelClearancePage() {
       destination: selected.destination,
       arrival: selected.arrival,
 
-      // optional files
       requestLetter: undefined,
       causeOfDelay: undefined,
       guaranteeLetter: undefined,

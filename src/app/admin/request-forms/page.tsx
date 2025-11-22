@@ -66,7 +66,7 @@ export default function RequestFormPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Request Form Management</h1>
+      <h1 className="text-2xl font-semibold mb-4 cursor-default">Request Form Management</h1>
 
       <RequestFilters filters={filters} setFilters={setFilters} />
 

@@ -11,56 +11,42 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Eye, Download } from "lucide-react";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { toast } from "@/components/ui/toaster";
-import { LeaveData } from "@/types/leave";
-
 
 import { useState } from "react";
 
+export interface SupportFeedbackData {
+  scholarName: string;
+  type: string;
+  university: string;
+  status: string;
 
-function FileDisplay({ label, fileName }: { label: string; fileName?: string }) {
-  return (
-    <div>
-      <Label className="text-sm font-medium text-gray-700">{label}</Label>
+  academicYear: string;
+  semester: string;
 
-      <div className="flex items-center justify-between p-3 pl-4 border rounded-lg bg-gray-50 mt-1">
-        <span className="text-sm font-medium text-gray-800 truncate">
-          {fileName || "No File"}
-        </span>
-
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="w-7 h-7 p-0" title="View">
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm" className="w-7 h-7 p-0" title="Download">
-            <Download className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
+  dateSubmitted: string;
+  feedback: string;
+  briefreason: string;
 }
 
-
-export default function LeaveModal({
+export default function SupportFeedbackModal({
   isOpen,
   onClose,
   data,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  data: LeaveData | null;
+  data: SupportFeedbackData | null;
 }) {
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
-  const [comments, setComments] = useState("");
+  const [adminComments, setAdminComments] = useState("");
 
   if (!data) return null;
 
   const handleApprove = () => {
-    toast.success("Leave of Absence Approved");
+    toast.success("Support & Feedback Approved");
     setIsApproveOpen(false);
     onClose();
   };
@@ -76,14 +62,16 @@ export default function LeaveModal({
       <Modal open={isOpen} onOpenChange={onClose}>
         <ModalContent size="4xl">
           <ModalHeader>
-            <ModalTitle>Leave of Absence Details</ModalTitle>
+            <ModalTitle>Support & Feedback Details</ModalTitle>
           </ModalHeader>
 
           <ModalBody className="max-h-[70vh] overflow-y-auto p-6 space-y-10">
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              
+
               <div className="space-y-8">
-                {/* SCHOLAR INFO */}
+
+                {/* SCHOLAR INFORMATION */}
                 <section>
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Scholar Information
@@ -141,6 +129,7 @@ export default function LeaveModal({
                 </div>
                 </section>
 
+
               </div>
 
               <div className="space-y-8">
@@ -151,11 +140,7 @@ export default function LeaveModal({
                     Submission Details
                   </h2>
 
-                  <div className="grid grid-cols-1 gap-4 pt-2">
-                    <div>
-                      <Label>Academic Year</Label>
-                      <p className="p-2">{data.academicYear}</p>
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
 
                     <div>
                       <Label>Year & Semester</Label>
@@ -163,65 +148,38 @@ export default function LeaveModal({
                     </div>
 
                     <div>
-                      <Label>Reason</Label>
-                      <p className="p-2">{data.reason}</p>
+                      <Label>Academic Year</Label>
+                      <p className="p-2">{data.academicYear}</p>
                     </div>
+
                     <div>
                       <Label>Date Submitted</Label>
                       <p className="p-2">{data.dateSubmitted}</p>
                     </div>
 
-                    <FileDisplay
-                      label="Application Form"
-                      fileName={data.applicationForm}
-                    />
+                    <div className="md:col-span-2">
+                      <Label>Feedback Category</Label>
+                      <p className="p-2 whitespace-pre-line">
+                        {data.feedback}
+                      </p>
+                    </div>
 
-                    <FileDisplay
-                      label="University Approval of LOA"
-                      fileName={data.universityApproval}
-                    />
+                    <div>
+                        <Label>Brief Reason</Label>
+                        <p className="p-2">{data.briefreason}</p>
+                    </div>
 
-                    <FileDisplay
-                      label="Certificate of Grades"
-                      fileName={data.certificateGrades}
-                    />
 
-                    <FileDisplay
-                      label="Medical Certificate"
-                      fileName={data.medicalCertificate}
-                    />
-
-                    <FileDisplay
-                      label="Supporting Document"
-                      fileName={data.supportingDocument}
-                    />
                   </div>
                 </section>
 
-                <section className="w-full">
-                  <Label className="text-sm font-semibold text-gray-700">
-                    Comments
-                  </Label>
-                  <textarea
-                    className="w-full mt-2 p-3 border rounded-lg text-sm"
-                    rows={4}
-                    value={comments}
-                    onChange={(e) => setComments(e.target.value)}
-                    placeholder="Enter remarks or instructions..."
-                  />
-                </section>
               </div>
+
             </div>
+
           </ModalBody>
 
           <ModalFooter>
-            <Button
-              className="bg-red-600 hover:bg-red-700"
-              onClick={() => setIsResubmitOpen(true)}
-            >
-              REQUEST RESUBMISSION
-            </Button>
-
             <Button
               className="bg-green-600 hover:bg-green-700"
               onClick={() => setIsApproveOpen(true)}
@@ -236,21 +194,12 @@ export default function LeaveModal({
         isOpen={isApproveOpen}
         onClose={() => setIsApproveOpen(false)}
         onConfirm={handleApprove}
-        title="Approve Leave of Absence"
-        description="Are you sure you want to approve this LOA request?"
+        title="Approve Support & Feedback"
+        description="Are you sure you want to approve this support & feedback submission?"
         confirmText="Yes, approve"
         variant="info"
       />
 
-      <ConfirmDialog
-        isOpen={isResubmitOpen}
-        onClose={() => setIsResubmitOpen(false)}
-        onConfirm={handleResubmit}
-        title="Request Resubmission"
-        description="Are you sure you want to request resubmission for this LOA?"
-        confirmText="Yes, request"
-        variant="danger"
-      />
     </>
   );
 }

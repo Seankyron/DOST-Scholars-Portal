@@ -28,6 +28,7 @@ interface ReimbursementData {
 
   yearSem: string;
   academicYear: string;
+  program: string;
   reimbursementType: string;
   reason: string;
   receipt: string;
@@ -92,10 +93,9 @@ export default function ReimbursementModal({
           </ModalHeader>
 
           <ModalBody className="max-h-[70vh] overflow-y-auto p-6 space-y-10">
-            {/* GRID LAYOUT */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              {/* LEFT COLUMN */}
               <div className="space-y-8">
+                
                 {/* SCHOLAR INFO */}
                 <section>
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
@@ -125,29 +125,38 @@ export default function ReimbursementModal({
                   </div>
                 </section>
 
-                {/* STUDY PLACEMENT */}
+                {/* YEAR OF AWARD & STUDY PLACEMENT */}
                 <section>
-                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                    Year of Award & Placement
-                  </h2>
+                <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
+                    Year of Award & Study Placement
+                </h2>
 
-                  <div className="space-y-3 pt-2">
+                <div className="space-y-3 pt-2">
                     <div>
-                      <Label>Reimbursement Type</Label>
-                      <p className="p-2">{data.reimbursementType}</p>
+                    <Label>Scholarship Type</Label>
+                    <p className="p-2">{data.type}</p>
                     </div>
 
                     <div>
-                      <Label>Brief Reason</Label>
-                      <p className="p-2">{data.reason}</p>
+                    <Label>Batch / Year Awarded</Label>
+                    <p className="p-2">{data.academicYear}</p>
                     </div>
-                  </div>
+
+                    <div>
+                    <Label>School / University</Label>
+                    <p className="p-2">{data.university}</p>
+                    </div>
+
+                    <div>
+                    <Label>Program / Course</Label>
+                    <p className="p-2">{data.program}</p>
+                    </div>
+                </div>
                 </section>
+
               </div>
 
-              {/* RIGHT COLUMN */}
               <div className="space-y-8">
-                {/* SUBMISSION DETAILS */}
                 <section>
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Submission Details
@@ -184,7 +193,7 @@ export default function ReimbursementModal({
                     </div>
                   </div>
                 </section>
-                {/* COMMENTS */}
+
             <section className="w-full">
               <Label className="text-sm font-semibold text-gray-700">Comments</Label>
               <textarea
@@ -219,7 +228,6 @@ export default function ReimbursementModal({
         </ModalContent>
       </Modal>
 
-      {/* Confirm Dialogs */}
       <ConfirmDialog
         isOpen={isApproveOpen}
         onClose={() => setIsApproveOpen(false)}

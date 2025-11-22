@@ -25,13 +25,11 @@ export default function TravelClearanceFilters({
     const file = e.target.files?.[0];
     if (file) {
       console.log("Uploaded file:", file.name);
-      // You can now send it to backend or process it
     }
   };
 
   return (
     <div className="flex items-center gap-6 mb-6 flex-wrap">
-      {/* Status Filter */}
       <div>
         <Label>Status</Label>
         <select
@@ -45,7 +43,6 @@ export default function TravelClearanceFilters({
         </select>
       </div>
 
-      {/* Purpose Filter */}
       <div>
         <Label>Purpose</Label>
         <select
@@ -58,7 +55,6 @@ export default function TravelClearanceFilters({
         </select>
       </div>
 
-      {/* Date Range */}
       <div>
         <Label>Date Range</Label>
         <div className="flex items-center gap-2">
@@ -68,7 +64,6 @@ export default function TravelClearanceFilters({
         </div>
       </div>
 
-      {/* Hidden File Input (for upload) */}
       <input
         type="file"
         ref={fileInputRef}
@@ -76,7 +71,6 @@ export default function TravelClearanceFilters({
         onChange={handleFileChange}
       />
 
-      {/* Export Button triggers upload */}
       <Button variant="outline" className="ml-auto flex gap-2" onClick={handleUploadClick}>
         <FileDown size={18} />
         Export Report

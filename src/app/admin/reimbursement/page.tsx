@@ -16,6 +16,7 @@ type ReimbursementData = {
 
   yearSem: string;
   academicYear: string;
+  program: string;
   reimbursementType: string;
   reason: string;
   receipt: string;
@@ -33,6 +34,7 @@ const MOCK_DATA: ReimbursementData[] = [
 
     yearSem: "1st Sem",
     academicYear: "2024–2025",
+    program: "BS Computer Science",
     reimbursementType: "Transportation",
     reason: "Attended required seminar",
     receipt: "receipt1.pdf",
@@ -48,6 +50,7 @@ const MOCK_DATA: ReimbursementData[] = [
 
     yearSem: "2nd Sem",
     academicYear: "2023–2024",
+    program: "BS Biology",
     reimbursementType: "Medical",
     reason: "Medical check-up",
     receipt: "receipt2.pdf",
@@ -63,12 +66,12 @@ const MOCK_DATA: ReimbursementData[] = [
 
     yearSem: "Midyear",
     academicYear: "2023–2024",
+    program: "BS Computer Science",
     reimbursementType: "Thesis",
     reason: "Thesis printing reimbursement",
     receipt: "receipt3.pdf",
   },
 ];
-
 
 export default function ReimbursementPage() {
   const [selected, setSelected] = useState<ReimbursementData | null>(null);

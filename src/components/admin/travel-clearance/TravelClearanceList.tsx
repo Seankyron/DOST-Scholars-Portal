@@ -23,7 +23,6 @@ export default function TravelClearanceList({ data, onView }: Props) {
 
   return (
     <>
-      {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {paginated.map((item) => (
           <TravelClearanceCard key={item.id} item={item} onView={onView} />
@@ -36,8 +35,7 @@ export default function TravelClearanceList({ data, onView }: Props) {
         </p>
 
 
-      {/* Pagination */}
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex justify-center cursor-default">
         <Pagination
           currentPage={page}
           totalPages={totalPages}

@@ -24,12 +24,12 @@ export default function TravelClearanceCard({
 
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="font-semibold text-lg">{item.name}</h3>
-            <p className="text-sm text-gray-500">{item.course}</p>
+            <h3 className="font-semibold text-lg cursor-default">{item.name}</h3>
+            <p className="text-sm text-gray-500 cursor-default">{item.course}</p>
           </div>
 
           <span
-            className={`px-3 py-1 text-xs rounded-full ${
+            className={`px-3 py-1 text-xs rounded-full cursor-default ${
               item.status === "Pending"
                 ? "bg-yellow-100 text-yellow-700"
                 : item.status === "Approved"
@@ -41,7 +41,7 @@ export default function TravelClearanceCard({
           </span>
         </div>
 
-        <div className="mt-4 space-y-1 text-sm">
+        <div className="mt-4 space-y-1 text-sm cursor-default">
           <p><strong>Purpose:</strong> {item.purpose}</p>
           <p><strong>Destination:</strong> {item.destination}</p>
           <p><strong>Arrival:</strong> {item.arrival}</p>
@@ -49,7 +49,6 @@ export default function TravelClearanceCard({
         </div>
 
         <div className="flex gap-3 mt-4">
-          {/* VIEW BUTTON */}
           <Button
             variant="secondary"
             className="flex gap-2"
@@ -58,7 +57,6 @@ export default function TravelClearanceCard({
             <Eye size={16} /> View
           </Button>
 
-          {/* APPROVE / REJECT */}
           {item.status === "Pending" && (
             <>
               <Button

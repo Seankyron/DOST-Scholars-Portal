@@ -102,22 +102,33 @@ export default function RequestFormModal({
 
                 {/* YEAR OF AWARD & STUDY PLACEMENT */}
                 <section>
-                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
+                <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Year of Award & Study Placement
-                  </h2>
+                </h2>
 
-                  <div className="space-y-3 pt-2">
+                <div className="space-y-3 pt-2">
                     <div>
-                      <Label>Academic Year</Label>
-                      <p className="p-2">{data.academicYear}</p>
+                    <Label>Scholarship Type</Label>
+                    <p className="p-2">{data.type}</p>
                     </div>
 
                     <div>
-                      <Label>Year & Semester</Label>
-                      <p className="p-2">{data.semester}</p>
+                    <Label>Batch / Year Awarded</Label>
+                    <p className="p-2">{data.academicYear}</p>
                     </div>
-                  </div>
+
+                    <div>
+                    <Label>School / University</Label>
+                    <p className="p-2">{data.university}</p>
+                    </div>
+
+                    <div>
+                    <Label>Program / Course</Label>
+                    <p className="p-2">{data.semester}</p>
+                    </div>
+                </div>
                 </section>
+
 
               </div>
 
