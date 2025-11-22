@@ -1,5 +1,3 @@
-// seankyron/dost-scholars-portal/DOST-Scholars-Portal-merge/src/components/scholar/layout/RecentActivity.tsx
-
 'use client';
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -66,15 +64,6 @@ const compiledActivities: DashboardActivity[] = [
     serviceId: 'practical-training',
     date: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
   },
-  {
-    id: 7,
-    type: 'Shifting/Transferring',
-    title: 'Shifting Course',
-    subtitle: 'BS Computer Science',
-    status: 'Pending',
-    serviceId: 'shifting-transferring',
-    date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-  },
 ];
 
 export function RecentActivity() {
@@ -104,13 +93,14 @@ export function RecentActivity() {
                 <li key={activity.id} className="py-1 last:pb-0 first:pt-0">
                   <Button
                     variant="ghost"
-                    className="flex h-auto w-full items-center justify-between p-3 text-left rounded-lg hover:bg-gray-50 transition-colors"
+                    // Added hover:bg-gray-50 and transition-colors
+                    className="flex h-auto w-full items-center justify-between p-3 text-left rounded-lg hover:bg-gray-100 transition-colors" 
                     onClick={() => handleActivityClick(activity)}
                   >
                     <div className="flex-1 min-w-0 mr-3">
                       {/* Top Line: Type and Title */}
                       <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-xs font-bold text-dost-blue uppercase tracking-wider">
+                        <span className="text-xs font-bold text-dost-title uppercase tracking-wider">
                           {activity.type}
                         </span>
                       </div>
@@ -128,7 +118,7 @@ export function RecentActivity() {
                       
                       {/* Timestamp */}
                       <p className="text-[10px] text-gray-400 mt-1">
-                        Submitted {formatRelativeTime(activity.date)}
+                        {formatRelativeTime(activity.date)}
                       </p>
                     </div>
 

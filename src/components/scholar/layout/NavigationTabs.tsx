@@ -6,6 +6,7 @@ import { ServiceTilesGrid } from '../home/ServiceTilesGrid';
 import { Card, CardContent } from '@/components/ui/card';
 import { DirectoriesPanel } from '../directories/DirectoriesPanel';
 import { DownloadablesPanel } from '../downloadables/DownloadablesPanel';
+import { FAQsPanel } from '../faqs/FAQsPanel';
 import { RecentActivity } from './RecentActivity'; 
 
 // Mock panels for content
@@ -63,7 +64,7 @@ export function NavigationTabs() {
         <DownloadablesPanel />
       </TabsContent>
       <TabsContent value="faqs" className="mt-6">
-        <MockPanel title="FAQs" />
+        <FAQsPanel /> 
       </TabsContent>
     </Tabs>
   );
