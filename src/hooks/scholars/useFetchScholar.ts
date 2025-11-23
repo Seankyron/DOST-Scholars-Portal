@@ -4,7 +4,7 @@ import { LargeNumberLike } from "crypto";
 import { Json } from "@/lib/supabase/type";
 
 
-interface Scholar {
+export interface Scholar {
   id: string;
   spas_id: string;
   created_at: string;

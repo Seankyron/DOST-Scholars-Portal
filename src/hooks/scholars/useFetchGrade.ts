@@ -13,7 +13,7 @@ export interface iGradeSubmissions {
   comment?: string | null;
 }
 
-export function useFetchGrades(year: number | null = null, semester: string | null = null) 
+export function useFetchGrades(spasId: string, year: number | null = null, semester: string | null = null) 
 {
   const [grade, setGrade] = useState<iGradeSubmissions[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -22,26 +22,12 @@ export function useFetchGrades(year: number | null = null, semester: string | nu
   useEffect(() => {
     const fetchGrade = async () => {
       const supabase = createClient();
-      const userString = sessionStorage.getItem('user');
-
-      if (!userString) {
-        setError("No user found in session.");
-        setLoading(false);
-        return;
-      }
-      const user = JSON.parse(userString);
-
-      if (!user.spas_id) {
-        setError('Error: Scholars SPAS ID is not found.');
-        setLoading(false);
-        return;
-      }
 
       try {
         const query = supabase
             .from('Grade Submission')
             .select('id, year_level, semester, grade_file_key, cor_file_key, status, updated_at, comment')
-            .eq('spas_id', user.spas_id);
+            .eq('spas_id', spasId);
         
         if (year) query.eq('year_level', year);
         if (semester) query.eq('semester', semester);
