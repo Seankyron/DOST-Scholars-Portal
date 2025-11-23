@@ -1,3 +1,4 @@
+import type { ServiceId } from '@/hooks/useServicePanel';
 import type { YearLevel, Semester } from './scholar';
 
 export type SubmissionStatus = 
@@ -9,7 +10,23 @@ export type SubmissionStatus =
   | 'Closed' 
   | 'Open' 
   | 'Not Available'
-  | 'Released';
+  | 'Released'
+  | 'Resolved';
+
+export type StipendPeriodStatus =
+  | 'Released'
+  | 'Processing'
+  | 'On hold'
+  | 'Not Available';
+
+  export interface StipendSemesterAvailability {
+  year: number;
+  semester: Semester;
+  status: StipendPeriodStatus;
+  academicYear: string;
+  isGradeApproved: boolean; 
+}
+// ..
 
 export interface BaseSubmission {
   id: string;
@@ -38,7 +55,7 @@ export interface StipendTracking extends BaseSubmission {
   expectedTotal: number;
   totalReceived: number;
   pendingAmount: number;
-  releaseType: 'Complete' | 'Partial' | 'On hold' | 'To Be Updated';
+  releaseType: 'Released' | 'Pending' | 'On hold' | 'Processing';
   allowances: {
     month1?: number;
     month2?: number;
@@ -54,13 +71,9 @@ export interface StipendTracking extends BaseSubmission {
 export type Allowance = {
   name: string;
   amount: number;
-  status: 'Released' | 'Pending' | 'On hold';
+  status: 'Released' | 'Pending' | 'On hold' | 'Processing';
 };
 
-export type StipendUpdate = {
-  message: string;
-  type: 'info' | 'warning' | 'success';
-};
 
 export type PTPPlan = 'undertake_ptp' | 'cannot_participate' | 'ojt_midyear_and_ptp';
 
@@ -159,4 +172,28 @@ export interface SupportFeedback extends BaseSubmission {
   description: string;
   response?: string;
   dateResponded?: string;
+}
+
+export type RequestFormType = 
+  | 'Certificate of Scholarship' 
+  | 'Letter of Endorsement' 
+  | 'Certificate of Grades' 
+  | 'Certificate of Good Moral'
+  | 'Financial Breakdown'
+  | 'Other';
+
+export interface RequestFormSubmission extends BaseSubmission {
+  requestType: RequestFormType;
+  reason: string;
+  otherDetails?: string; // For addressee or specific instructions
+}
+
+export interface DashboardActivity {
+  id: string | number;
+  type: string; // The service category (e.g. "Grade Submission")
+  title: string; // The main header (e.g. "3rd Year - 1st Sem")
+  subtitle?: string; // Extra details (e.g. "AY 2024-2025" or "Singapore")
+  status: SubmissionStatus;
+  date: string; // ISO string
+  serviceId: ServiceId; // For navigation handling
 }

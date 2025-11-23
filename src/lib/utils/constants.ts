@@ -46,6 +46,95 @@ export const UNIVERSITIES = [
 ];
 
 export const PROGRAMS_BY_UNIVERSITY: Record<string, string[]> = {
+  'Batangas State University - ARASOF': [
+    'BS Computer Science',
+    'BS Information Technology',
+    'BS Fisheries',
+    'BS Marine Biology',
+    'BS Mechanical Engineering',
+    'BS Industrial Engineering',
+  ],
+
+  'Batangas State University - Lipa': [
+    'BS Information Technology',
+    'BS Computer Science',
+    'BS Industrial Engineering',
+    'BS Electronics Engineering',
+    'BS Mechanical Engineering',
+  ],
+
+  'Batangas State University - Main 1': [
+    'BS Chemical Engineering',
+    'BS Civil Engineering',
+    'BS Computer Engineering',
+    'BS Electrical Engineering',
+    'BS Electronics Engineering',
+    'BS Industrial Engineering',
+    'BS Mechanical Engineering',
+    'BS Computer Science',
+    'BS Information Technology',
+  ],
+
+  'Batangas State University - Main 2': [
+    'BS Computer Science',
+    'BS Information Technology',
+    'BS Industrial Engineering',
+    'BS Environmental Science',
+  ],
+
+  'Cavite State University - Indang': [
+    'BS Computer Science',
+    'BS Information Technology',
+    'BS Civil Engineering',
+    'BS Electrical Engineering',
+    'BS Industrial Engineering',
+    'BS Agricultural and Biosystems Engineering',
+  ],
+
+  'Cavite State University - Silang': [
+    'BS Information Technology',
+    'BS Computer Science',
+    'BS Agricultural and Biosystems Engineering',
+  ],
+
+  'De La Salle University - Lipa Campus': [
+    'BS Computer Science',
+    'BS Information Technology',
+    'BS Industrial Engineering',
+    'BS Mechanical Engineering',
+    'BS Electrical Engineering',
+  ],
+
+  'Laguna State Polytechnic University - San Pablo': [
+    'BS Information Technology',
+    'BS Computer Science',
+    'BS Civil Engineering',
+    'BS Electronics Engineering',
+  ],
+
+  'Laguna State Polytechnic University - Santa Cruz': [
+    'BS Information Technology',
+    'BS Computer Science',
+    'BS Civil Engineering',
+  ],
+
+  'Lyceum of the Philippines University - Batangas': [
+    'BS Computer Science',
+    'BS Information Technology',
+    'BS Industrial Engineering',
+    'BS Civil Engineering',
+    'BS Electronics Engineering',
+  ],
+
+  'Polytechnic University of the Philippines': [
+    'BS Computer Science',
+    'BS Information Technology',
+    'BS Computer Engineering',
+    'BS Industrial Engineering',
+    'BS Electronics Engineering',
+    'BS Civil Engineering',
+  ],
+
   'University of the Philippines - Los Baños': [
     'BS Computer Science',
     'BS Agricultural Biotechnology',
@@ -58,27 +147,8 @@ export const PROGRAMS_BY_UNIVERSITY: Record<string, string[]> = {
     'BS Electrical Engineering',
     'BS Industrial Engineering',
   ],
-  'Batangas State University - Main 1': [
-    'BS Chemical Engineering',
-    'BS Civil Engineering',
-    'BS Computer Engineering',
-    'BS Electrical Engineering',
-    'BS Electronics Engineering',
-    'BS Industrial Engineering',
-    'BS Mechanical Engineering',
-    'BS Computer Science',
-    'BS Information Technology',
-  ],
-  'Cavite State University - Indang': [
-    'BS Computer Science',
-    'BS Information Technology',
-    'BS Civil Engineering',
-    'BS Electrical Engineering',
-    'BS Industrial Engineering',
-    'BS Agricultural and Biosystems Engineering',
-  ],
-  // Add more universities and their programs as needed
 };
+
 
 export const STATUS_COLORS = {
   Active: 'bg-green-100 text-green-800',
@@ -95,6 +165,7 @@ export const STATUS_COLORS = {
   Closed: 'bg-gray-100 text-gray-800',
   Released: 'bg-green-100 text-green-800',
   Open: 'bg-blue-100 text-dost-blue',
+  Resolved: 'bg-green-100 text-green-800',
   'Not Available': 'bg-gray-100 text-gray-500',
 } as const;
 

@@ -22,13 +22,18 @@ export function ScholarHeader() {
 
   const handleLogout = async () => {
     toast.loading('Logging out...');
+    
     await signOut();
-    toast.success('You have been logged out.');
+    
+    toast.success('Logged out', {
+      description: 'You have been logged out successfully.'
+    });
+    
     router.push('/login');
   };
 
   return (
-    <header className=" top-0 z-40 w-full bg-transparent">
+    <header className="top-0 z-40 w-full bg-transparent">
       <div className="container mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/scholar/dashboard" className="flex items-center gap-2">
           <Image
@@ -57,9 +62,10 @@ export function ScholarHeader() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
+              {/* Connect to the Profile/Settings page you created */}
               <Link href="/scholar/profile">
-                <UserCircle className="mr-2 h-4 w-4" />
-                <span>Edit Profile</span>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

@@ -1,7 +1,5 @@
-// Export all types from scholar first (base types)
 export * from './scholar';
 
-// Export specific types from other modules to avoid conflicts
 export type { SemesterAvailability } from './curriculum';
 
 export type {
@@ -11,7 +9,6 @@ export type {
   StipendTracking,
   PTPPlan,
   Allowance,
-  StipendUpdate,
   PracticalTrainingReferral,
   PracticalTrainingCompletion,
   ThesisPercentage,
@@ -25,6 +22,8 @@ export type {
   LeaveOfAbsence,
   RequestForm,
   SupportFeedback,
+  StipendPeriodStatus, // <-- ADDED
+  StipendSemesterAvailability, // <-- ADDED
 } from './services';
 
 export type {
