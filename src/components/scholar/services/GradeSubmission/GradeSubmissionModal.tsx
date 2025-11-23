@@ -20,11 +20,15 @@ import { formatDate } from '@/lib/utils/date';
 import type { SemesterAvailability, GradeSubmission, YearLevel } from '@/types'; 
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { toast } from '@/components/ui/toaster';
+import { useFetchGrades } from '@/hooks/scholars/useFetchGrade';
+import { grep } from 'jquery';
+import { useEffect } from 'react';
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;
   onClose: () => void;
   semester: SemesterAvailability;
+  spasID: string;
 }
 
 const yearLabels: { [key: number]: YearLevel } = {
@@ -37,32 +41,69 @@ const yearLabels: { [key: number]: YearLevel } = {
 
 const APPROVED_MESSAGE = 'Your submission is approved. Please wait for your stipend to be processed.';
 
-export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmissionModalProps) {
+export function GradeSubmissionModal({ isOpen, onClose, semester, spasID }: GradeSubmissionModalProps) {
   
   // --- Mock Data Loading ---
-  const mockSubmissionData: GradeSubmission = {
-    id: 'sub123',
-    scholarId: 'scholar123',
+  // const mockSubmissionData: GradeSubmission = {
+  //   id: 'sub123',
+  //   scholarId: 'scholar123',
+  //   status: semester.status,
+  //   dateSubmitted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  //   adminComment: semester.status === 'Resubmit' 
+  //     ? 'Invalid Certificate of Registration. Please upload the certified true copy.'
+  //     : undefined,
+  //   yearLevel: yearLabels[semester.year] || '1st Year',
+  //   semester: semester.semester,
+  //   academicYear: semester.academicYear || 'N/A',
+  //   registrationForm: 'De Larosa_COR.pdf',
+  //   registrationFormUrl: '#',
+  //   copyOfGrades: 'De Larosa_Grades.pdf',
+  //   copyOfGradesUrl: '#',
+  // };
+
+  const storedScholar = sessionStorage.getItem('scholar');
+  const scholar = storedScholar ? JSON.parse(storedScholar) : null;
+  const { grade } = useFetchGrades(spasID, semester.year, semester.semester)
+
+
+  const formatted = new Date(grade[0]?.updated_at ?? Date.now())
+                  .toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                  });
+
+  const submissionData: GradeSubmission = {
+    id: grade[0]?.id ? String(grade[0].id) : "-1",
+    scholarId: spasID,
     status: semester.status,
-    dateSubmitted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    dateSubmitted: formatted ?? new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     adminComment: semester.status === 'Resubmit' 
       ? 'Invalid Certificate of Registration. Please upload the certified true copy.'
-      : undefined,
+      : grade[0]?.comment ?? '',
     yearLevel: yearLabels[semester.year] || '1st Year',
     semester: semester.semester,
     academicYear: semester.academicYear || 'N/A',
-    registrationForm: 'De Larosa_COR.pdf',
-    registrationFormUrl: '#',
-    copyOfGrades: 'De Larosa_Grades.pdf',
-    copyOfGradesUrl: '#',
+    registrationForm: `${scholar.last_name}_COR.pdf`,
+    registrationFormUrl: grade[0]?.cor_file_key ?? '#',
+    copyOfGrades: `${scholar.last_name}_Grade.pdf`,
+    copyOfGradesUrl: grade[0]?.grade_file_key ?? '#',
   };
 
+  // console.log('grade', grade);
+
   const hasSubmission = semester.status !== 'Open' && semester.status !== 'Not Available';
-  const initialSubmission = hasSubmission ? mockSubmissionData : null;
+  const initialSubmission = hasSubmission ? submissionData : null;
 
   // --- State ---
   const [submission, setSubmission] = useState<GradeSubmission | null>(initialSubmission);
-  
+
+  useEffect(() => {
+    if (hasSubmission && grade.length > 0) {
+      setSubmission(submissionData);
+    }
+  }, [grade]);
+
   // Derived State (Moved up so handleSubmit can access them)
   const status = submission?.status || semester.status;
   const adminComment = submission?.adminComment;
@@ -77,7 +118,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
   const [isLoading, setIsLoading] = useState(false);
   
   const { uploadFile } = useFileUpload('grade-submissions');
-  const scholarId = 'mock-scholar-id'; 
+  const scholarId = spasID; 
 
   const handleCloseAndReset = () => {
     setIsLoading(false);
@@ -122,17 +163,17 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
       // Upload Logic
       if (regForm) {
         const path = `${scholarId}/${semester.year}-${semester.semester}-regform.${regForm.name.split('.').pop()}`;
-        await uploadFile(regForm, path, { acceptedTypes: ['.pdf'] });
+        console.log('path', path);
+        // await uploadFile(regForm, path, { acceptedTypes: ['.pdf'] });
       }
       if (gradesFile) {
         const path = `${scholarId}/${semester.year}-${semester.semester}-grades.${gradesFile.name.split('.').pop()}`;
-        await uploadFile(gradesFile, path, { acceptedTypes: ['.pdf'] });
+        // await uploadFile(gradesFile, path, { acceptedTypes: ['.pdf'] });
       }
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // await new Promise(resolve => setTimeout(resolve, 1500));
       toast.success('Submission successful! Awaiting verification.');
       handleCloseAndReset();
-
     } catch (error: any) {
       toast.error('Submission failed.');
       setIsLoading(false); 

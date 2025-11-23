@@ -18,6 +18,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ScholarStatus, SubmissionStatus } from '@/types';
 import { cn } from '@/lib/utils/cn';
 import { useFetchScholar } from "@/hooks/scholars/useFetchScholar";
+import { useEffect } from 'react';
 
 // Mock data
 const mockScholar = {
@@ -57,6 +58,12 @@ function InfoItem({
 
 export function ProfileSection() {
   const { user:scholar } = useFetchScholar();
+  
+  useEffect(() => {
+    if (scholar) {
+      sessionStorage.setItem("scholar", JSON.stringify(scholar));
+    }
+  }, [scholar]);
 
   return (
     // SIMPLIFIED CONTAINER: Removed the outer gradient <div>
