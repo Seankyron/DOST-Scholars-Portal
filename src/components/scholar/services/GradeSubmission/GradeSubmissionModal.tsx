@@ -20,7 +20,6 @@ import { formatDate } from '@/lib/utils/date';
 import type { SemesterAvailability, GradeSubmission, YearLevel } from '@/types'; 
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { toast } from '@/components/ui/toaster';
-import { Edit } from 'lucide-react'; 
 import { iGradeSubmissions, useCurrentScholarGrade } from '@/hooks/scholar/useCurrentScholarGrade';
 import {  } from '@/hooks/scholar/useDocumentUpload';
 import { createClient } from '@/lib/supabase/client';
@@ -95,7 +94,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
   const [submission, setSubmission] = useState<GradeSubmission | null>(submissionData);
 
   // --- State ---
-  const [submission, setSubmission] = useState<GradeSubmission | null>(initialSubmission);
+  // const [submission, setSubmission] = useState<GradeSubmission | null>(initialSubmission);
   
   // Derived State (Moved up so handleSubmit can access them)
   const status = submission?.status || semester.status;
@@ -112,7 +111,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
   
   const scholarId = submissionData.id; 
   const { uploadFile } = useFileUpload('grade-submissions');
-  const scholarId = 'mock-scholar-id'; 
+  // const scholarId = 'mock-scholar-id'; 
 
   const handleCloseAndReset = () => {
     setIsLoading(false);
@@ -129,13 +128,15 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
        return;
     }
     
-    setIsConfirmOpen(true);
+    // setIsConfirmOpen(true);
+    setIsConfirmed(true);
     handleConfirmSubmit();
     setIsLoading(false);
   };
 
   const handleConfirmSubmit = async () => {
-    setIsConfirmOpen(false);
+    // setIsConfirmOpen(false);
+    setIsConfirmed(false);
     const toastLoading = toast.loading('Submitting your documents...');
 
     try {
@@ -145,7 +146,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
 
 
       // Upload Registration Form to Cloudinary
-      if (showRegFormUpload && regForm) {
+      if (regForm) {
         const uploadedRegFormUrl = await uploadDocument(regForm, `DOST-Portal/regForm-submissions/${user.spas_id}`);
         if (!uploadedRegFormUrl) {
           throw new Error('Failed to upload Registration Form.');
@@ -154,7 +155,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
       }
 
       // Upload Grades file to Cloudinary
-      if (showGradesFormUpload && gradesFile) {
+      if (gradesFile) {
         const uploadedGradesUrl = await uploadDocument(gradesFile, `DOST-Portal/grade-submissions/${user.spas_id}`);
         if (!uploadedGradesUrl) {
           throw new Error('Failed to upload Grades file.');
@@ -202,8 +203,9 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
   };
 
   // Alert Logic
-  const showAdminAlert = hasSubmission && (isResubmit || status === 'Approved');
-  
+  // const showAdminAlert = hasSubmission && (isResubmit || status === 'Approved');
+  const showAdminAlert = submission && (isResubmit || status === 'Approved');
+
   let alertMessage = adminComment || 'No comment provided.';
   if (status === 'Approved') alertMessage = APPROVED_MESSAGE;
 
@@ -255,7 +257,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
              </div>
           )}
 
-          {hasSubmission && !isEditing && (
+          {submission && !isEditing && (
              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
                  <div className="flex flex-col gap-1">
                      <span className="text-xs font-semibold text-gray-500 uppercase">Current Status</span>
