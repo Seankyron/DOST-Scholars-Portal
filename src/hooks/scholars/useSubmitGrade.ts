@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 
-interface SubmissionData {
+export interface SubmissionData {
   spas_id: string;
   year: number; 
   semester: string;

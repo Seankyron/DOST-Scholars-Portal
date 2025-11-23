@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/client';
 
 
 interface SubmissionData {
-  id: number;
   spas_id: string;
   year: number; 
   semester: string;
@@ -19,7 +18,7 @@ export const useUpdateGrade = () => {
   const [success, setSuccess] = useState(false);
 
  
-  const updateGrade = useCallback(async (data: SubmissionData) => {
+  const updateGrade = useCallback(async (id: number, data: SubmissionData) => {
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -31,7 +30,7 @@ export const useUpdateGrade = () => {
         .from('Grade Submission')
         .upsert(
           {
-            id: data.id,
+            id: id,
             spas_id: data.spas_id,
             year_level: data.year,
             semester: data.semester,

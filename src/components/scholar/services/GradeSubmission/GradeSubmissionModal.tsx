@@ -23,6 +23,10 @@ import { toast } from '@/components/ui/toaster';
 import { useFetchGrades } from '@/hooks/scholars/useFetchGrade';
 import { grep } from 'jquery';
 import { useEffect } from 'react';
+import { useUploadDocument } from '@/hooks/scholars/useUploadDocument';
+import { useSubmitGrade, SubmissionData } from '@/hooks/scholars/useSubmitGrade';
+import { useUpdateGrade } from '@/hooks/scholars/useUpdateGrade';
+import { iGradeSubmissions } from '@/hooks/scholars/useFetchGrade';
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;
@@ -40,6 +44,25 @@ const yearLabels: { [key: number]: YearLevel } = {
 };
 
 const APPROVED_MESSAGE = 'Your submission is approved. Please wait for your stipend to be processed.';
+
+function GetMissingDocument(grade: iGradeSubmissions | null = null)
+{
+  if (!grade) return ['Transcript of Records (TOR)', 'Certificate of Registration (COR)'];
+  else if (!grade?.cor_file_key) return ['Certificate of Registration (COR)'];
+  else if (!grade?.grade_file_key) return ['Transcript of Records (TOR)'];
+  else return null;
+}
+
+function GetAdminComment(missingDoc: string[] | null) {
+  if (!missingDoc || missingDoc.length === 0) {
+    return 'Your submission is approved. Please wait for your stipend to be processed. You can check the status in the Stipend Tracking service.';
+  }
+
+  const docList = missingDoc.join(' and ');
+
+  return `Invalid ${docList}. Please upload the certified true copy of the document from the university registrar.`;
+}
+
 
 export function GradeSubmissionModal({ isOpen, onClose, semester, spasID }: GradeSubmissionModalProps) {
   
@@ -64,6 +87,8 @@ export function GradeSubmissionModal({ isOpen, onClose, semester, spasID }: Grad
   const storedScholar = sessionStorage.getItem('scholar');
   const scholar = storedScholar ? JSON.parse(storedScholar) : null;
   const { grade } = useFetchGrades(spasID, semester.year, semester.semester)
+  const missingDocs = GetMissingDocument(grade[0]);
+  const comment = GetAdminComment(missingDocs);
 
 
   const formatted = new Date(grade[0]?.updated_at ?? Date.now())
@@ -79,7 +104,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester, spasID }: Grad
     status: semester.status,
     dateSubmitted: formatted ?? new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     adminComment: semester.status === 'Resubmit' 
-      ? 'Invalid Certificate of Registration. Please upload the certified true copy.'
+      ? comment
       : grade[0]?.comment ?? '',
     yearLevel: yearLabels[semester.year] || '1st Year',
     semester: semester.semester,
@@ -89,8 +114,6 @@ export function GradeSubmissionModal({ isOpen, onClose, semester, spasID }: Grad
     copyOfGrades: `${scholar.last_name}_Grade.pdf`,
     copyOfGradesUrl: grade[0]?.grade_file_key ?? '#',
   };
-
-  // console.log('grade', grade);
 
   const hasSubmission = semester.status !== 'Open' && semester.status !== 'Not Available';
   const initialSubmission = hasSubmission ? submissionData : null;
@@ -118,6 +141,9 @@ export function GradeSubmissionModal({ isOpen, onClose, semester, spasID }: Grad
   const [isLoading, setIsLoading] = useState(false);
   
   const { uploadFile } = useFileUpload('grade-submissions');
+  const { uploadDocument } = useUploadDocument();
+  const { submitGrade } = useSubmitGrade();
+  const { updateGrade } = useUpdateGrade();
   const scholarId = spasID; 
 
   const handleCloseAndReset = () => {
@@ -159,25 +185,44 @@ export function GradeSubmissionModal({ isOpen, onClose, semester, spasID }: Grad
     }
 
 
+    const loadingID = toast.loading('Uploading documents...')
     try {
+      let regFormUrl = null;
+      let gradeUrl = null;
       // Upload Logic
       if (regForm) {
         const path = `${scholarId}/${semester.year}-${semester.semester}-regform.${regForm.name.split('.').pop()}`;
-        console.log('path', path);
-        // await uploadFile(regForm, path, { acceptedTypes: ['.pdf'] });
+        const { url } = await uploadDocument(regForm, path); 
+        regFormUrl = url 
       }
       if (gradesFile) {
         const path = `${scholarId}/${semester.year}-${semester.semester}-grades.${gradesFile.name.split('.').pop()}`;
-        // await uploadFile(gradesFile, path, { acceptedTypes: ['.pdf'] });
+        const { url } = await uploadDocument(gradesFile, path);     
+        gradeUrl = url;
       }
 
+      const data: SubmissionData = {
+        spas_id: spasID,
+        year: semester.year as number, 
+        semester: semester.semester,
+        regFormUrl: regFormUrl,
+        gradesUrl: gradeUrl,
+        comment: submission?.adminComment,
+        created_at: submission?.dateSubmitted ?? new Date(Date.now()).toISOString()
+      }
+
+      if(submissionData.id === '-1') { submitGrade(data); }
+      else { updateGrade(Number(submissionData.id), data); }
+
       // await new Promise(resolve => setTimeout(resolve, 1500));
+      toast.dismiss(loadingID);
       toast.success('Submission successful! Awaiting verification.');
       handleCloseAndReset();
     } catch (error: any) {
+      toast.dismiss(loadingID);
       toast.error('Submission failed.');
       setIsLoading(false); 
-    }
+    } 
   };
 
   // Alert Logic
@@ -191,8 +236,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester, spasID }: Grad
       <ModalContent size="2xl">
         <ModalHeader>
           <ModalTitle>
-            Grade Submission: {yearLabels[semester.year] || `${semester.year}th Year`}
-            , {semester.semester}
+            Grade Submission: {yearLabels[semester.year] || `${semester.year}th Year`}, {semester.semester}
           </ModalTitle>
           <p className="text-sm text-gray-500 font-normal mt-1">
              Academic Year: <span className="font-semibold text-dost-title">{semester.academicYear || 'N/A'}</span>
