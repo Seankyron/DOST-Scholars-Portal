@@ -17,9 +17,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { InfoTooltip } from '@/components/shared/InfoToolTip';
 import { toast } from '@/components/ui/toaster'; 
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { ScholarStatus } from '@/types';
-import { QRCodeModal } from './QRCodeModal';
+import { ScholarStatus, SubmissionStatus } from '@/types';
 import { cn } from '@/lib/utils/cn';
+import { useFetchScholar } from '@/hooks/scholars/useFetchScholar';
 
 // Mock data
 const mockScholar = {
@@ -58,64 +58,7 @@ function InfoItem({
 }
 
 export function ProfileSection() {
-  const [isQROpen, setIsQROpen] = useState(false);
-  
-  // -- New State for Profile Upload --
-  const [avatarUrl, setAvatarUrl] = useState(mockScholar.profileImage);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Trigger the hidden file input
-  const handleEditClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  // Handle file selection and upload
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Basic Validation
-    if (!file.type.startsWith('image/')) {
-        toast.error('Please upload an image file (JPG, PNG).');
-        return;
-    }
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error('File size must be less than 5MB.');
-        return;
-    }
-
-    setIsUploading(true);
-
-    try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('bucket', 'profile-pictures'); // Use a specific folder name
-
-        const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData,
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || 'Upload failed');
-        }
-
-        // Success: Update the avatar URL
-        setAvatarUrl(data.url);
-        toast.success('Profile picture updated successfully!');
-
-    } catch (error: any) {
-        console.error(error);
-        toast.error(error.message || 'Failed to update profile picture.');
-    } finally {
-        setIsUploading(false);
-        // Reset input so sending the same file again works if needed
-        if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
+  const { user:scholar }= useFetchScholar();
 
   return (
     <Card className="shadow-md bg-white">
@@ -185,12 +128,12 @@ export function ProfileSection() {
             <div className="space-y-2 text-center md:text-left">
               <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
                 <h2 className="text-2xl font-bold text-dost-title">
-                  {mockScholar.firstName} {mockScholar.surname}
+                  {scholar?.first_name} {scholar?.last_name}
                 </h2>
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={mockScholar.status}>
+                  <StatusBadge status={scholar?.scholarship_status as SubmissionStatus}>
                     <BadgeCheck className="h-3.5 w-3.5" />
-                    {mockScholar.status} Scholar
+                    {scholar?.scholarship_status} Scholar
                   </StatusBadge>
                   <InfoTooltip>
                     <div className="space-y-2">
@@ -214,11 +157,31 @@ export function ProfileSection() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 pt-2">
-              <InfoItem icon={GraduationCap} label="School" value={mockScholar.school} />
-              <InfoItem icon={BookOpen} label="Program" value={mockScholar.course} />
-              <InfoItem icon={Hash} label="Scholar ID" value={mockScholar.scholarId} />
-              <InfoItem icon={Award} label="Scholarship Type" value={mockScholar.scholarshipProgram} />
-              <InfoItem icon={Calendar} label="Batch" value={mockScholar.batch} />
+              <InfoItem
+                icon={GraduationCap}
+                label="School"
+                value={scholar?.university ?? 'N/A'}
+              />
+              <InfoItem
+                icon={BookOpen}
+                label="Program"
+                value={scholar?.program_course ?? 'N/A'}
+              />
+              <InfoItem
+                icon={Hash}
+                label="Scholar ID"
+                value={scholar?.spas_id ?? 'N/A'}
+              />
+              <InfoItem
+                icon={Award}
+                label="Scholarship Type"
+                value={scholar?.scholarship_type ?? 'N/A'}
+              />
+              <InfoItem
+                icon={Calendar}
+                label="Batch"
+                value={scholar?.year_awarded ?? 'N/A'}
+              />
             </div>
           </div>
         </div>
