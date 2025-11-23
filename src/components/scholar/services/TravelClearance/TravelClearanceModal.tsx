@@ -19,9 +19,10 @@ import { toast } from '@/components/ui/toaster';
 import { AdminCommentAlert } from '@/components/shared/AdminCommenAlert';
 import type { TravelPurpose } from '@/types/services';
 import { differenceInCalendarDays } from 'date-fns'; 
-
+import { useSubmitTravelClearance, SubmissionData } from '@/hooks/scholars/useSubmitTravelClearance';
 import { OfficialBusinessForm } from './OfficialBusinessForm';
 import { OtherPurposesForm } from './OtherPurposesForm';
+import { useUploadDocument } from '@/hooks/scholars/useUploadDocument';
 
 interface TravelClearanceModalProps {
   isOpen: boolean;
@@ -54,6 +55,12 @@ export function TravelClearanceModal({ isOpen, onClose, purpose, existingRequest
   const [coMakerEmploy, setCoMakerEmploy] = useState<File | null>(null);
   const [coMakerId, setCoMakerId] = useState<File | null>(null);
 
+  const [submittedData, setSubmittedData] = useState<Record<string, any> | null>(null);
+  const { submitTravelClearance } = useSubmitTravelClearance();
+  const { uploadDocument } = useUploadDocument();
+  const storedScholar = sessionStorage.getItem('scholar');
+  const scholar = storedScholar ? JSON.parse(storedScholar) : null;
+
   // --- Logic to check if submission is late (< 14 days) ---
   const isLateFiling = useMemo(() => {
     if (!departureDate) return false;
@@ -80,12 +87,65 @@ export function TravelClearanceModal({ isOpen, onClose, purpose, existingRequest
       return;
     }
 
+    if (purpose === 'Official Business Travel') {
+      if (!requestLetter || !requestForm || !guaranteeLetter) {
+        toast.error('Please upload all required document.');
+        return;
+      }
+    }
+    else {
+      if (!requestLetter || !requestForm || !deedOfUndertaking || !coMakerEmploy || !coMakerId) {
+        toast.error('Please upload all required document.');
+        return;
+      }
+    }
+
     setIsLoading(true);
     try {
-      // In a real app, include 'delayReason' in your payload
-      console.log('Submitting:', { destination, departureDate, delayReason: isLateFiling ? delayReason : null });
-      
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      let requestFormUrl;
+      let requestLetterUrl;
+      let guaranteeLetterUrl = null;
+      let deedOfUndertakingUrl = null;
+      let coMakerEmployUrl = null;
+      let coMakerIdUrl = null;
+
+      ({ url:requestFormUrl } = await uploadDocument(requestForm, `DOST/${scholar?.spas_id}/travel-clearance/request-form`));
+      ({ url: requestLetterUrl } = await uploadDocument(requestLetter!,`DOST/${scholar?.spas_id}/travel-clearance/request-letter`));
+
+      if (purpose === 'Official Business Travel') {
+        ({ url:guaranteeLetterUrl } = await uploadDocument(guaranteeLetter!, `DOST/${scholar?.spas_id}/travel-clearance/guarantee-letter`));
+      }
+      else {
+        ({ url: deedOfUndertakingUrl } = await uploadDocument(deedOfUndertaking!, `DOST/${scholar?.spas_id}/travel-clearance/deed-of-undertaking`));
+        ({ url: coMakerEmployUrl } = await uploadDocument(coMakerEmploy!, `DOST/${scholar?.spas_id}/travel-clearance/co-maker-employ`));
+        ({ url: coMakerIdUrl } = await uploadDocument(coMakerId!, `DOST/${scholar?.spas_id}/travel-clearance/deed-of-co-maker-id`));
+      }
+
+      const data: SubmissionData = {
+        spas_id: scholar?.spas_id,
+        departure: departureDate,
+        arrival: returnDate,
+        request_letter_file_key: requestLetterUrl,
+        guarantee_letter_file_key: guaranteeLetterUrl, 
+        completed_request_form_file_key: requestFormUrl,
+        cause_of_submission_delay: delayReason,
+        requested_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: 'Pending',
+        deed_of_undertaking_file_key: deedOfUndertakingUrl,
+        employment_file_key: coMakerEmployUrl,
+        valid_id_file_key: coMakerIdUrl,
+      }
+
+      // if (isEditing && submittedData) {
+      //   const returnedData = await submitTravelClearance(data, submittedData.id);
+      //   setSubmittedData(returnedData);
+      // }
+      // else {
+        const returnData = await submitTravelClearance(data, null);
+        // setSubmittedData(returnData);
+      // }
+
       toast.success(isResubmit ? 'Corrections submitted successfully!' : 'Travel clearance request submitted!');
       onClose();
     } catch (error) {

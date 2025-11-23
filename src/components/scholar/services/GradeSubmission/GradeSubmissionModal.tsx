@@ -191,12 +191,12 @@ export function GradeSubmissionModal({ isOpen, onClose, semester, spasID }: Grad
       let gradeUrl = null;
       // Upload Logic
       if (regForm) {
-        const path = `${scholarId}/${semester.year}-${semester.semester}-regform.${regForm.name.split('.').pop()}`;
+        const path = `DOST/${scholarId}/${semester.year}-${semester.semester}-regform.${regForm.name.split('.').pop()}`;
         const { url } = await uploadDocument(regForm, path); 
         regFormUrl = url 
       }
       if (gradesFile) {
-        const path = `${scholarId}/${semester.year}-${semester.semester}-grades.${gradesFile.name.split('.').pop()}`;
+        const path = `DOST/${scholarId}/${semester.year}-${semester.semester}-grades.${gradesFile.name.split('.').pop()}`;
         const { url } = await uploadDocument(gradesFile, path);     
         gradeUrl = url;
       }
