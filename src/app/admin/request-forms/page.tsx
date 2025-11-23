@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import RequestFilters from "@/components/admin/request-forms/RequestFilters";
-import RequestTable from "@/components/admin/request-forms/RequestTable";
-import RequestFormModal from "@/components/admin/request-forms/RequestModal";
+import RequestFilters from "@/components/admin/tables/RequestForms/RequestFilters";
+import RequestTable from "@/components/admin/tables/RequestForms/RequestTable";
+import RequestFormModal from "@/components/admin/tables/RequestForms/RequestModal";
 
 export default function RequestFormPage() {
   const MOCK_REQUESTS = [

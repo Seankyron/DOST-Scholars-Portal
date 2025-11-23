@@ -1,5 +1,5 @@
-import StatusBadge from '../practical-training/badges/StatusBadge';
-import TypeBadge from '../practical-training/badges/TypeBadge';
+import StatusBadge from '../PracticalTraining/badges/StatusBadge';
+import TypeBadge from '../PracticalTraining/badges/TypeBadge';
 import { Eye, Check, X } from 'lucide-react';
 
 export default function ThesisAllowanceRow({ row, onView }: any) {

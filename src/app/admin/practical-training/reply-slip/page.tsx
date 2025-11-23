@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
-import ReplySlipHeader from '@/components/admin/practical-training/reply-slip/ReplySlipHeader';
-import ReplySlipFilters from '@/components/admin/practical-training/reply-slip/ReplySlipFilters';
-import ReplySlipTable from '@/components/admin/practical-training/reply-slip/ReplySlipTable';
+import ReplySlipHeader from '@/components/admin/tables/PracticalTraining/reply-slip/ReplySlipHeader';
+import ReplySlipFilters from '@/components/admin/tables/PracticalTraining/reply-slip/ReplySlipFilters';
+import ReplySlipTable from '@/components/admin/tables/PracticalTraining/reply-slip/ReplySlipTable';
 
 
 export default function ReplySlipPage() {

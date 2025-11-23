@@ -1,6 +1,6 @@
 import { Eye, Check, X } from "lucide-react";
-import StatusBadge from "../practical-training/badges/StatusBadge";
-import TypeBadge from "../practical-training/badges/TypeBadge";
+import StatusBadge from "../PracticalTraining/badges/StatusBadge";
+import TypeBadge from "../PracticalTraining/badges/TypeBadge";
 
 export default function ShiftingRow({ row, onView }: any) {
   return (

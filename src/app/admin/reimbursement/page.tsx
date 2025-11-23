@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import ReimbursementFilters from "@/components/admin/reimbursement/ReimbursementFilters";
-import ReimbursementTable from "@/components/admin/reimbursement/ReimbursementTable";
-import ReimbursementModal from "@/components/admin/reimbursement/ReimbursementModal";
+import ReimbursementFilters from "@/components/admin/tables/Reimbursement/ReimbursementFilters";
+import ReimbursementTable from "@/components/admin/tables/Reimbursement/ReimbursementTable";
+import ReimbursementModal from "@/components/admin/tables/Reimbursement/ReimbursementModal";
 
 type ReimbursementData = {
   id: number;

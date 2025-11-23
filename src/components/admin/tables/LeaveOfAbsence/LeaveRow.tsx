@@ -1,10 +1,10 @@
 "use client";
 
 import { Eye, Check, X } from "lucide-react";
-import StatusBadge from "../practical-training/badges/StatusBadge";
-import TypeBadge from "../practical-training/badges/TypeBadge";
+import StatusBadge from "../PracticalTraining/badges/StatusBadge";
+import TypeBadge from "../PracticalTraining/badges/TypeBadge";
 
-export default function ReimbursementRow({ row, onView }: any) {
+export default function LeaveRow({ row, onView }: any) {
   return (
     <tr className="border-b hover:bg-gray-50">
     <td className="p-3 cursor-pointer">
@@ -18,10 +18,10 @@ export default function ReimbursementRow({ row, onView }: any) {
 
       <td className="p-3 cursor-default">{row.university}</td>
 
-      <td className="p-3 cursor-default">{row.reimbursement}</td>
+      <td className="p-3 cursor-default">{row.reason}</td>
 
       <td className="p-3 cursor-default">
-        <StatusBadge status={row.status} />   
+        <StatusBadge status={row.status} />
       </td>
 
       <td className="p-3 cursor-default">{row.date}</td>

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import LeaveFilters from "@/components/admin/leave-of-absence/LeaveFilters";
-import LeaveTable from "@/components/admin/leave-of-absence/LeaveTable";
-import LeaveModal from "@/components/admin/leave-of-absence/LeaveModal";
+import LeaveFilters from "@/components/admin/tables/LeaveOfAbsence/LeaveFilters";
+import LeaveTable from "@/components/admin/tables/LeaveOfAbsence/LeaveTable";
+import LeaveModal from "@/components/admin/tables/LeaveOfAbsence/LeaveModal";
 import { LeaveData } from "@/types/leave";
 
 

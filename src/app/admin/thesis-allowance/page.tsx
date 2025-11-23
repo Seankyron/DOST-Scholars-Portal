@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import ThesisAllowanceFilters from "@/components/admin/thesis-allowance/ThesisAllowanceFilters";
-import ThesisAllowanceTable from "@/components/admin/thesis-allowance/ThesisAllowanceTable";
-import { ThesisAllowanceModal } from "@/components/admin/thesis-allowance/ThesisAllowanceModal";
+import ThesisAllowanceFilters from "@/components/admin/tables/ThesisAllowance/ThesisAllowanceFilters";
+import ThesisAllowanceTable from "@/components/admin/tables/ThesisAllowance/ThesisAllowanceTable";
+import { ThesisAllowanceModal } from "@/components/admin/tables/ThesisAllowance/ThesisAllowanceModal";
 import type { ThesisAllowance } from "@/types/ThesisAllowance";
 
 const MOCK_DATA: ThesisAllowance[] = [

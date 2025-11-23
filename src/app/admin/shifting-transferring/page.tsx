@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import ShiftingFilters from "@/components/admin/shifting-transferring/ShiftingFilters";
-import ShiftingTable from "@/components/admin/shifting-transferring/ShiftingTable";
-import { ShiftingModal } from "@/components/admin/shifting-transferring/ShiftingModal";
+import ShiftingFilters from "@/components/admin/tables/ShiftingTransferring/ShiftingFilters";
+import ShiftingTable from "@/components/admin/tables/ShiftingTransferring/ShiftingTable";
+import { ShiftingModal } from "@/components/admin/tables/ShiftingTransferring/ShiftingModal";
 
 type ShiftingData = {
   id: number;
