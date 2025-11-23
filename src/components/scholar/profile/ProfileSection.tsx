@@ -8,15 +8,16 @@ import {
   Hash,
   Award,
   Calendar,
+  SchoolIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { InfoTooltip } from '@/components/shared/InfoToolTip';
 import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { ScholarStatus } from '@/types';
+import { ScholarStatus, SubmissionStatus } from '@/types';
 import { cn } from '@/lib/utils/cn';
-// import { useCurrentScholar } from "@/hooks/useCurrentScholar";
+import { useFetchScholar } from "@/hooks/scholars/useFetchScholar";
 
 // Mock data
 const mockScholar = {
@@ -55,7 +56,7 @@ function InfoItem({
 }
 
 export function ProfileSection() {
-  // const { user, loading } = useCurrentScholar();
+  const { user:scholar } = useFetchScholar();
 
   return (
     // SIMPLIFIED CONTAINER: Removed the outer gradient <div>
@@ -93,12 +94,12 @@ export function ProfileSection() {
             <div className="space-y-2 text-center md:text-left">
               <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
                 <h2 className="text-2xl font-bold text-dost-title">
-                  {mockScholar.firstName} {mockScholar.surname}
+                  {scholar?.first_name} {scholar?.last_name}
                 </h2>
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={mockScholar.status}>
+                  <StatusBadge status={scholar?.scholarship_status as SubmissionStatus}>
                     <BadgeCheck className="h-3.5 w-3.5" />
-                    {mockScholar.status} Scholar
+                    {scholar?.scholarship_status as SubmissionStatus} Scholar
                   </StatusBadge>
                   <InfoTooltip>
                     <div className="space-y-2">
@@ -159,27 +160,27 @@ export function ProfileSection() {
               <InfoItem
                 icon={GraduationCap}
                 label="School"
-                value={mockScholar.school}
+                value={scholar?.university ?? 'N/A'}
               />
               <InfoItem
                 icon={BookOpen}
                 label="Program"
-                value={mockScholar.course}
+                value={scholar?.program_course ?? 'N/A'}
               />
               <InfoItem
                 icon={Hash}
                 label="Scholar ID"
-                value={mockScholar.scholarId}
+                value={scholar?.spas_id ?? 'N/A'}
               />
               <InfoItem
                 icon={Award}
                 label="Scholarship Type"
-                value={mockScholar.scholarshipProgram}
+                value={scholar?.scholarship_type ?? 'N/A'}
               />
               <InfoItem
                 icon={Calendar}
                 label="Batch"
-                value={mockScholar.batch}
+                value={scholar?.year_awarded ?? 'N/A'}
               />
             </div>
           </div>
