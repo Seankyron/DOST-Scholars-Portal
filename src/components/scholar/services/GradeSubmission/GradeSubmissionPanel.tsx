@@ -71,7 +71,7 @@ function GetSubmissionStatus(scholarshipType: string, duration: number, grades: 
       
       submissionStatus[`${year}-${semester}`] = grade
       ? (grade.status as SubmissionStatus)
-      : batch < currentYear
+      : batch <= currentYear
       ? "Resubmit"
       : "Not Available";
     }
