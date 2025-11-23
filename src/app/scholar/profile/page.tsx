@@ -1,24 +1,17 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { ProfileSettings } from '@/components/scholar/settings/ProfileSettings';
 
 export default function ProfilePage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto max-w-7xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-gray-600">
-              The "Edit Profile" page is not yet built.
-            </p>
-            <Button asChild className="mt-4">
-              <Link href="/scholar/dashboard">Back to Dashboard</Link>
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="mx-auto max-w-4xl space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-dost-title">Profile Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your personal information and update your contact details.
+          </p>
+        </div>
+        
+        <ProfileSettings />
       </div>
     </div>
   );

@@ -5,70 +5,75 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatRelativeTime } from '@/lib/utils/date';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
-import type { SubmissionStatus } from '@/types';
 import { useServicePanelContext } from '@/context/ServicePanelContext';
-import type { ServiceId } from '@/hooks/useServicePanel';
+import type { DashboardActivity } from '@/types/services'; 
 
-const mockActivities = [
+// Compiled Mock Data from all services
+const compiledActivities: DashboardActivity[] = [
   {
     id: 1,
-    title: 'Grade Submission - 4th Year | 2nd Semester',
-    status: 'Approved' as SubmissionStatus,
-    serviceId: 'grade-submission' as ServiceId, // <-- ADDED
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), 
+    type: 'Grade Submission',
+    title: '4th Year - 2nd Semester',
+    subtitle: 'AY 2024-2025',
+    status: 'Approved',
+    serviceId: 'grade-submission',
+    date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
   },
   {
     id: 2,
-    title: 'Travel Clearance - Brunei Exchange Program',
-    status: 'Processing' as SubmissionStatus,
-    serviceId: 'travel-clearance' as ServiceId, // <-- ADDED
-    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    type: 'Travel Clearance',
+    title: 'Official Business Travel',
+    subtitle: 'Japan (International Conference)',
+    status: 'Processing',
+    serviceId: 'travel-clearance',
+    date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
   },
   {
     id: 3,
-    title: 'Thesis Allowance Request',
-    status: 'Resubmit' as SubmissionStatus,
-    serviceId: 'thesis-allowance' as ServiceId, // <-- ADDED
-    timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    type: 'Thesis Allowance',
+    title: '90% Partial Release',
+    subtitle: 'Abstract & Approval Sheet',
+    status: 'Resubmit',
+    serviceId: 'thesis-allowance',
+    date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 4,
-    title: 'Reimbursement - OJT Fare',
-    status: 'Resubmit' as SubmissionStatus, // Changed from Rejected
-    serviceId: 'reimbursement' as ServiceId, // <-- ADDED
-    timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+    type: 'Reimbursement',
+    title: 'Transportation Allowance',
+    subtitle: 'OJT Daily Commute',
+    status: 'Resubmit',
+    serviceId: 'reimbursement',
+    date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 5,
-    title: 'Request Form - Letter of Endorsement',
-    status: 'Pending' as SubmissionStatus,
-    serviceId: 'request-forms' as ServiceId, // <-- ADDED
-    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    type: 'Request Form',
+    title: 'Letter of Endorsement',
+    subtitle: 'For OJT Application at Accenture',
+    status: 'Pending',
+    serviceId: 'request-forms',
+    date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 6,
-    title: 'Grade Submission - 4th Year | 1st Semester',
-    status: 'Approved' as SubmissionStatus,
-    serviceId: 'grade-submission' as ServiceId, // <-- ADDED
-    timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 7,
-    title: 'Practical Training Program - Referral',
-    status: 'Approved' as SubmissionStatus,
-    serviceId: 'practical-training' as ServiceId, // <-- ADDED
-    timestamp: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+    type: 'Practical Training',
+    title: 'Referral Letter',
+    subtitle: 'Request for Endorsement',
+    status: 'Approved',
+    serviceId: 'practical-training',
+    date: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
 export function RecentActivity() {
   const { openPanel } = useServicePanelContext();
 
-  const handleActivityClick = (activity: (typeof mockActivities)[0]) => {
+  const handleActivityClick = (activity: DashboardActivity) => {
     if (activity.serviceId) {
       openPanel(activity.serviceId);
     } else {
-      toast.info(`This activity (${activity.title}) does not have a linked service.`);
+      toast.info(`This activity does not have a linked service panel.`);
     }
   };
 
@@ -82,35 +87,55 @@ export function RecentActivity() {
 
       <CardContent className="overflow-hidden flex-1">
         <div className="h-full max-h-full overflow-y-auto scrollbar-thin pr-2">
-          {mockActivities.map((activity) => (
-            <li
-              key={activity.id}
-              className="list-none border-b border-gray-200 last:border-b-0"
-            >
-              <Button
-                variant="ghost"
-                className="flex h-auto w-full items-center justify-between p-3 text-left rounded-lg"
-                // --- 5. Update the onClick handler ---
-                onClick={() => handleActivityClick(activity)}
-              >
-                {/* Left side: Title and Time */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">
-                    {activity.title}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Submitted {formatRelativeTime(activity.timestamp)}
-                  </p>
-                </div>
+          {compiledActivities.length > 0 ? (
+            <ul className="divide-y divide-gray-200">
+              {compiledActivities.map((activity) => (
+                <li key={activity.id} className="py-1 last:pb-0 first:pt-0">
+                  <Button
+                    variant="ghost"
+                    // Added hover:bg-gray-50 and transition-colors
+                    className="flex h-auto w-full items-center justify-between p-3 text-left rounded-lg hover:bg-gray-100 transition-colors" 
+                    onClick={() => handleActivityClick(activity)}
+                  >
+                    <div className="flex-1 min-w-0 mr-3">
+                      {/* Top Line: Type and Title */}
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs font-bold text-dost-title uppercase tracking-wider">
+                          {activity.type}
+                        </span>
+                      </div>
+                      
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {activity.title}
+                      </p>
+                      
+                      {/* Subtitle (if exists) */}
+                      {activity.subtitle && (
+                        <p className="text-xs text-gray-500 truncate">
+                          {activity.subtitle}
+                        </p>
+                      )}
+                      
+                      {/* Timestamp */}
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        {formatRelativeTime(activity.date)}
+                      </p>
+                    </div>
 
-                {/* Right side: Status Badge (Pill) */}
-                <StatusBadge
-                  status={activity.status} 
-                  className="ml-2 shrink-0"
-                />
-              </Button>
-            </li>
-          ))}
+                    {/* Status Badge */}
+                    <StatusBadge
+                      status={activity.status}
+                      className="shrink-0 scale-90 origin-right"
+                    />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+             <div className="flex flex-col items-center justify-center h-full text-gray-500">
+               <p className="text-sm">No recent activities found.</p>
+             </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -33,9 +33,9 @@ export function ReasonSelector({ title, description, icon: Icon, onClick }: Reas
           </div>
           <div>
             {/* Title text changes to dost-title on hover */}
-            <h4 className="font-bold text-gray-900 group-hover:text-dost-title transition-colors">
+            <h3 className="font-bold text-gray-900 group-hover:text-dost-title transition-colors">
               {title}
-            </h4>
+            </h3>
             <p className="text-sm text-gray-500 mt-1">
               {description}
             </p>
