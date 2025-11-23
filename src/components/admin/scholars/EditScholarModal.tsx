@@ -100,8 +100,7 @@ export function EditScholarModal({
 
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   
-  const fileKey = String(scholar.curriculumFile?.name || ''); 
-  console.log("File Key: ", fileKey);
+  const fileKey = String(scholar.curriculumFile?.name || '');
 
   const fileUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${fileKey}.pdf`;
 
@@ -355,7 +354,7 @@ export function EditScholarModal({
               </a>
 
               <Select
-                  label="Initial Status"
+                  label="Scholar Status"
                   name="scholarship_status"
                   value={formData.status}
                   onChange={handleChange}

@@ -229,8 +229,6 @@ export default function SignupPage() {
         // 1. Prepare the file for the API route
         const fileFormData = new FormData();
         fileFormData.append('file', formData.curriculumFile);
-        // "bucket" here just means the top-level folder in Cloudinary
-        fileFormData.append('bucket', 'scholars'); 
 
         console.log(fileFormData);
         // 2. Call your new API upload handler
@@ -296,7 +294,7 @@ export default function SignupPage() {
             course_duration: parseInt(formData.courseDuration), // "4" -> 4
             curriculum_file_key: curriculumFileKey,
             is_verified: false,
-            scholarship_status: 'pending', // Default status
+            scholarship_status: 'Active', // Default status
           },
         },
       };

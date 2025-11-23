@@ -25,7 +25,7 @@ import {
   PROVINCES,
 } from '@/lib/utils/constants';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { toast } from '@/components/ui/toaster';
+import { toast } from '@/components/ui/toaster'; // Adjust path if needed
 
 const initialState = {
   scholarId: '',
@@ -61,7 +61,7 @@ export function AddScholarModal() {
   
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  // --- Generic Change Handlers (Unchanged) ---
+  // --- Generic Change Handlers ---
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -85,7 +85,6 @@ export function AddScholarModal() {
   const handleFileChange = (file: File | null) => {
     if (file) {
       setCurriculumFile(file);
-      setCurriculumFile(file);
     }
   };
 
@@ -106,19 +105,47 @@ export function AddScholarModal() {
     setIsConfirmOpen(true);
   };
   
+  // --- THE FIX: Two-Step Submission ---
   const handleConfirmSubmit = async () => {
     setIsConfirmOpen(false); 
     setLoading(true);
     setError(null);
 
     try {
-      const submissionData = new FormData();
-      submissionData.append('curriculumFile', curriculumFile as File);
-      submissionData.append('scholarData', JSON.stringify(formData));
+      let curriculumFileKey = null;
 
+      // 1. UPLOAD FILE FIRST (To the 'pending' folder)
+      if (curriculumFile) {
+        const fileFormData = new FormData();
+        fileFormData.append('file', curriculumFile);
+        
+        // Call the unauthenticated upload route
+        const uploadResponse = await fetch('/api/auth/upload-curriculum', {
+          method: 'POST',
+          body: fileFormData,
+        });
+
+        const uploadResult = await uploadResponse.json();
+
+        if (!uploadResponse.ok) {
+          throw new Error(uploadResult.error || 'Failed to upload curriculum file');
+        }
+
+        // Save the key (e.g. "dost-portal/pending-curriculums/uuid")
+        curriculumFileKey = uploadResult.key;
+      }
+
+      // 2. SUBMIT DATA AS JSON (Including the key)
       const response = await fetch('/api/admin/create-scholar', {
         method: 'POST',
-        body: submissionData,
+        headers: {
+          'Content-Type': 'application/json', // This is crucial!
+        },
+        // We send a clean JSON object, not FormData
+        body: JSON.stringify({
+          ...formData,
+          curriculumFileKey, // Pass the key we got from Step 1
+        }),
       });
 
       const result = await response.json();
@@ -127,7 +154,9 @@ export function AddScholarModal() {
         throw new Error(result.error || 'Failed to create scholar');
       }
 
-      toast.success('Scholar added successfully!'); 
+      // @ts-ignore
+      toast({ title: "Success", description: "Scholar added successfully!" }); 
+      
       setFormData(initialState); 
       setCurriculumFile(null);
       setIsModalOpen(false); 
@@ -136,13 +165,13 @@ export function AddScholarModal() {
       
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || 'An unknown error occurred.');    } finally {
+      setError(err.message || 'An unknown error occurred.');
+    } finally {
       setLoading(false);
     }
   };
 
-
-  // --- Options (Unchanged) ---
+  // --- Options ---
   const statusOptions = [
     { value: 'Active', label: 'Active' },
     { value: 'Warning', label: 'Warning' },
@@ -167,7 +196,6 @@ export function AddScholarModal() {
     { value: '4', label: '4th Year' },
     { value: '5', label: '5th Year' },
   ];
- 
 
   return (
     <>
@@ -187,10 +215,7 @@ export function AddScholarModal() {
           <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6">
             <form id="add-scholar-form" onSubmit={handleFormSubmit} className="space-y-6">
               {error && (
-                <div
-                  className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-                  role="alert"
-                >
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
                   <strong className="font-bold">Error: </strong>
                   <span className="block sm:inline">{error}</span>
                 </div>
@@ -478,7 +503,6 @@ export function AddScholarModal() {
         </ModalContent>
       </Modal>
 
-      {/* --- Confirmation Dialog (Unchanged) --- */}
       <ConfirmDialog
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
