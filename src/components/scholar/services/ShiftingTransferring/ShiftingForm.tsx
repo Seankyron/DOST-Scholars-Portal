@@ -11,37 +11,79 @@ import { Separator } from '@/components/ui/separator';
 import { UNIVERSITIES, PROGRAMS_BY_UNIVERSITY, YEAR_LEVELS, SEMESTERS } from '@/lib/utils/constants';
 import type { ShiftingType } from '@/types';
 
+
+type YearFlags = {
+  '1': boolean;
+  '2': boolean;
+  '3': boolean;
+  '4': boolean;
+};
+
+
 interface ShiftingFormProps {
   type: ShiftingType;
   isReadOnly?: boolean;
   isResubmit?: boolean;
   adminComment?: string;
+
+  newSchool: string;
+  setNewSchool: (v: string) => void;
+  newCourse: string;
+  setNewCourse: (v: string) => void;
+  effectivity: string;
+  setEffectivity: (v: string) => void;
+  reason: string;
+  setReason: (v: string) => void;
+  courseDuration: string;
+  setCourseDuration: (v: string) => void;
+  ojtYear: string;
+  setOjtYear: (v: string) => void;
+  ojtSemester: string;
+  setOjtSemester: (v: string) => void;
+
+  midyearClasses: YearFlags;
+  setMidyearClasses: React.Dispatch<React.SetStateAction<YearFlags>>;
+  thesisYear: YearFlags;
+  setThesisYear: React.Dispatch<React.SetStateAction<YearFlags>>;
+
+  appForm: File | null;
+  setAppForm: any;
+  certAdmission: File | null;
+  setCertAdmission: any;
+  certSubjects: File | null;
+  setCertSubjects: any;
+  certYearLevel: File | null;
+  setCertYearLevel: any;
+  certGrades: File | null;
+  setCertGrades: any;
+  programOfStudy: File | null;
+  setProgramOfStudy: any;
 }
 
-export function ShiftingForm({ type, isReadOnly, isResubmit, adminComment = '' }: ShiftingFormProps) {
+export function ShiftingForm(prop: ShiftingFormProps) {
   // Fields Logic
-  const isShifting = type.includes('Shifting');
-  const isTransferring = type.includes('Transferring');
+  const isShifting = prop.type.includes('Shifting');
+  const isTransferring = prop.type.includes('Transferring');
 
   // --- STATE ---
-  const [newSchool, setNewSchool] = useState('');
-  const [newCourse, setNewCourse] = useState('');
-  const [effectivity, setEffectivity] = useState('');
-  const [reason, setReason] = useState('');
-  const [courseDuration, setCourseDuration] = useState('4');
-  const [ojtYear, setOjtYear] = useState('');
-  const [ojtSemester, setOjtSemester] = useState('');
+  // const [newSchool, setNewSchool] = useState('');
+  // const [newCourse, setNewCourse] = useState('');
+  // const [effectivity, setEffectivity] = useState('');
+  // const [reason, setReason] = useState('');
+  // const [courseDuration, setCourseDuration] = useState('4');
+  // const [ojtYear, setOjtYear] = useState('');
+  // const [ojtSemester, setOjtSemester] = useState('');
   
-  const [midyearClasses, setMidyearClasses] = useState({'1': false, '2': false, '3': false, '4': false});
-  const [thesisYear, setThesisYear] = useState({'1': false, '2': false, '3': false, '4': false});
+  // const [midyearClasses, setMidyearClasses] = useState({'1': false, '2': false, '3': false, '4': false});
+  // const [thesisYear, setThesisYear] = useState({'1': false, '2': false, '3': false, '4': false});
 
-  // File States
-  const [appForm, setAppForm] = useState<File | null>(null);
-  const [certAdmission, setCertAdmission] = useState<File | null>(null);
-  const [certSubjects, setCertSubjects] = useState<File | null>(null);
-  const [certYearLevel, setCertYearLevel] = useState<File | null>(null);
-  const [certGrades, setCertGrades] = useState<File | null>(null);
-  const [programOfStudy, setProgramOfStudy] = useState<File | null>(null);
+  // // File States
+  // const [appForm, setAppForm] = useState<File | null>(null);
+  // const [certAdmission, setCertAdmission] = useState<File | null>(null);
+  // const [certSubjects, setCertSubjects] = useState<File | null>(null);
+  // const [certYearLevel, setCertYearLevel] = useState<File | null>(null);
+  // // const [certGrades, setCertGrades] = useState<File | null>(null);
+  // const [programOfStudy, setProgramOfStudy] = useState<File | null>(null);
 
   // --- OPTIONS ---
   const universityOptions = UNIVERSITIES.map(u => ({ value: u, label: u }));
@@ -56,7 +98,7 @@ export function ShiftingForm({ type, isReadOnly, isResubmit, adminComment = '' }
   // --- RENDER HELPERS ---
   const renderSelect = (label: string, value: string, setter: any, options: any[], placeholder?: string) => (
     <div className="w-full">
-      {isReadOnly ? (
+      {prop.isReadOnly ? (
         <div className="space-y-1.5">
             <Label className="text-gray-500 text-xs uppercase font-semibold tracking-wider">{label}</Label>
             <div className="p-2.5 bg-gray-50 border rounded-md text-sm font-medium text-gray-900">
@@ -76,7 +118,7 @@ export function ShiftingForm({ type, isReadOnly, isResubmit, adminComment = '' }
   );
 
   const renderFileUpload = (label: string, helperText: string, fileState: File | null, setter: any) => {
-    const isEditable = !isReadOnly; 
+    const isEditable = !prop.isReadOnly; 
     
     if (isEditable) {
       return (
@@ -113,23 +155,23 @@ export function ShiftingForm({ type, isReadOnly, isResubmit, adminComment = '' }
         
         <div className="p-5 border rounded-xl bg-gray-50/50 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {isShifting && renderSelect("New Course / Program", newCourse, setNewCourse, programOptions, "Select new program")}
-                {isTransferring && renderSelect("New School / University", newSchool, setNewSchool, universityOptions, "Select new university")}
-                {renderSelect("Effectivity", effectivity, setEffectivity, semOptions, "Select semester")}
+                {isShifting && renderSelect("New Course / Program", prop.newCourse, prop.setNewCourse, programOptions, "Select new program")}
+                {isTransferring && renderSelect("New School / University", prop.newSchool, prop.setNewSchool, universityOptions, "Select new university")}
+                {renderSelect("Effectivity", prop.effectivity, prop.setEffectivity, semOptions, "Select semester")}
             </div>
 
             <Separator className="bg-gray-200" />
 
             <div className="space-y-1.5">
-                <Label className={isReadOnly ? "text-gray-500 text-xs uppercase font-semibold" : ""}>Reason for Application</Label>
-                {isReadOnly ? (
+                <Label className={prop.isReadOnly ? "text-gray-500 text-xs uppercase font-semibold" : ""}>Reason for Application</Label>
+                {prop.isReadOnly ? (
                     <div className="p-3 bg-white border rounded-md text-sm text-gray-900 min-h-[60px]">
-                        {reason}
+                        {prop.reason}
                     </div>
                 ) : (
                     <Textarea 
-                        value={reason} 
-                        onChange={(e) => setReason(e.target.value)} 
+                        value={prop.reason} 
+                        onChange={(e) => prop.setReason(e.target.value)} 
                         className="min-h-[80px] bg-white"
                         placeholder="Please state your valid reason..."
                     />
@@ -147,9 +189,9 @@ export function ShiftingForm({ type, isReadOnly, isResubmit, adminComment = '' }
                         <Checkbox
                             key={`mid-${year}`}
                             label={`${year}${year === '1' ? 'st' : year === '2' ? 'nd' : year === '3' ? 'rd' : 'th'} Year`}
-                            checked={midyearClasses[year as keyof typeof midyearClasses]}
-                            onChange={() => !isReadOnly && setMidyearClasses(p => ({...p, [year]: !p[year as keyof typeof p]}))}
-                            disabled={isReadOnly}
+                            checked={prop.midyearClasses[year as keyof typeof prop.midyearClasses]}
+                            onChange={() => !prop.isReadOnly && prop.setMidyearClasses(p => ({...p, [year]: !p[year as keyof typeof p]}))}
+                            disabled={prop.isReadOnly}
                         />
                     ))}
                     </div>
@@ -165,9 +207,9 @@ export function ShiftingForm({ type, isReadOnly, isResubmit, adminComment = '' }
                         <Checkbox
                             key={`thesis-${year}`}
                             label={`${year}${year === '1' ? 'st' : year === '2' ? 'nd' : year === '3' ? 'rd' : 'th'} Year`}
-                            checked={thesisYear[year as keyof typeof thesisYear]}
-                            onChange={() => !isReadOnly && setThesisYear(p => ({...p, [year]: !p[year as keyof typeof p]}))}
-                            disabled={isReadOnly}
+                            checked={prop.thesisYear[year as keyof typeof prop.thesisYear]}
+                            onChange={() => !prop.isReadOnly && prop.setThesisYear(p => ({...p, [year]: !p[year as keyof typeof p]}))}
+                            disabled={prop.isReadOnly}
                         />
                     ))}
                     </div>
@@ -175,9 +217,9 @@ export function ShiftingForm({ type, isReadOnly, isResubmit, adminComment = '' }
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {renderSelect("New Course Duration", courseDuration, setCourseDuration, durationOptions, "Select duration")}
-                {renderSelect("Year of OJT", ojtYear, setOjtYear, YEAR_LEVELS.slice(0, 4).map((y, i) => ({ value: (i+1).toString(), label: y })), "Select year")}
-                {renderSelect("OJT Semester", ojtSemester, setOjtSemester, SEMESTERS.map(s => ({ value: s, label: s })), "Select semester")}
+                {renderSelect("New Course Duration", prop.courseDuration, prop.setCourseDuration, durationOptions, "Select duration")}
+                {renderSelect("Year of OJT", prop.ojtYear, prop.setOjtYear, YEAR_LEVELS.slice(0, 4).map((y, i) => ({ value: (i+1).toString(), label: y })), "Select year")}
+                {renderSelect("OJT Semester", prop.ojtSemester, prop.setOjtSemester, SEMESTERS.map(s => ({ value: s, label: s })), "Select semester")}
             </div>
         </div>
       </div>
@@ -190,19 +232,19 @@ export function ShiftingForm({ type, isReadOnly, isResubmit, adminComment = '' }
         </div>
 
         <div className="p-6 border rounded-xl bg-white space-y-6 shadow-sm">
-            {renderFileUpload("Application Form for Shifting/Transferring", "Upload the duly signed application form.", appForm, setAppForm)}
+            {renderFileUpload("Application Form for Shifting/Transferring", "Upload the duly signed application form.", prop.appForm, prop.setAppForm)}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {renderFileUpload("Certification of Admission", "Proof of acceptance in the new course/school.", certAdmission, setCertAdmission)}
-                {renderFileUpload("Certification of Accredited Subjects", "List of credited subjects from previous course.", certSubjects, setCertSubjects)}
+                {renderFileUpload("Certification of Admission", "Proof of acceptance in the new course/school.", prop.certAdmission, prop.setCertAdmission)}
+                {renderFileUpload("Certification of Accredited Subjects", "List of credited subjects from previous course.", prop.certSubjects, prop.setCertSubjects)}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {renderFileUpload("Certification of Year Level", "Official certification of your new year level.", certYearLevel, setCertYearLevel)}
-                {renderFileUpload("Certification of Grades", "Grades from all semesters enrolled (Original/Certified True Copy).", certGrades, setCertGrades)}
+                {renderFileUpload("Certification of Year Level", "Official certification of your new year level.", prop.certYearLevel, prop.setCertYearLevel)}
+                {renderFileUpload("Certification of Grades", "Grades from all semesters enrolled (Original/Certified True Copy).", prop.certGrades, prop.setCertGrades)}
             </div>
 
-            {renderFileUpload("Approved Program of Study / Curriculum", "Must be the official curriculum of the new course/school.", programOfStudy, setProgramOfStudy)}
+            {renderFileUpload("Approved Program of Study / Curriculum", "Must be the official curriculum of the new course/school.", prop.programOfStudy, prop.setProgramOfStudy)}
         </div>
       </div>
 

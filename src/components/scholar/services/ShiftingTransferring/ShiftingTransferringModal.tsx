@@ -19,6 +19,8 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatDate } from '@/lib/utils/date';
 import { toast } from '@/components/ui/toaster';
 import type { ShiftingType } from '@/types';
+import { useSubmitShifting, SubmissionData } from '@/hooks/scholars/useSubmitShifting';
+import { useUploadDocument } from '@/hooks/scholars/useUploadDocument';
 
 interface ShiftingTransferringModalProps {
   isOpen: boolean;
@@ -35,23 +37,102 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
   const adminComment = existingRequest?.adminComment;
   const isResubmit = status === 'Resubmit';
   
+  const { submitShifting } = useSubmitShifting();
+  const { uploadDocument } = useUploadDocument();
+  const storedScholar = sessionStorage.getItem('scholar');
+  const scholar = storedScholar ? JSON.parse(storedScholar) : null;
   const [isEditing, setIsEditing] = useState(!existingRequest || isResubmit || status === 'Pending');
 
+  const [newSchool, setNewSchool] = useState('');
+  const [newCourse, setNewCourse] = useState('');
+  const [effectivity, setEffectivity] = useState('');
+  const [reason, setReason] = useState('');
+  const [courseDuration, setCourseDuration] = useState('4');
+  const [ojtYear, setOjtYear] = useState('');
+  const [ojtSemester, setOjtSemester] = useState('');
+  
+  const [midyearClasses, setMidyearClasses] = useState({'1': false, '2': false, '3': false, '4': false});
+  const [thesisYear, setThesisYear] = useState({'1': false, '2': false, '3': false, '4': false});
+
+  // File States
+  const [appForm, setAppForm] = useState<File | null>(null);
+  const [certAdmission, setCertAdmission] = useState<File | null>(null);
+  const [certSubjects, setCertSubjects] = useState<File | null>(null);
+  const [certYearLevel, setCertYearLevel] = useState<File | null>(null);
+  const [certGrades, setCertGrades] = useState<File | null>(null);
+  const [programOfStudy, setProgramOfStudy] = useState<File | null>(null);
+
   const handleSubmit = async () => {
+    if ((type === "Shifting Course" && !newCourse) || 
+        (type === "Transferring School" && !newSchool) || 
+        (type === "Shifting Course & Transferring School" && !newCourse && !newSchool)) 
+    {
+      toast.error('Please fill all the necessary fields.');
+      return;
+    }
+
+    if (!effectivity || !reason || !midyearClasses || !thesisYear || !courseDuration || !ojtSemester || !ojtYear) {
+        toast.error('Please fill all the necessary fields.');
+        return;
+      }
+    
+    if (!appForm || !certAdmission || !certGrades || !certSubjects || !certYearLevel || !programOfStudy) {
+      toast.error ('Please upload all documents.');
+      return;
+    }
+
     if (!isConfirmed) {
       toast.error('Please confirm that your uploaded documents are correct.');
       return;
     }
 
     setIsLoading(true);
+    const loadingId = toast.loading('Submitting request...');
+    const ojtData = { year: ojtYear, semester: ojtSemester };
+
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      toast.success('Application submitted successfully!');
+      let appFormUrl = null;
+      let certAdmissionUrl = null;
+      let certSubjectsUrl = null;
+      let certYearLevelUrl = null;
+      let certGradesUrl = null;
+      let programOfStudyUrl = null;
+
+      if (isEditing) {
+        ({ url:appFormUrl } = await uploadDocument(appForm!, `DOST/${scholar?.spas_id}/shifting/app-form`));
+        ({ url:certAdmissionUrl } = await uploadDocument(certAdmission!, `DOST/${scholar?.spas_id}/shifting/cert-admission`));
+        ({ url:certSubjectsUrl } = await uploadDocument(certSubjects!, `DOST/${scholar?.spas_id}/shifting/cert-subjects`));
+        ({ url:certYearLevelUrl } = await uploadDocument(certYearLevel!, `DOST/${scholar?.spas_id}/shifting/cert-year-level`));
+        ({ url:certGradesUrl } = await uploadDocument(certGrades!, `DOST/${scholar?.spas_id}/shifting/cert-grades`));
+        ({ url:programOfStudyUrl } = await uploadDocument(programOfStudy!, `DOST/${scholar?.spas_id}/shifting/program-study`));
+
+        const data: SubmissionData = {
+          spas_id: scholar?.spas_id,
+          new_course: newCourse,
+          new_school: newSchool,
+          effectivity_of_shifting: effectivity,
+          ojt: ojtData,
+          reason: reason,
+          application_form_file_key: appFormUrl,
+          admission_cert_file_key: certAdmissionUrl, 
+          accredited_sub_file_key: certSubjectsUrl, 
+          new_year_level_file_key: certYearLevelUrl,
+          all_grades_file_key: certGradesUrl, 
+          approved_pos_file_key: programOfStudyUrl, 
+        };
+
+        console.log('Data', data);
+        const returnedData = await submitShifting(data, null);
+      }
+
+      toast.success(isResubmit ? 'Corrections submitted successfully!' : 'Shifting request submitted!');
       onClose();
-    } catch (error) {
-      toast.error('Submission failed.');
-    } finally {
+    }
+    catch (error: any) {
+      toast.error(error.message);
+    }
+    finally {
+      toast.dismiss(loadingId);
       setIsLoading(false);
     }
   };
@@ -81,6 +162,38 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
             isReadOnly={!isEditing}
             isResubmit={isResubmit}
             adminComment={adminComment}
+
+            newSchool={newSchool}
+            setNewSchool={setNewSchool}
+            newCourse={newCourse}
+            setNewCourse={setNewCourse}
+            effectivity={effectivity}
+            setEffectivity={setEffectivity}
+            reason={reason}
+            setReason={setReason}
+            courseDuration={courseDuration}
+            setCourseDuration={setCourseDuration}
+            ojtYear={ojtYear}
+            setOjtYear={setOjtYear}
+            ojtSemester={ojtSemester}
+            setOjtSemester={setOjtSemester}
+            midyearClasses={midyearClasses}
+            setMidyearClasses={setMidyearClasses}
+            thesisYear={thesisYear}
+            setThesisYear={setThesisYear}
+
+            appForm={appForm}
+            setAppForm={setAppForm}
+            certAdmission={certAdmission}
+            setCertAdmission={setCertAdmission}
+            certSubjects={certSubjects}
+            setCertSubjects={setCertSubjects}
+            certYearLevel={certYearLevel}
+            setCertYearLevel={setCertYearLevel}
+            certGrades={certGrades}
+            setCertGrades={setCertGrades}
+            programOfStudy={programOfStudy}
+            setProgramOfStudy={setProgramOfStudy}
           />
 
           {isEditing && (
