@@ -37,7 +37,7 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
   const adminComment = existingRequest?.adminComment;
   const isResubmit = status === 'Resubmit';
   
-  const { submitShifting } = useSubmitShifting();
+  const { submitShifting, error:submitError } = useSubmitShifting();
   const { uploadDocument } = useUploadDocument();
   const storedScholar = sessionStorage.getItem('scholar');
   const scholar = storedScholar ? JSON.parse(storedScholar) : null;
@@ -91,38 +91,36 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
     const ojtData = { year: ojtYear, semester: ojtSemester };
 
     try {
-      let appFormUrl = null;
-      let certAdmissionUrl = null;
-      let certSubjectsUrl = null;
-      let certYearLevelUrl = null;
-      let certGradesUrl = null;
-      let programOfStudyUrl = null;
+      const { url:appFormUrl } = await uploadDocument(appForm!, `DOST/${scholar?.spas_id}/shifting/app-form`);
+      const { url:certAdmissionUrl } = await uploadDocument(certAdmission!, `DOST/${scholar?.spas_id}/shifting/cert-admission`);
+      const { url:certSubjectsUrl } = await uploadDocument(certSubjects!, `DOST/${scholar?.spas_id}/shifting/cert-subjects`);
+      const { url:certYearLevelUrl } = await uploadDocument(certYearLevel!, `DOST/${scholar?.spas_id}/shifting/cert-year-level`);
+      const { url:certGradesUrl } = await uploadDocument(certGrades!, `DOST/${scholar?.spas_id}/shifting/cert-grades`);
+      const { url:programOfStudyUrl } = await uploadDocument(programOfStudy!, `DOST/${scholar?.spas_id}/shifting/program-study`);
+      
+      const data: SubmissionData = {
+        spas_id: scholar?.spas_id,
+        new_course: newCourse,
+        new_school: newSchool,
+        effectivity_of_shifting: effectivity,
+        ojt: ojtData,
+        reason: reason,
+        application_form_file_key: appFormUrl,
+        admission_cert_file_key: certAdmissionUrl, 
+        accredited_sub_file_key: certSubjectsUrl, 
+        new_year_level_file_key: certYearLevelUrl,
+        all_grades_file_key: certGradesUrl, 
+        approved_pos_file_key: programOfStudyUrl, 
+      };
 
-      if (isEditing) {
-        ({ url:appFormUrl } = await uploadDocument(appForm!, `DOST/${scholar?.spas_id}/shifting/app-form`));
-        ({ url:certAdmissionUrl } = await uploadDocument(certAdmission!, `DOST/${scholar?.spas_id}/shifting/cert-admission`));
-        ({ url:certSubjectsUrl } = await uploadDocument(certSubjects!, `DOST/${scholar?.spas_id}/shifting/cert-subjects`));
-        ({ url:certYearLevelUrl } = await uploadDocument(certYearLevel!, `DOST/${scholar?.spas_id}/shifting/cert-year-level`));
-        ({ url:certGradesUrl } = await uploadDocument(certGrades!, `DOST/${scholar?.spas_id}/shifting/cert-grades`));
-        ({ url:programOfStudyUrl } = await uploadDocument(programOfStudy!, `DOST/${scholar?.spas_id}/shifting/program-study`));
+      if (!existingRequest) {
+        await submitShifting(data, null);
+      }
+      else {
+        const id = existingRequest.id;
+        if(!id) { throw new Error(`Failed to update ${type} request.`); }
 
-        const data: SubmissionData = {
-          spas_id: scholar?.spas_id,
-          new_course: newCourse,
-          new_school: newSchool,
-          effectivity_of_shifting: effectivity,
-          ojt: ojtData,
-          reason: reason,
-          application_form_file_key: appFormUrl,
-          admission_cert_file_key: certAdmissionUrl, 
-          accredited_sub_file_key: certSubjectsUrl, 
-          new_year_level_file_key: certYearLevelUrl,
-          all_grades_file_key: certGradesUrl, 
-          approved_pos_file_key: programOfStudyUrl, 
-        };
-
-        console.log('Data', data);
-        const returnedData = await submitShifting(data, null);
+        await submitShifting(data, id);
       }
 
       toast.success(isResubmit ? 'Corrections submitted successfully!' : 'Shifting request submitted!');
