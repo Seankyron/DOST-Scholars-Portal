@@ -18,6 +18,9 @@ import { formatDate } from '@/lib/utils/date';
 import { toast } from '@/components/ui/toaster';
 import { AdminCommentAlert } from '@/components/shared/AdminCommenAlert';
 import { ReimbursementForm } from './ReimbursementForm';
+import { useSubmitReimbursement, SubmissionData } from '@/hooks/scholars/useSubmitReimbursement';
+import { useUploadDocument } from '@/hooks/scholars/useUploadDocument';
+import { de } from 'zod/v4/locales';
 
 interface ReimbursementModalProps {
   isOpen: boolean;
@@ -41,6 +44,11 @@ export function ReimbursementModal({ isOpen, onClose, type, existingRequest }: R
   const isResubmit = status === 'Resubmit';
   const [isEditing, setIsEditing] = useState(!existingRequest || isResubmit);
 
+  const { submitReimbursement, error:submitError } = useSubmitReimbursement();
+  const { uploadDocument } = useUploadDocument();
+  const storedScholar = sessionStorage.getItem('scholar');
+  const scholar = storedScholar ? JSON.parse(storedScholar) : null;
+
   const handleSubmit = async () => {
     if (!isConfirmed) {
       toast.error('Please confirm that the details and receipts are correct.');
@@ -56,16 +64,37 @@ export function ReimbursementModal({ isOpen, onClose, type, existingRequest }: R
     }
 
     setIsLoading(true);
+    const loadingId = toast.loading('Submitting request...');
+
     try {
-      // Mock Submission
-      console.log({ type, amount, details, receipt });
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const { url:receiptUrl, error } = await uploadDocument(receipt!, `DOST/${scholar?.spas_id}/reimbursement/${type}/receipt`);
+      if (error) return toast.error('Failed to upload document.');
+
+      const data: SubmissionData = {
+        spas_id: scholar?.spas_id,
+        type: type,
+        reason: details, 
+        receipt_file_key: receiptUrl
+      };
+
+      if (!existingRequest) {
+        await submitReimbursement(data, null);
+      }
+      else {
+        const id = existingRequest.id;
+        if (!id) { return toast.error('Failed to update reimbursement request.'); }
+
+        await submitReimbursement(data, id);
+      }
+      if(submitError) throw new Error('Failed to update reimbursement request.');
+
       toast.success(isResubmit ? 'Correction submitted!' : 'Reimbursement request submitted!');
       onClose();
     } catch (error) {
       toast.error('Submission failed.');
     } finally {
       setIsLoading(false);
+      toast.dismiss(loadingId);
     }
   };
 
