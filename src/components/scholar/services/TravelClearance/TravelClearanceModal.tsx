@@ -35,6 +35,8 @@ export function TravelClearanceModal({ isOpen, onClose, purpose, existingRequest
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  if (existingRequest) purpose = existingRequest.type;
+
   // Derived State
   const status = existingRequest?.status;
   const adminComment = existingRequest?.adminComment;
@@ -55,8 +57,7 @@ export function TravelClearanceModal({ isOpen, onClose, purpose, existingRequest
   const [coMakerEmploy, setCoMakerEmploy] = useState<File | null>(null);
   const [coMakerId, setCoMakerId] = useState<File | null>(null);
 
-  const [submittedData, setSubmittedData] = useState<Record<string, any> | null>(null);
-  const { submitTravelClearance } = useSubmitTravelClearance();
+  const { submitTravelClearance, error:submitError } = useSubmitTravelClearance();
   const { uploadDocument } = useUploadDocument();
   const storedScholar = sessionStorage.getItem('scholar');
   const scholar = storedScholar ? JSON.parse(storedScholar) : null;
@@ -113,12 +114,20 @@ export function TravelClearanceModal({ isOpen, onClose, purpose, existingRequest
       ({ url: requestLetterUrl } = await uploadDocument(requestLetter!,`DOST/${scholar?.spas_id}/travel-clearance/request-letter`));
 
       if (purpose === 'Official Business Travel') {
-        ({ url:guaranteeLetterUrl } = await uploadDocument(guaranteeLetter!, `DOST/${scholar?.spas_id}/travel-clearance/guarantee-letter`));
+          ({ url:guaranteeLetterUrl } = await uploadDocument(guaranteeLetter!, `DOST/${scholar?.spas_id}/travel-clearance/guarantee-letter`));
+
+        if(guaranteeLetterUrl === null) {
+          throw new Error('Failed to upload Guarantee Letter.');
+        }
       }
       else {
         ({ url: deedOfUndertakingUrl } = await uploadDocument(deedOfUndertaking!, `DOST/${scholar?.spas_id}/travel-clearance/deed-of-undertaking`));
         ({ url: coMakerEmployUrl } = await uploadDocument(coMakerEmploy!, `DOST/${scholar?.spas_id}/travel-clearance/co-maker-employ`));
         ({ url: coMakerIdUrl } = await uploadDocument(coMakerId!, `DOST/${scholar?.spas_id}/travel-clearance/deed-of-co-maker-id`));
+
+        if (!deedOfUndertakingUrl || !coMakerEmployUrl || !coMakerIdUrl) {
+          throw new Error('Failed to upload document.');
+        }
       }
 
       const data: SubmissionData = {
@@ -135,16 +144,21 @@ export function TravelClearanceModal({ isOpen, onClose, purpose, existingRequest
         deed_of_undertaking_file_key: deedOfUndertakingUrl,
         employment_file_key: coMakerEmployUrl,
         valid_id_file_key: coMakerIdUrl,
+        type: purpose,
+        destination: destination
       }
 
-      // if (isEditing && submittedData) {
-      //   const returnedData = await submitTravelClearance(data, submittedData.id);
-      //   setSubmittedData(returnedData);
-      // }
-      // else {
-        const returnData = await submitTravelClearance(data, null);
-        // setSubmittedData(returnData);
-      // }
+      if (!existingRequest) {
+        await submitTravelClearance(data, null);
+      }
+      else {
+        const id = existingRequest.id;
+        if (!id) { throw new Error(`Failed to update ${purpose} request.`); }
+
+        await submitTravelClearance(data, id);
+      }
+
+      if (submitError) throw new Error(`Failed to submit ${purpose} request.`);
 
       toast.success(isResubmit ? 'Corrections submitted successfully!' : 'Travel clearance request submitted!');
       onClose();
