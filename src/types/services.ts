@@ -19,14 +19,19 @@ export type StipendPeriodStatus =
   | 'On hold'
   | 'Not Available';
 
-  export interface StipendSemesterAvailability {
+export interface StipendSemesterAvailability {
   year: number;
   semester: Semester;
   status: StipendPeriodStatus;
   academicYear: string;
   isGradeApproved: boolean; 
 }
-// ..
+
+export interface StipendUpdate {
+  message: string;
+  type: 'info' | 'warning' | 'success' | 'error';
+  date?: string;
+}
 
 export interface BaseSubmission {
   id: string;
@@ -42,9 +47,9 @@ export interface GradeSubmission extends BaseSubmission {
   semester: Semester;
   academicYear: string;
   registrationForm: string;
-  registrationFormUrl?: string; // --- MODIFICATION: Added this property ---
+  registrationFormUrl?: string;
   copyOfGrades: string;
-  copyOfGradesUrl?: string; // --- MODIFICATION: Added this property ---
+  copyOfGradesUrl?: string;
   curriculumFile?: string;
 }
 

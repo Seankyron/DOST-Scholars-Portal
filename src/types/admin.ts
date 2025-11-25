@@ -103,3 +103,8 @@ export interface ThesisRequestDetails extends ThesisAllowance {
     yearAwarded: number;
   };
 }
+
+export interface StipendUpdate {
+  message: string;
+  type: 'info' | 'warning' | 'success' | 'error';
+}
