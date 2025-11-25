@@ -171,10 +171,6 @@ export function GradeSubmissionsTable({ searchTerm }: GradeSubmissionsTableProps
         />
 
         <div className="flex sm:justify-end gap-2">
-          <Button variant="ghost" size="sm" onClick={fetchData} title="Refresh List">
-             <RefreshCw className="h-4 w-4 mr-2" />
-             Refresh
-          </Button>
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export Report

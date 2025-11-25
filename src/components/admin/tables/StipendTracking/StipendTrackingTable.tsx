@@ -32,7 +32,7 @@ export type ScholarStipendData = {
   status: SubmissionStatus | ScholarStatus;
   breakdown: Allowance[];
   updates: StipendUpdate[];
-  dateSubmitted: string;
+  dateApproved: string; // Renamed from dateSubmitted
 };
 
 export interface StipendDetails {
@@ -43,6 +43,8 @@ export interface StipendDetails {
     scholarId: string;
     email: string;
     contactNumber: string;
+    scholarshipType: string;
+    batch: string;
   };
   placementInfo: {
     university: string;
@@ -56,84 +58,189 @@ export interface StipendDetails {
   stipend: ScholarStipendData;
 }
 
-// --- Mock Data ---
-const scholarPanelMockData: Record<string, ScholarStipendData> = {
-  '1-1': {
-    received: 24000,
-    pending: 22000,
-    onHold: true,
-    total: 46000,
-    status: 'On hold',
-    dateSubmitted: '2023-10-15T09:30:00Z',
-    breakdown: [
-      { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'On hold' },
-      { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'On hold' },
-      { name: 'Book Allowance', amount: 5000, status: 'On hold' },
-      { name: 'Clothing Allowance', amount: 1000, status: 'On hold' },
-    ],
-    updates: [
-      {
-        message: 'Stipend On Hold: Your 1st Semester 2024 stipend (₱22,000) is on hold.',
-        type: 'warning',
-      },
-      {
-        message: 'Admin Note: Your stipend is on hold pending submission of your Form 5.',
-        type: 'info',
-      },
-    ],
+// --- Persistent Mock Database ---
+let MOCK_DB: StipendDetails[] = [
+  {
+    id: 'stipend-1-1',
+    scholarInfo: {
+      id: 'scholar1',
+      name: 'Joshua De Larosa',
+      scholarId: '2021-00123',
+      email: 'joshua.delarosa@example.com',
+      contactNumber: '0917-123-4567',
+      scholarshipType: 'RA 7687',
+      batch: '2021',
+    },
+    placementInfo: {
+      university: 'University of the Philippines - Diliman',
+      program: 'BS Computer Science',
+    },
+    semesterInfo: {
+      year: '1st Year',
+      semester: '1st Semester',
+      academicYear: 'AY 2023-2024',
+    },
+    stipend: {
+      received: 24000,
+      pending: 22000,
+      onHold: true,
+      total: 46000,
+      status: 'On hold',
+      dateApproved: '2023-10-15T09:30:00Z', // Renamed
+      breakdown: [
+        { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
+        { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
+        { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
+        { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'On hold' },
+        { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'On hold' },
+        { name: 'Book Allowance', amount: 5000, status: 'On hold' },
+        { name: 'Clothing Allowance', amount: 1000, status: 'On hold' },
+      ],
+      updates: [
+        {
+          message: 'Stipend On Hold: Your 1st Semester 2024 stipend (₱22,000) is on hold.',
+          type: 'warning',
+        },
+        {
+          message: 'Admin Note: Your stipend is on hold pending submission of your Form 5.',
+          type: 'info',
+        },
+      ],
+    },
   },
-  '1-2': {
-    received: 45000,
-    pending: 0,
-    onHold: false,
-    total: 45000,
-    status: 'Approved',
-    dateSubmitted: '2024-03-20T14:00:00Z',
-    breakdown: [
-      { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Released' },
-      { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Released' },
-      { name: 'Book Allowance', amount: 5000, status: 'Released' },
-    ],
-    updates: [
-      {
-        message: 'Your stipend (₱45,000) for this semester has been fully released.',
-        type: 'success',
-      },
-    ],
+  {
+    id: 'stipend-1-2',
+    scholarInfo: {
+      id: 'scholar1',
+      name: 'Joshua De Larosa',
+      scholarId: '2021-00123',
+      email: 'joshua.delarosa@example.com',
+      contactNumber: '0917-123-4567',
+      scholarshipType: 'RA 7687',
+      batch: '2021',
+    },
+    placementInfo: {
+      university: 'University of the Philippines - Diliman',
+      program: 'BS Computer Science',
+    },
+    semesterInfo: {
+      year: '1st Year',
+      semester: '2nd Semester',
+      academicYear: 'AY 2023-2024',
+    },
+    stipend: {
+      received: 45000,
+      pending: 0,
+      onHold: false,
+      total: 45000,
+      status: 'Released',
+      dateApproved: '2024-03-20T14:00:00Z', // Renamed
+      breakdown: [
+        { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
+        { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
+        { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
+        { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Released' },
+        { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Released' },
+        { name: 'Book Allowance', amount: 5000, status: 'Released' },
+      ],
+      updates: [
+        {
+          message: 'Your stipend (₱45,000) for this semester has been fully released.',
+          type: 'success',
+        },
+      ],
+    },
   },
-  '2-1': {
-    received: 0,
-    pending: 45000,
-    onHold: false,
-    total: 45000,
-    status: 'Processing',
-    dateSubmitted: '2024-10-18T11:20:00Z', 
-    breakdown: [
-      { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Pending' },
-      { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Pending' },
-      { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Pending' },
-      { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Pending' },
-      { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Pending' },
-      { name: 'Book Allowance', amount: 5000, status: 'Pending' },
-    ],
-    updates: [
-      {
-        message: 'Your grade submission has been approved. Your stipend is now processing. Please wait 21 working days.',
-        type: 'info',
-      },
-    ],
+  {
+    id: 'stipend-2-1',
+    scholarInfo: {
+      id: 'scholar1',
+      name: 'Joshua De Larosa',
+      scholarId: '2021-00123',
+      email: 'joshua.delarosa@example.com',
+      contactNumber: '0917-123-4567',
+      scholarshipType: 'RA 7687',
+      batch: '2021',
+    },
+    placementInfo: {
+      university: 'University of the Philippines - Diliman',
+      program: 'BS Computer Science',
+    },
+    semesterInfo: {
+      year: '2nd Year',
+      semester: '1st Semester',
+      academicYear: 'AY 2024-2025',
+    },
+    stipend: {
+      received: 0,
+      pending: 45000,
+      onHold: false,
+      total: 45000,
+      status: 'Processing',
+      dateApproved: '2024-10-18T11:20:00Z', // Renamed
+      breakdown: [
+        { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Pending' },
+        { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Pending' },
+        { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Pending' },
+        { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Pending' },
+        { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Pending' },
+        { name: 'Book Allowance', amount: 5000, status: 'Pending' },
+      ],
+      updates: [
+        {
+          message: 'Your grade submission has been approved. Your stipend is now processing. Please wait 21 working days.',
+          type: 'info',
+        },
+      ],
+    },
   },
-};
+  {
+    id: 'stipend-2-2',
+    scholarInfo: {
+      id: 'scholar2',
+      name: 'Maria Clara',
+      scholarId: '2022-00456',
+      email: 'maria.clara@example.com',
+      contactNumber: '0998-765-4321',
+      scholarshipType: 'Merit',
+      batch: '2022',
+    },
+    placementInfo: {
+      university: 'Ateneo de Manila University',
+      program: 'BS Physics',
+    },
+    semesterInfo: {
+      year: '1st Year',
+      semester: '1st Semester',
+      academicYear: 'AY 2023-2024',
+    },
+    stipend: {
+      received: 24000,
+      pending: 22000,
+      onHold: true,
+      total: 46000,
+      status: 'On hold',
+      dateApproved: '2023-10-15T09:30:00Z', // Renamed
+      breakdown: [
+        { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
+        { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
+        { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
+        { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'On hold' },
+        { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'On hold' },
+        { name: 'Book Allowance', amount: 5000, status: 'On hold' },
+        { name: 'Clothing Allowance', amount: 1000, status: 'On hold' },
+      ],
+      updates: [
+        {
+          message: 'Stipend On Hold: Your 1st Semester 2024 stipend (₱22,000) is on hold.',
+          type: 'warning',
+        },
+      ],
+    },
+  },
+];
 
 const ITEMS_PER_PAGE = 7;
-
-// --- Component Definition ---
 
 interface StipendTrackingTableProps {
   searchTerm: string;
@@ -165,102 +272,8 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
     setLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate API delay
-      
-      const mockData: StipendDetails[] = [
-        {
-          id: 'stipend-1-1',
-          scholarInfo: {
-            id: 'scholar1',
-            name: 'Joshua De Larosa',
-            scholarId: '2021-00123',
-            email: 'joshua.delarosa@example.com',
-            contactNumber: '0917-123-4567',
-          },
-          placementInfo: {
-            university: 'University of the Philippines - Diliman',
-            program: 'BS Computer Science',
-          },
-          semesterInfo: {
-            year: '1st Year',
-            semester: '1st Semester',
-            academicYear: 'AY 2023-2024',
-          },
-          stipend: {
-            ...scholarPanelMockData['1-1'],
-            status: 'On hold',
-          },
-        },
-        {
-          id: 'stipend-1-2',
-          scholarInfo: {
-            id: 'scholar1',
-            name: 'Joshua De Larosa',
-            scholarId: '2021-00123',
-            email: 'joshua.delarosa@example.com',
-            contactNumber: '0917-123-4567',
-          },
-          placementInfo: {
-            university: 'University of the Philippines - Diliman',
-            program: 'BS Computer Science',
-          },
-          semesterInfo: {
-            year: '1st Year',
-            semester: '2nd Semester',
-            academicYear: 'AY 2023-2024',
-          },
-          stipend: {
-            ...scholarPanelMockData['1-2'],
-            status: 'Released',
-          },
-        },
-        {
-          id: 'stipend-2-1',
-          scholarInfo: {
-            id: 'scholar1',
-            name: 'Joshua De Larosa',
-            scholarId: '2021-00123',
-            email: 'joshua.delarosa@example.com',
-            contactNumber: '0917-123-4567',
-          },
-          placementInfo: {
-            university: 'University of the Philippines - Diliman',
-            program: 'BS Computer Science',
-          },
-          semesterInfo: {
-            year: '2nd Year',
-            semester: '1st Semester',
-            academicYear: 'AY 2024-2025',
-          },
-          stipend: {
-            ...scholarPanelMockData['2-1'],
-            status: 'Processing',
-          },
-        },
-        {
-            id: 'stipend-2-2',
-            scholarInfo: {
-              id: 'scholar2',
-              name: 'Maria Clara',
-              scholarId: '2022-00456',
-              email: 'maria.clara@example.com',
-              contactNumber: '0998-765-4321',
-            },
-            placementInfo: {
-              university: 'Ateneo de Manila University',
-              program: 'BS Physics',
-            },
-            semesterInfo: {
-              year: '1st Year',
-              semester: '1st Semester',
-              academicYear: 'AY 2023-2024',
-            },
-            stipend: {
-              ...scholarPanelMockData['1-1'], // Reusing for simplicity
-              status: 'On hold',
-            },
-        },
-      ];
-      setStipends(mockData);
+      // Fetch from the persistent MOCK_DB
+      setStipends([...MOCK_DB]); 
     } catch (err) {
       console.error(err);
       toast.error('Failed to fetch stipend records.');
@@ -334,8 +347,40 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
     try {
         await new Promise((res) => setTimeout(res, 1000));
         
-        const actionType = pendingPayload.adminNote ? 'Placed on hold' : 'Released';
-        if (actionType === 'Released') {
+        const actionType = pendingPayload.adminNote ? 'Hold' : 'Release';
+        const newStatus: SubmissionStatus = actionType === 'Hold' ? 'On hold' : 'Released';
+        const isHold = actionType === 'Hold';
+
+        // Update MOCK_DB directly
+        MOCK_DB = MOCK_DB.map((item) => {
+          if (selectedStipendIds.includes(item.id)) {
+            return {
+              ...item,
+              stipend: {
+                ...item.stipend,
+                status: newStatus,
+                onHold: isHold,
+                breakdown: item.stipend.breakdown.map(b => ({
+                  ...b,
+                  status: isHold ? 'On hold' : 'Released'
+                })),
+                updates: [
+                  {
+                    message: isHold 
+                      ? `Stipend placed on hold: ${pendingPayload.adminNote}` 
+                      : 'Stipend allowances released.',
+                    type: isHold ? 'warning' : 'success',
+                    date: new Date().toISOString()
+                  },
+                  ...item.stipend.updates
+                ]
+              }
+            };
+          }
+          return item;
+        });
+
+        if (actionType === 'Release') {
             toast.success(`Successfully released allowances for ${selectedStipendIds.length} scholar(s).`);
         } else {
             toast.warning(`Placed ${selectedStipendIds.length} stipend(s) on hold.`);
@@ -343,7 +388,7 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
         setIsConfirmOpen(false);
         setPendingPayload(null);
         setSelectedStipendIds([]);
-        fetchData(); // Automatic refresh
+        fetchData(); // Refresh UI
     } catch (error) {
         console.error(error);
         toast.error("An error occurred while processing the request.");
@@ -363,10 +408,18 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
     setSelectedStipend(null);
   };
 
-  const handleSave = (updatedStipend: StipendDetails) => {
-    console.log('Saving stipend data:', updatedStipend);
+  const handleSave = async (updatedStipend: StipendDetails) => {
+    // Simulate API Call
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Update MOCK_DB
+    MOCK_DB = MOCK_DB.map((item) => 
+      item.id === updatedStipend.id ? updatedStipend : item
+    );
+
+    toast.success("Stipend record updated successfully.");
     handleCloseModal();
-    fetchData(); // Automatic refresh
+    fetchData(); // Refresh UI
   };
 
   const selectedCount = selectedStipendIds.length;
@@ -433,7 +486,7 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University / Program</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Academic Term</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Submitted</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Approved</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Received</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending / On Hold</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>

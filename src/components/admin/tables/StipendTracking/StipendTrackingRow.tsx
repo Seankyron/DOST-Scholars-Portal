@@ -67,8 +67,8 @@ export function StipendTrackingRow({
       </td>
 
       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-        {stipendData.dateSubmitted
-          ? formatDate(stipendData.dateSubmitted, 'MMM dd, yyyy')
+        {stipendData.dateApproved
+          ? formatDate(stipendData.dateApproved, 'MMM dd, yyyy')
           : <span className="text-gray-400 italic">N/A</span>}
       </td>
 

@@ -15,11 +15,11 @@ import { UNIVERSITIES } from '@/lib/utils/constants';
 export function StipendTrackingFilters() {
   return (
     <div className="flex flex-col gap-4">
-      {/* Primary Filters Grid - Matches PTP Layout */}
-     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+      {/* Primary Filters Grid - Adjusted to grid-cols-4 to be full width with 4 items */}
+     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* 1. Status */}
         <Select>
-          <SelectTrigger className="bg-white h-10">
+          <SelectTrigger className="bg-white h-10 w-full">
             <SelectValue placeholder="Status: All" />
           </SelectTrigger>
           <SelectContent>
@@ -32,7 +32,7 @@ export function StipendTrackingFilters() {
 
         {/* 2. Academic Year */}
         <Select>
-          <SelectTrigger className="bg-white h-10">
+          <SelectTrigger className="bg-white h-10 w-full">
             <SelectValue placeholder="A.Y.: All" />
           </SelectTrigger>
           <SelectContent>
@@ -44,7 +44,7 @@ export function StipendTrackingFilters() {
 
         {/* 3. Semester */}
         <Select>
-          <SelectTrigger className="bg-white h-10">
+          <SelectTrigger className="bg-white h-10 w-full">
             <SelectValue placeholder="Semester: All" />
           </SelectTrigger>
           <SelectContent>
@@ -57,7 +57,7 @@ export function StipendTrackingFilters() {
 
         {/* 4. University */}
         <Select>
-          <SelectTrigger className="bg-white h-10">
+          <SelectTrigger className="bg-white h-10 w-full">
             <SelectValue placeholder="University: All" />
           </SelectTrigger>
           <SelectContent>
@@ -70,7 +70,6 @@ export function StipendTrackingFilters() {
           </SelectContent>
         </Select>
         
-        {/* Fill remaining space or add more filters if needed */}
       </div>
 
       {/* Secondary Row: Date Range & Reset */}

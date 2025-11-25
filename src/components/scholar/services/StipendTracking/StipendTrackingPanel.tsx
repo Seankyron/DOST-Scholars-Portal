@@ -6,8 +6,15 @@ import { AlertCircle, Wallet } from 'lucide-react';
 import { StipendSemCard } from './StipendSemCard';
 import { StipendDetailsModal } from './StipendDetailsModal';
 import { RecentStipendActivity } from './RecentStipendReleases';
-import { Select } from '@/components/ui/select';
-import { toast } from '@/components/ui/toaster';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/components/ui/toaster'; // Import toast from your Sonner wrapper
 
 
 const mockSemesters = [
@@ -114,17 +121,17 @@ const mockSemesters = [
 const recentActivities = [
   { 
     id: 1, 
-    title: '1st Year - 2nd Semester', // Changed from "Full Release..." 
+    title: '1st Year - 2nd Semester', 
     amount: '₱45,000', 
     date: 'Mar 20, 2024', 
     status: 'Released' 
   },
   { 
     id: 2, 
-    title: '1st Year - 1st Semester', // Changed from "Partial Release..."
+    title: '1st Year - 1st Semester', 
     amount: '₱24,000', 
     date: 'Oct 15, 2023', 
-    status: 'Released' // The status badge clarifies the action
+    status: 'Released' 
   },
 ];
 
@@ -136,7 +143,10 @@ export function StipendTrackingPanel() {
 
   const handleCardClick = (sem: any) => {
     if (sem.stipendStatus === 'Locked') {
-      toast.info("You must submit your grades for this semester first.");
+      // FIX: Use sonner syntax: toast.error(message, { description })
+      toast.error("Access Denied", {
+        description: "You must submit your grades for this semester first.",
+      });
       return;
     }
     setSelectedSemester(sem);
@@ -176,16 +186,22 @@ export function StipendTrackingPanel() {
       </Card>
 
       {/* 2. Year Selection */}
-      <Select
-         label="Select Academic Year"
-         value={selectedAcademicYear}
-         onChange={(e) => setSelectedAcademicYear(e.target.value)}
-         options={[
-            { value: 'All', label: 'View All' },
-            { value: 'AY 2024-2025', label: 'AY 2024-2025' },
-            { value: 'AY 2023-2024', label: 'AY 2023-2024' }
-         ]}
-      />
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-gray-700">Select Academic Year</Label>
+        <Select
+          value={selectedAcademicYear}
+          onValueChange={(value) => setSelectedAcademicYear(value)}
+        >
+          <SelectTrigger className="w-full bg-white">
+            <SelectValue placeholder="Select Academic Year" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="All">View All</SelectItem>
+            <SelectItem value="AY 2024-2025">AY 2024-2025</SelectItem>
+            <SelectItem value="AY 2023-2024">AY 2023-2024</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* 3. Semester Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

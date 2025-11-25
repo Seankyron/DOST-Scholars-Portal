@@ -11,7 +11,8 @@ export type SubmissionStatus =
   | 'Open' 
   | 'Not Available'
   | 'Released'
-  | 'Resolved';
+  | 'Resolved'
+  | 'On hold'; // Added this
 
 export type StipendPeriodStatus =
   | 'Released'
