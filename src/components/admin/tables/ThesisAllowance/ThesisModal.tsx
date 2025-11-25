@@ -13,18 +13,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Download, MessageSquarePlus, FileText, BookOpen, CheckCircle2 } from 'lucide-react';
+import { Download, MessageSquarePlus } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { ThesisRequestDetails } from '@/types/admin';
-
-// --- Helper Components ---
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <p className="text-xs font-medium text-gray-500 uppercase">{label}</p>
+      <p className="text-xs font-medium text-gray-500">{label}</p>
       <p className="text-sm font-semibold text-gray-800 break-words">{value || 'N/A'}</p>
     </div>
   );
@@ -52,6 +51,8 @@ function FileDisplay({
            <>
              <span className="text-sm font-medium text-gray-800 truncate" title={fileName}>{fileName}</span>
              <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
+               <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="View">
+               </Button>
                <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="Download">
                  <Download className="h-4 w-4" />
                </Button>
@@ -129,13 +130,6 @@ export function ThesisModal({
 
   const comment = adminComment.toLowerCase();
   
-  // Logic to determine icon and title based on percentage
-  const getHeaderIcon = () => {
-    if (percentage === 90) return <FileText className="h-5 w-5 text-blue-600" />;
-    if (percentage === 10) return <BookOpen className="h-5 w-5 text-blue-600" />;
-    return <CheckCircle2 className="h-5 w-5 text-blue-600" />;
-  };
-
   const getReleaseTitle = () => {
     if (percentage === 90) return '90% Partial Release';
     if (percentage === 10) return '10% Final Release';
@@ -147,48 +141,51 @@ export function ThesisModal({
       <Modal open={isOpen} onOpenChange={onClose}>
         <ModalContent size="4xl">
           <ModalHeader>
-             <div className="flex flex-col">
-                <ModalTitle className="flex items-center gap-2">
-                    {getHeaderIcon()}
-                    Thesis Allowance Request
-                </ModalTitle>
-                <p className="text-sm text-gray-500 font-normal mt-1 ml-7">
-                    {getReleaseTitle()}
-                </p>
+             <div className="flex items-center justify-between w-full pr-8">
+                <div className="flex flex-col">
+                   <ModalTitle>Thesis Allowance Request</ModalTitle>
+                   <p className="text-sm text-gray-500 font-normal mt-1">{getReleaseTitle()}</p>
+                </div>  
              </div>
           </ModalHeader>
 
           <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               
-              {/* === COLUMN 1: SCHOLAR INFO === */}
-              <div className="space-y-6">
-                <section className="space-y-3">
+              {/* === COLUMN 1: Scholar Info & Request Details === */}
+              <div className="flex flex-col gap-6 h-full">
+                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Scholar Information
                   </h2>
-                  <InfoItem label="Full Name" value={scholarInfo.name} />
+                  <InfoItem label="Name" value={scholarInfo.name} />
                   <InfoItem label="SPAS ID" value={scholarInfo.spas_id} />
                   <InfoItem label="Email" value={scholarInfo.email} />
                   <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
                 </section>
 
-                <section className="space-y-3">
+                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex-1 flex flex-col">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Request Details
                   </h2>
-                  <InfoItem label="Transaction Type" value={`${percentage}% Release`} />
-                  <InfoItem label="Date Submitted" value={formatDate(request.dateSubmitted)} />
-                  <InfoItem label="Status" value={request.status} />
+                  <div className="space-y-3 flex-1">
+                    <InfoItem label="Transaction Type" value={`${percentage}% Release`} />
+                    <InfoItem label="Academic Term" value={`${request.semester}, ${request.academicYear}`} />
+                    <InfoItem label="Year Level" value={request.yearLevel} />
+                    <InfoItem label="Date Submitted" value={formatDate(request.dateSubmitted)} />
+                    <InfoItem label="Current Status" value={
+                        <StatusBadge status={request.status} className="mt-1"/>
+                    } />
+                  </div>
                 </section>
               </div>
 
-              {/* === COLUMN 2: PLACEMENT & DOCUMENTS === */}
-              <div className="space-y-6">
-                <section className="space-y-3">
+              {/* === COLUMN 2: Placement & Documents === */}
+              <div className="flex flex-col gap-6 h-full">
+                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                    Year of Award and Study Placement
+                    Placement Information
                   </h2>
                   <InfoItem label="Scholarship Type" value={scholarInfo.scholarshipType} />
                   <InfoItem label="Batch / Year Awarded" value={scholarInfo.yearAwarded} />
@@ -196,21 +193,18 @@ export function ThesisModal({
                   <InfoItem label="Program / Course" value={scholarInfo.program} />
                 </section>
 
-                <section className="space-y-3">
+                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex-1 flex flex-col">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Submitted Documents
                   </h2>
                   
-                  {/* --- Grid Layout for Documents --- */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3">
                     {/* Always show Registration Form if available */}
-                    <div className="lg:col-span-2">
-                        <FileDisplay
-                            label="Registration Form / COR"
-                            fileName={registrationForm}
-                            needsResubmit={comment.includes('registration') || comment.includes('cor')}
-                        />
-                    </div>
+                    <FileDisplay
+                        label="Registration Form / COR"
+                        fileName={registrationForm}
+                        needsResubmit={comment.includes('registration') || comment.includes('cor')}
+                    />
 
                     {/* 90% and 100% require Abstract & Approval */}
                     {(percentage === 90 || percentage === 100) && (
@@ -230,13 +224,11 @@ export function ThesisModal({
 
                     {/* 10% and 100% require Final Manuscript */}
                     {(percentage === 10 || percentage === 100) && (
-                        <div className="lg:col-span-2">
-                            <FileDisplay
-                                label="Final Thesis Manuscript"
-                                fileName={finalManuscript}
-                                needsResubmit={comment.includes('manuscript')}
-                            />
-                        </div>
+                        <FileDisplay
+                            label="Final Thesis Manuscript"
+                            fileName={finalManuscript}
+                            needsResubmit={comment.includes('manuscript')}
+                        />
                     )}
                   </div>
                 </section>
@@ -244,7 +236,7 @@ export function ThesisModal({
             </div>
 
             {/* --- Comments & Actions (Full Width) --- */}
-            <section className="pt-4 border-t">
+            <section className="bg-white border rounded-lg shadow-sm p-5">
                <div className="space-y-2">
                   <Label htmlFor="admin-comment" className="block text-sm font-medium text-gray-700">
                     Admin Comments

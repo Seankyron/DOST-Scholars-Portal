@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { PTPRow } from './PTPRow';
 import { Pagination } from '@/components/shared/Pagination';
-import { Loader2 } from 'lucide-react';
-// IMPORT THE TYPES
+import { Loader2, Download } from 'lucide-react'; 
+import { Button } from '@/components/ui/button'; 
 import type { PTPRequestDetails } from '@/types/admin';
 
 interface PTPTableProps {
@@ -31,6 +31,8 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
             spas_id: '2021-001',
             email: 'juan.delacruz@example.com',
             contactNumber: '09123456789',
+            dateOfBirth: '2000-01-01',
+            completeAddress: 'Manila',
           },
           placementInfo: {
             scholarshipType: 'RA 7687',
@@ -43,6 +45,8 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
             status: 'Pending',
             trainingYear: 2024,
             plan: 'undertake_ptp',
+            semester: 'Midyear', // FIXED: Changed from 'Mid-Year Term' to 'Midyear'
+            academicYear: '2023-2024'
           },
           files: {
             grades: 'grades.pdf',
@@ -56,9 +60,11 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
           type: 'Program Completion',
           scholarInfo: {
             name: 'Maria Clara',
-            spas_id: '2021-001',
+            spas_id: '2021-002',
             email: 'maria.clara@example.com',
             contactNumber: '09987654321',
+            dateOfBirth: '2001-05-05',
+            completeAddress: 'Quezon City',
           },
           placementInfo: {
             scholarshipType: 'Merit',
@@ -70,6 +76,8 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
             dateSubmitted: new Date(Date.now() - 86400000).toISOString(),
             status: 'Approved',
             trainingYear: 2024,
+            semester: 'Midyear', // FIXED: Changed from 'Mid-Year Term' to 'Midyear'
+            academicYear: '2023-2024'
           },
           files: {
             form126: 'f126.pdf',
@@ -115,8 +123,9 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scholar</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Details</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Type</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Academic Term</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University / Program</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Submitted</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -149,6 +158,12 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
           onPageChange={() => {}}
           className="sm:justify-self-center"
         />
+        <div className="flex sm:justify-end">
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export Report
+          </Button>
+        </div>
       </div>
     </>
   );

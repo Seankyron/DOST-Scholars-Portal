@@ -6,7 +6,6 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Eye } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import { PTPModal } from './PTPModal'; 
-// IMPORT TYPE
 import type { PTPRequestDetails } from '@/types/admin';
 
 interface PTPRowProps {
@@ -20,22 +19,50 @@ export function PTPRow({ request, onUpdate }: PTPRowProps) {
   return (
     <>
       <tr className="hover:bg-gray-50 transition-colors">
-        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-          {request.scholarInfo.name}
+        {/* Scholar Name & SPAS ID */}
+        <td className="px-4 py-3 whitespace-nowrap">
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-gray-900">{request.scholarInfo.name}</span>
+            <span className="text-xs text-gray-500">{request.spas_id}</span>
+          </div>
         </td>
+
+        {/* Transaction Type */}
         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-          <div className="font-medium">{request.type}</div>
-          <div className="text-xs text-gray-500">Training Year: {request.submissionInfo.trainingYear || 'N/A'}</div>
+        {request.type}   
         </td>
-        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-          {request.placementInfo.university}
+
+        {/* Academic Term */}
+        <td className="px-4 py-3 whitespace-nowrap">
+           <div className="flex flex-col">
+             <span className="text-sm font-medium text-gray-900">{request.submissionInfo.semester}</span>
+             <span className="text-xs text-gray-500">{request.submissionInfo.academicYear}</span>
+           </div>
         </td>
+
+        {/* University & Program */}
+        <td className="px-4 py-3 whitespace-nowrap">
+          <div className="flex flex-col max-w-xs truncate">
+            <span className="text-sm text-gray-900 truncate" title={request.placementInfo.university}>
+              {request.placementInfo.university}
+            </span>
+            <span className="text-xs text-gray-500 truncate" title={request.placementInfo.program}>
+              {request.placementInfo.program}
+            </span>
+          </div>
+        </td>
+
+        {/* Date Submitted */}
         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
           {formatDate(request.submissionInfo.dateSubmitted)}
         </td>
+
+        {/* Status */}
         <td className="px-4 py-3 whitespace-nowrap">
           <StatusBadge status={request.submissionInfo.status} />
         </td>
+
+        {/* Actions */}
         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium space-x-2">
           <Button 
             variant="outline" 

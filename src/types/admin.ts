@@ -1,4 +1,4 @@
-import type { Province, ScholarshipType, CurriculumConfig } from './scholar';
+import type { Province, ScholarshipType, CurriculumConfig, Semester } from './scholar'; // Added Semester here
 import type { SubmissionStatus, PTPPlan } from './services';
 import type { ThesisAllowance } from './services';
 
@@ -48,13 +48,13 @@ export interface EventBanner {
   createdAt: string;
 }
 
-// --- NEW TYPES MOVED FROM PTP TABLE ---
-
 export interface AdminScholarInfo {
   name: string;
   spas_id: string;
   email: string;
   contactNumber: string;
+  dateOfBirth?: string;
+  completeAddress?: string;
 }
 
 export interface AdminPlacementInfo {
@@ -66,7 +66,7 @@ export interface AdminPlacementInfo {
 
 export interface PTPRequestDetails {
   id: string;
-  spas_id: AdminScholarInfo['spas_id'] ;
+  spas_id: string;
   type: 'Referral Letter' | 'Program Completion';
   scholarInfo: AdminScholarInfo;
   placementInfo: AdminPlacementInfo;
@@ -76,6 +76,8 @@ export interface PTPRequestDetails {
     adminComment?: string;
     trainingYear?: number;
     plan?: PTPPlan;
+    semester: Semester; // Now correctly imported
+    academicYear: string;
   };
   files: {
     grades?: string;
@@ -93,11 +95,11 @@ export interface ThesisRequestDetails extends ThesisAllowance {
   scholarInfo: {
     name: string;
     spas_id: string;
-    email: string;           // Added
-    contactNumber: string;   // Added
+    email: string;
+    contactNumber: string;
     program: string;
     university: string;
     scholarshipType: ScholarshipType | string;
-    yearAwarded: number;     // Added
+    yearAwarded: number;
   };
 }

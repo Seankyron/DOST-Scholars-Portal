@@ -13,10 +13,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Eye, Download, MessageSquarePlus, Radio } from 'lucide-react';
+import { Download, MessageSquarePlus, Radio } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
+import { StatusBadge } from '@/components/shared/StatusBadge'; 
 import { PTPPlan } from '@/types/services';
 import type { PTPRequestDetails } from '@/types/admin';
 
@@ -52,7 +53,6 @@ function FileDisplay({
              <span className="text-sm font-medium text-gray-800 truncate" title={fileName}>{fileName}</span>
              <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
                <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="View">
-                 <Eye className="h-4 w-4" />
                </Button>
                <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="Download">
                  <Download className="h-4 w-4" />
@@ -70,11 +70,11 @@ function FileDisplay({
 const formatPTPPlan = (plan?: PTPPlan) => {
   switch (plan) {
     case 'undertake_ptp':
-      return 'I will undertake the Required Practical Training Program (PTP) in the Mid-Year Term.';
+      return 'I will undertake the Required PTP in the Mid-Year Term.';
     case 'cannot_participate':
       return 'I cannot participate in the PTP this Mid-Year Term.';
     case 'ojt_midyear_and_ptp':
-      return 'My OJT/Practicum is included in the curriculum for the Mid-Year Term.';
+      return 'My OJT/Practicum is included in the curriculum.';
     default:
       return 'N/A';
   }
@@ -166,56 +166,57 @@ export function PTPModal({
       <Modal open={isOpen} onOpenChange={onClose}>
         <ModalContent size="4xl">
           <ModalHeader>
-             <div className="flex flex-col">
-                <ModalTitle>Practical Training Request</ModalTitle>
-                <p className="text-sm text-gray-500 font-normal mt-1">{request.type}</p>
+             <div className="flex items-center justify-between w-full pr-8">
+                <div className="flex flex-col">
+                   <ModalTitle>Practical Training Request</ModalTitle>
+                   <p className="text-sm text-gray-500 font-normal mt-1">{request.type}</p>
+                </div>  
              </div>
           </ModalHeader>
 
           <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               
-              {/* === COLUMN 1 === */}
-              <div className="space-y-6">
-                <section className="space-y-3">
+              <div className="flex flex-col gap-6 h-full">
+                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Scholar Information
                   </h2>
                   <InfoItem label="Name" value={scholarInfo.name} />
-                  <InfoItem label="SPAS ID" value={scholarInfo.spas_id} />
+                  <InfoItem label="SPAS ID" value={request.spas_id} />
                   <InfoItem label="Email" value={scholarInfo.email} />
                   <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
                 </section>
 
-                <section className="space-y-3">
+                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex-1 flex flex-col">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Request Details
                   </h2>
-                  <InfoItem label="Transaction Type" value={request.type} />
-                  <InfoItem label="Training Year" value={submissionInfo.trainingYear} />
-                  <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
+                  <div className="space-y-3 flex-1"> {/* Content wrapper */}
+                    <InfoItem label="Transaction Type" value={request.type} />
+                    <InfoItem label="Academic Term" value={`${submissionInfo.semester}, ${submissionInfo.academicYear}`} />
+                    <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
+                    <InfoItem label="Current Status" value={
+                       <StatusBadge status={submissionInfo.status} className="mt-1"/>
+                    } />
+                    
+                    {request.type === 'Referral Letter' && (
+                      <div className="pt-2">
+                        <p className="text-xs font-medium text-gray-500">Selected Plan</p>
+                        <p className="text-sm font-semibold text-gray-800 break-words mt-1">
+                          {formatPTPPlan(submissionInfo.plan)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </section>
-
-                {/* --- PLAN SELECTION (Only for Referral Letter) --- */}
-                {request.type === 'Referral Letter' && (
-                  <section className="space-y-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <h2 className="text-sm font-semibold text-dost-title flex items-center gap-2">
-                      <Radio className="h-4 w-4" />
-                      Selected Plan Option
-                    </h2>
-                    <p className="text-sm text-gray-800 font-medium pl-6">
-                      {formatPTPPlan(submissionInfo.plan)}
-                    </p>
-                  </section>
-                )}
               </div>
 
-              {/* === COLUMN 2 === */}
-              <div className="space-y-6">
-                <section className="space-y-3">
+            
+              <div className="flex flex-col gap-6 h-full">
+                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                    Year of Award and Study Placement
+                    Placement Information
                   </h2>
                   <InfoItem label="Scholarship Type" value={placementInfo.scholarshipType} />
                   <InfoItem label="Batch / Year Awarded" value={placementInfo.batch} />
@@ -223,59 +224,58 @@ export function PTPModal({
                   <InfoItem label="Program / Course" value={placementInfo.program} />
                 </section>
 
-                {/* --- DYNAMIC DOCUMENTS SECTION --- */}
-                <section className="space-y-3">
+                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex-1 flex flex-col">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Submitted Documents
                   </h2>
                   
-                  {/* Grid Layout for Documents */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3">
                     {request.type === 'Referral Letter' ? (
-                       <>
-                          <FileDisplay
-                             label="Certified Grades"
-                             fileName={files.grades}
-                             needsResubmit={comment.includes('grades')}
-                          />
-                          <FileDisplay
-                             label="Reply Slip"
-                             fileName={files.replySlip}
-                             needsResubmit={comment.includes('reply')}
-                          />
-                          <FileDisplay
-                             label="Curriculum Checklist"
-                             fileName={files.curriculum}
-                          />
-                       </>
+                        <>
+                           <FileDisplay
+                              label="Certified Grades"
+                              fileName={files.grades}
+                              needsResubmit={comment.includes('grades')}
+                           />
+                           <FileDisplay
+                              label="Reply Slip"
+                              fileName={files.replySlip}
+                              needsResubmit={comment.includes('reply')}
+                           />
+                           <FileDisplay
+                              label="Curriculum Checklist"
+                              fileName={files.curriculum}
+                              needsResubmit={comment.includes('curriculum')}
+                           />
+                        </>
                     ) : (
-                       <>
-                          <FileDisplay
-                             label="Form 126"
-                             fileName={files.form126}
-                             needsResubmit={comment.includes('126')}
-                          />
-                          <FileDisplay
-                             label="Form 127"
-                             fileName={files.form127}
-                             needsResubmit={comment.includes('127')}
-                          />
-                          <FileDisplay
-                             label="Form 128"
-                             fileName={files.form128}
-                             needsResubmit={comment.includes('128')}
-                          />
-                          <FileDisplay
-                             label="Daily Time Record"
-                             fileName={files.dtr}
-                             needsResubmit={comment.includes('dtr')}
-                          />
-                          <FileDisplay
-                             label="Cert. of Completion"
-                             fileName={files.certCompletion}
-                             needsResubmit={comment.includes('cert')}
-                          />
-                       </>
+                        <>
+                           <FileDisplay
+                              label="Form 126"
+                              fileName={files.form126}
+                              needsResubmit={comment.includes('126')}
+                           />
+                           <FileDisplay
+                              label="Form 127"
+                              fileName={files.form127}
+                              needsResubmit={comment.includes('127')}
+                           />
+                           <FileDisplay
+                              label="Form 128"
+                              fileName={files.form128}
+                              needsResubmit={comment.includes('128')}
+                           />
+                           <FileDisplay
+                              label="Daily Time Record"
+                              fileName={files.dtr}
+                              needsResubmit={comment.includes('dtr')}
+                           />
+                           <FileDisplay
+                              label="Cert. of Completion"
+                              fileName={files.certCompletion}
+                              needsResubmit={comment.includes('cert')}
+                           />
+                        </>
                     )}
                   </div>
                 </section>
@@ -283,7 +283,7 @@ export function PTPModal({
             </div>
 
             {/* --- FULL WIDTH SECTION (Comments & Actions) --- */}
-            <section className="pt-4 border-t">
+            <section className="bg-white border rounded-lg shadow-sm p-5">
                <div className="space-y-2">
                   <Label htmlFor="admin-comment" className="block text-sm font-medium text-gray-700">
                     Admin Comments
@@ -346,10 +346,10 @@ export function PTPModal({
         isOpen={isApproveOpen}
         onClose={() => setIsApproveOpen(false)}
         onConfirm={handleApprove}
-        title="Approve Request"
-        description={`Are you sure you want to approve this ${request.type} request?`}
+        title="Approve Practical Training Request"
+        description={`Are you sure you want to approve from ${scholarInfo.name}?`}
         variant="info"
-        confirmText="Yes, Approve"
+        confirmText="Yes, approve"
       />
       
       <ConfirmDialog
@@ -357,19 +357,9 @@ export function PTPModal({
         onClose={() => setIsResubmitOpen(false)}
         onConfirm={handleResubmit}
         title="Request Resubmission"
-        description={`Are you sure you want to request resubmission?`}
-        variant="warning"
-        confirmText="Yes, Request Resubmission"
-      />
-
-      <ConfirmDialog
-        isOpen={isRejectOpen}
-        onClose={() => setIsRejectOpen(false)}
-        onConfirm={handleReject}
-        title="Reject Request"
-        description="Are you sure you want to reject this request? This action cannot be undone."
+        description={`Are you sure you want to request resubmission from ${scholarInfo.name}? Ensure the comments are clear.`}
         variant="danger"
-        confirmText="Yes, Reject"
+        confirmText="Yes, request resubmission"
       />
     </>
   );

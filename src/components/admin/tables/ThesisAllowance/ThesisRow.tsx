@@ -28,10 +28,8 @@ export function ThesisRow({ request, onUpdate }: ThesisRowProps) {
         </td>
 
         {/* Release Type (Isolated) */}
-        <td className="px-4 py-3 whitespace-nowrap">
-          <span className="flex flex-col">
+        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
             {request.percentage}% Release
-          </span>
         </td>
 
         {/* Academic Term (New Column) */}
