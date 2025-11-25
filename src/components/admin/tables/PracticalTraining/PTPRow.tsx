@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Eye } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
-import type { PTPRequestDetails } from './PTPTable';
 import { PTPModal } from './PTPModal'; 
+// IMPORT TYPE
+import type { PTPRequestDetails } from '@/types/admin';
 
 interface PTPRowProps {
   request: PTPRequestDetails; 
-  onUpdate: () => void; // FIXED: Added missing prop definition
+  onUpdate: () => void;
 }
 
 export function PTPRow({ request, onUpdate }: PTPRowProps) {
@@ -52,7 +53,7 @@ export function PTPRow({ request, onUpdate }: PTPRowProps) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         request={request}
-        onUpdate={onUpdate} // FIXED: Passing the prop to the modal
+        onUpdate={onUpdate} 
       />
     </>
   );

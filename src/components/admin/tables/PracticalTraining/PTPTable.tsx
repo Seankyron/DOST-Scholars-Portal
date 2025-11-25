@@ -3,47 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { PTPRow } from './PTPRow';
 import { Pagination } from '@/components/shared/Pagination';
-import type { SubmissionStatus, ScholarshipType } from '@/types';
 import { Loader2 } from 'lucide-react';
-import { PTPPlan } from '@/types/services';
-import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
-
-// --- Type Definition ---
-export interface PTPRequestDetails {
-  id: string;
-  spas_id: string;
-  type: 'Referral Letter' | 'Program Completion';
-  scholarInfo: {
-    name: string;
-    contactNumber: string;
-    dateOfBirth: string;
-    completeAddress: string;
-  };
-  placementInfo: {
-    scholarshipType: ScholarshipType;
-    batch: number; // Used in Modal
-    university: string;
-    program: string;
-  };
-  submissionInfo: {
-    dateSubmitted: string;
-    status: SubmissionStatus;
-    adminComment?: string;
-    trainingYear?: number;
-    plan?: PTPPlan; // ADDED: The radio button selection
-  };
-  files: {
-    grades?: string;
-    replySlip?: string;
-    curriculum?: string;
-    form126?: string;
-    form127?: string;
-    form128?: string;
-    dtr?: string;
-    certCompletion?: string;
-  };
-}
+// IMPORT THE TYPES
+import type { PTPRequestDetails } from '@/types/admin';
 
 interface PTPTableProps {
   searchTerm: string;
@@ -66,9 +28,9 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
           type: 'Referral Letter',
           scholarInfo: {
             name: 'Juan Dela Cruz',
+            spas_id: '2021-001',
+            email: 'juan.delacruz@example.com',
             contactNumber: '09123456789',
-            dateOfBirth: '2000-01-01',
-            completeAddress: 'Manila, Philippines',
           },
           placementInfo: {
             scholarshipType: 'RA 7687',
@@ -80,7 +42,7 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
             dateSubmitted: new Date().toISOString(),
             status: 'Pending',
             trainingYear: 2024,
-            plan: 'undertake_ptp', // Added plan
+            plan: 'undertake_ptp',
           },
           files: {
             grades: 'grades.pdf',
@@ -94,9 +56,9 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
           type: 'Program Completion',
           scholarInfo: {
             name: 'Maria Clara',
+            spas_id: '2021-001',
+            email: 'maria.clara@example.com',
             contactNumber: '09987654321',
-            dateOfBirth: '2001-05-05',
-            completeAddress: 'Quezon City',
           },
           placementInfo: {
             scholarshipType: 'Merit',
@@ -108,7 +70,6 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
             dateSubmitted: new Date(Date.now() - 86400000).toISOString(),
             status: 'Approved',
             trainingYear: 2024,
-            // Completion usually doesn't need plan shown, but we can make it optional
           },
           files: {
             form126: 'f126.pdf',
@@ -143,8 +104,6 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
 
   if (error) return <p className="p-4 text-red-500 text-center">{error}</p>;
 
-  // Filter based on search term (if you still want search functionality even without the bar, 
-  // or if we receive it from props. Currently we removed the bar but props remain)
   const filteredRequests = requests.filter((r) =>
     r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -156,7 +115,7 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scholar</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Details</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Details</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Submitted</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -190,12 +149,6 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
           onPageChange={() => {}}
           className="sm:justify-self-center"
         />
-        <div className="flex sm:justify-end">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export Report
-          </Button>
-        </div>
       </div>
     </>
   );

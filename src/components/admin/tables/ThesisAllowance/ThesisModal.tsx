@@ -13,17 +13,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Eye, Download, MessageSquarePlus, Radio } from 'lucide-react';
+import { Download, MessageSquarePlus, FileText, BookOpen, CheckCircle2 } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
-import { PTPPlan } from '@/types/services';
-import type { PTPRequestDetails } from '@/types/admin';
+import type { ThesisRequestDetails } from '@/types/admin';
+
+// --- Helper Components ---
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <p className="text-xs font-medium text-gray-500 uppercase">{label}</p>
       <p className="text-sm font-semibold text-gray-800 break-words">{value || 'N/A'}</p>
     </div>
   );
@@ -51,9 +52,6 @@ function FileDisplay({
            <>
              <span className="text-sm font-medium text-gray-800 truncate" title={fileName}>{fileName}</span>
              <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
-               <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="View">
-                 <Eye className="h-4 w-4" />
-               </Button>
                <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="Download">
                  <Download className="h-4 w-4" />
                </Button>
@@ -67,64 +65,45 @@ function FileDisplay({
   );
 }
 
-const formatPTPPlan = (plan?: PTPPlan) => {
-  switch (plan) {
-    case 'undertake_ptp':
-      return 'I will undertake the Required Practical Training Program (PTP) in the Mid-Year Term.';
-    case 'cannot_participate':
-      return 'I cannot participate in the PTP this Mid-Year Term.';
-    case 'ojt_midyear_and_ptp':
-      return 'My OJT/Practicum is included in the curriculum for the Mid-Year Term.';
-    default:
-      return 'N/A';
-  }
-};
-
 const PREBUILT_COMMENTS = [
   {
-    key: 'dtr_unsigned',
-    text: 'Daily Time Record (DTR) is not signed by the supervisor. Please upload the signed copy.',
-    short: 'Unsigned DTR',
+    key: 'sig_missing',
+    text: 'Document is missing required signatures from the adviser or school officials.',
+    short: 'Missing Signature',
   },
   {
-    key: 'grades_incomplete',
-    text: 'Certified Grades are incomplete. Please ensure all semesters are included.',
-    short: 'Incomplete Grades',
+    key: 'abstract_incomplete',
+    text: 'Abstract is incomplete. Please ensure Title, Rationale, Objectives, and Methodology are present.',
+    short: 'Incomplete Abstract',
   },
   {
-    key: 'reply_slip_missing',
-    text: 'Reply slip is missing or not filled out correctly.',
-    short: 'Invalid Reply Slip',
-  },
-  {
-    key: 'cert_wrong',
-    text: 'Incorrect Certificate of Completion uploaded.',
-    short: 'Wrong Certificate',
+    key: 'manuscript_corrupt',
+    text: 'The Final Manuscript file cannot be opened. Please convert to PDF and re-upload.',
+    short: 'Corrupt File',
   },
 ];
 
-interface PTPModalProps {
+interface ThesisModalProps {
   isOpen: boolean;
   onClose: () => void;
-  request: PTPRequestDetails; 
+  request: ThesisRequestDetails; 
   onUpdate: () => void; 
 }
 
-export function PTPModal({
+export function ThesisModal({
   isOpen,
   onClose,
   request,
   onUpdate
-}: PTPModalProps) {
-  const { scholarInfo, placementInfo, submissionInfo, files } = request;
+}: ThesisModalProps) {
+  const { scholarInfo, percentage, abstract, approvalSheet, finalManuscript, registrationForm } = request;
   
-  const [adminComment, setAdminComment] = useState(submissionInfo.adminComment || '');
+  const [adminComment, setAdminComment] = useState(request.adminComment || '');
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
-  const [isRejectOpen, setIsRejectOpen] = useState(false);
 
   const handleAddComment = (commentText: string) => {
-    setAdminComment((prev) => {
+    setAdminComment((prev: string) => {
       if (prev.trim() === '') return commentText;
       return `${prev}\n- ${commentText}`;
     });
@@ -147,28 +126,35 @@ export function PTPModal({
     setIsResubmitOpen(false);
     onClose();
   };
-  
-  const handleReject = async () => {
-    if (adminComment.trim() === '') {
-       toast.error('Please provide a reason for rejection.');
-       return;
-    }
-    toast.error('Request Rejected', { description: `${scholarInfo.name} has been notified.` });
-    onUpdate();
-    setIsRejectOpen(false);
-    onClose();
-  }
 
   const comment = adminComment.toLowerCase();
   
+  // Logic to determine icon and title based on percentage
+  const getHeaderIcon = () => {
+    if (percentage === 90) return <FileText className="h-5 w-5 text-blue-600" />;
+    if (percentage === 10) return <BookOpen className="h-5 w-5 text-blue-600" />;
+    return <CheckCircle2 className="h-5 w-5 text-blue-600" />;
+  };
+
+  const getReleaseTitle = () => {
+    if (percentage === 90) return '90% Partial Release';
+    if (percentage === 10) return '10% Final Release';
+    return '100% Full Release';
+  };
+
   return (
     <>
       <Modal open={isOpen} onOpenChange={onClose}>
         <ModalContent size="4xl">
           <ModalHeader>
              <div className="flex flex-col">
-                <ModalTitle>Practical Training Request</ModalTitle>
-                <p className="text-sm text-gray-500 font-normal mt-1">{request.type}</p>
+                <ModalTitle className="flex items-center gap-2">
+                    {getHeaderIcon()}
+                    Thesis Allowance Request
+                </ModalTitle>
+                <p className="text-sm text-gray-500 font-normal mt-1 ml-7">
+                    {getReleaseTitle()}
+                </p>
              </div>
           </ModalHeader>
 
@@ -176,13 +162,13 @@ export function PTPModal({
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               
-              {/* === COLUMN 1 === */}
+              {/* === COLUMN 1: SCHOLAR INFO === */}
               <div className="space-y-6">
                 <section className="space-y-3">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Scholar Information
                   </h2>
-                  <InfoItem label="Name" value={scholarInfo.name} />
+                  <InfoItem label="Full Name" value={scholarInfo.name} />
                   <InfoItem label="SPAS ID" value={scholarInfo.spas_id} />
                   <InfoItem label="Email" value={scholarInfo.email} />
                   <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
@@ -192,97 +178,72 @@ export function PTPModal({
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Request Details
                   </h2>
-                  <InfoItem label="Transaction Type" value={request.type} />
-                  <InfoItem label="Training Year" value={submissionInfo.trainingYear} />
-                  <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
+                  <InfoItem label="Transaction Type" value={`${percentage}% Release`} />
+                  <InfoItem label="Date Submitted" value={formatDate(request.dateSubmitted)} />
+                  <InfoItem label="Status" value={request.status} />
                 </section>
-
-                {/* --- PLAN SELECTION (Only for Referral Letter) --- */}
-                {request.type === 'Referral Letter' && (
-                  <section className="space-y-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <h2 className="text-sm font-semibold text-dost-title flex items-center gap-2">
-                      <Radio className="h-4 w-4" />
-                      Selected Plan Option
-                    </h2>
-                    <p className="text-sm text-gray-800 font-medium pl-6">
-                      {formatPTPPlan(submissionInfo.plan)}
-                    </p>
-                  </section>
-                )}
               </div>
 
-              {/* === COLUMN 2 === */}
+              {/* === COLUMN 2: PLACEMENT & DOCUMENTS === */}
               <div className="space-y-6">
                 <section className="space-y-3">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Year of Award and Study Placement
                   </h2>
-                  <InfoItem label="Scholarship Type" value={placementInfo.scholarshipType} />
-                  <InfoItem label="Batch / Year Awarded" value={placementInfo.batch} />
-                  <InfoItem label="School / University" value={placementInfo.university} />
-                  <InfoItem label="Program / Course" value={placementInfo.program} />
+                  <InfoItem label="Scholarship Type" value={scholarInfo.scholarshipType} />
+                  <InfoItem label="Batch / Year Awarded" value={scholarInfo.yearAwarded} />
+                  <InfoItem label="School / University" value={scholarInfo.university} />
+                  <InfoItem label="Program / Course" value={scholarInfo.program} />
                 </section>
 
-                {/* --- DYNAMIC DOCUMENTS SECTION --- */}
                 <section className="space-y-3">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Submitted Documents
                   </h2>
                   
-                  {/* Grid Layout for Documents */}
+                  {/* --- Grid Layout for Documents --- */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                    {request.type === 'Referral Letter' ? (
-                       <>
-                          <FileDisplay
-                             label="Certified Grades"
-                             fileName={files.grades}
-                             needsResubmit={comment.includes('grades')}
-                          />
-                          <FileDisplay
-                             label="Reply Slip"
-                             fileName={files.replySlip}
-                             needsResubmit={comment.includes('reply')}
-                          />
-                          <FileDisplay
-                             label="Curriculum Checklist"
-                             fileName={files.curriculum}
-                          />
-                       </>
-                    ) : (
-                       <>
-                          <FileDisplay
-                             label="Form 126"
-                             fileName={files.form126}
-                             needsResubmit={comment.includes('126')}
-                          />
-                          <FileDisplay
-                             label="Form 127"
-                             fileName={files.form127}
-                             needsResubmit={comment.includes('127')}
-                          />
-                          <FileDisplay
-                             label="Form 128"
-                             fileName={files.form128}
-                             needsResubmit={comment.includes('128')}
-                          />
-                          <FileDisplay
-                             label="Daily Time Record"
-                             fileName={files.dtr}
-                             needsResubmit={comment.includes('dtr')}
-                          />
-                          <FileDisplay
-                             label="Cert. of Completion"
-                             fileName={files.certCompletion}
-                             needsResubmit={comment.includes('cert')}
-                          />
-                       </>
+                    {/* Always show Registration Form if available */}
+                    <div className="lg:col-span-2">
+                        <FileDisplay
+                            label="Registration Form / COR"
+                            fileName={registrationForm}
+                            needsResubmit={comment.includes('registration') || comment.includes('cor')}
+                        />
+                    </div>
+
+                    {/* 90% and 100% require Abstract & Approval */}
+                    {(percentage === 90 || percentage === 100) && (
+                        <>
+                            <FileDisplay
+                                label="One-Page Abstract"
+                                fileName={abstract}
+                                needsResubmit={comment.includes('abstract')}
+                            />
+                            <FileDisplay
+                                label="Signed Approval Sheet"
+                                fileName={approvalSheet}
+                                needsResubmit={comment.includes('approval') || comment.includes('signature')}
+                            />
+                        </>
+                    )}
+
+                    {/* 10% and 100% require Final Manuscript */}
+                    {(percentage === 10 || percentage === 100) && (
+                        <div className="lg:col-span-2">
+                            <FileDisplay
+                                label="Final Thesis Manuscript"
+                                fileName={finalManuscript}
+                                needsResubmit={comment.includes('manuscript')}
+                            />
+                        </div>
                     )}
                   </div>
                 </section>
               </div>
             </div>
 
-            {/* --- FULL WIDTH SECTION (Comments & Actions) --- */}
+            {/* --- Comments & Actions (Full Width) --- */}
             <section className="pt-4 border-t">
                <div className="space-y-2">
                   <Label htmlFor="admin-comment" className="block text-sm font-medium text-gray-700">
@@ -346,10 +307,10 @@ export function PTPModal({
         isOpen={isApproveOpen}
         onClose={() => setIsApproveOpen(false)}
         onConfirm={handleApprove}
-        title="Approve Request"
-        description={`Are you sure you want to approve this ${request.type} request?`}
+        title="Approve Thesis Allowance"
+        description={`Are you sure you want to approve this ${percentage}% release for ${scholarInfo.name}?`}
         variant="info"
-        confirmText="Yes, Approve"
+        confirmText="Yes, approve"
       />
       
       <ConfirmDialog
@@ -357,19 +318,9 @@ export function PTPModal({
         onClose={() => setIsResubmitOpen(false)}
         onConfirm={handleResubmit}
         title="Request Resubmission"
-        description={`Are you sure you want to request resubmission?`}
-        variant="warning"
-        confirmText="Yes, Request Resubmission"
-      />
-
-      <ConfirmDialog
-        isOpen={isRejectOpen}
-        onClose={() => setIsRejectOpen(false)}
-        onConfirm={handleReject}
-        title="Reject Request"
-        description="Are you sure you want to reject this request? This action cannot be undone."
+        description={`Are you sure you want to request resubmission from ${scholarInfo.name}? Ensure the comments are clear.`}
         variant="danger"
-        confirmText="Yes, Reject"
+        confirmText="Yes, request resubmission"
       />
     </>
   );
