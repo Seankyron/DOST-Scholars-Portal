@@ -15,6 +15,8 @@ export interface SubmissionData {
   deed_of_undertaking_file_key?: string | null;
   employment_file_key?: string | null;
   valid_id_file_key?: string | null;
+  type?: string | null;
+  destination?: string | null;
 }
 
 export const useSubmitTravelClearance = () => {
@@ -44,7 +46,9 @@ export const useSubmitTravelClearance = () => {
             status: data.status,
             deed_of_undertaking_file_key: data.deed_of_undertaking_file_key,
             employment_file_key: data.employment_file_key,
-            valid_id_file_key: data.valid_id_file_key
+            valid_id_file_key: data.valid_id_file_key,
+            type: data.type,
+            destination: data.destination
           })
           .select()
           .single();
