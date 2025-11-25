@@ -13,7 +13,7 @@ export type SubmissionStatus =
 
 export type StipendPeriodStatus =
   | 'Released'
-  | 'Processing'
+  | 'Pending'
   | 'On hold'
   | 'Not Available';
 
@@ -51,7 +51,7 @@ export interface StipendTracking extends BaseSubmission {
   expectedTotal: number;
   totalReceived: number;
   pendingAmount: number;
-  releaseType: 'Released' | 'Pending' | 'On hold' | 'Processing';
+  releaseType: 'Released' | 'Pending' | 'On hold';
   allowances: {
     month1?: number;
     month2?: number;
@@ -67,15 +67,15 @@ export interface StipendTracking extends BaseSubmission {
 export type Allowance = {
   name: string;
   amount: number;
-  status: 'Released' | 'Pending' | 'On hold' | 'Processing';
+  status: | 'Released' | 'Pending' | 'On hold';
 };
 
 export type StipendUpdate = {
   message: string;
-  type: 'info' | 'warning' | 'success';
+  type: | 'info' | 'warning' | 'success';
 };
 
-export type PTPPlan = 'undertake_ptp' | 'cannot_participate' | 'ojt_midyear_and_ptp';
+export type PTPPlan = | 'undertake_ptp' | 'cannot_participate' | 'ojt_midyear_and_ptp';
 
 export interface PracticalTrainingReferral extends BaseSubmission {
   trainingYear: number;
@@ -93,7 +93,7 @@ export interface PracticalTrainingCompletion extends BaseSubmission {
   trainingCompletion: string;
 }
 
-export type ThesisPercentage = 90 | 10 | 100;
+export type ThesisPercentage = '90%' | '10%' | '100%';
 
 export interface ThesisAllowance extends BaseSubmission {
   percentage: ThesisPercentage;

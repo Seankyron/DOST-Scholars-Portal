@@ -7,7 +7,14 @@
       "default",
       {
         "dlitem": "off",
-        "list": "off"
+        "list": "off",
+        "listitem": "off"
+      }
+    ],
+    "axe/name-role-value": [
+      "default",
+      {
+        "button-name": "off"
       }
     ]
   }

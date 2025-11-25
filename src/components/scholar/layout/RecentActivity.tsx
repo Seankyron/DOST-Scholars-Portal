@@ -98,7 +98,7 @@ export function RecentActivity() {
                   <p className="text-sm font-semibold text-gray-900 truncate">
                     {activity.title}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500" suppressHydrationWarning>
                     Submitted {formatRelativeTime(activity.timestamp)}
                   </p>
                 </div>

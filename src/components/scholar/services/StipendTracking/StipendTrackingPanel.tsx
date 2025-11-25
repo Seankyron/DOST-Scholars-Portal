@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, Wallet, Loader2 } from 'lucide-react';
 import { StipendSemCard } from './StipendSemCard';
@@ -8,8 +8,8 @@ import { StipendDetailsModal } from './StipendDetailsModal';
 import { RecentStipendActivity } from './RecentStipendReleases';
 import { Select } from '@/components/ui/select';
 import { toast } from '@/components/ui/toaster';
-import { useCurrentScholarStipend } from '@/hooks/scholar/useCurrentScholarStipend';
-import type { SubmissionStatus, Semester } from '@/types';
+import { useCurrentScholarStipend } from '@/hooks/scholar/Stipend Tracking/useCurrentScholarStipend';
+import type { StipendPeriodStatus, Semester} from '@/types';
 
 // --- Helper to generate the grid of expected semesters ---
 const getExpectedSemesters = (
@@ -65,26 +65,54 @@ const getOrdinal = (n: number) => {
 
 export function StipendTrackingPanel() {
   // 1. Get User Context
+  // Ideally this should come from a Context Provider, but session storage works for now
   const userStr = typeof window !== 'undefined' ? sessionStorage.getItem('user') : null;
   const user = userStr ? JSON.parse(userStr) : null;
 
   // 2. Fetch Real Data
   const { stipend: stipendRecords, loading, error } = useCurrentScholarStipend(user?.spas_id);
 
-  // 3. State
+  // 3. Calculate Options & Defaults (Memoized)
+  // We generate the Academic Year options *before* state so we can set a default.
+  const academicYearOptions = useMemo(() => {
+    if (!user) return [];
+    const startYear = Number(user.batch);
+    const duration = Number(user.course_duration) || 4;
+    
+    // Generate list of AY strings
+    const options = Array.from({ length: duration }, (_, i) => {
+      const y = startYear + i;
+      return `AY ${y}-${y + 1}`;
+    });
+    
+    // Reverse to show latest first
+    return options.reverse();
+  }, [user]);
+
+  // 4. State
   const [selectedSemesterData, setSelectedSemesterData] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [filterAcademicYear, setFilterAcademicYear] = useState('All');
+  
+  // Initialize with the latest year (first option), or empty string if loading
+  const [filterAcademicYear, setFilterAcademicYear] = useState(academicYearOptions[0] || '');
+
+  // Ensure state updates if user data loads late
+  useEffect(() => {
+    if (academicYearOptions.length > 0 && !filterAcademicYear) {
+      setFilterAcademicYear(academicYearOptions[0]);
+    }
+  }, [academicYearOptions, filterAcademicYear]);
 
   // 4. Process Data (Merge Structure with DB Records)
+  type UIStipendStatus = StipendPeriodStatus;
   const processedSemesters = useMemo(() => {
     if (!user) return [];
 
     // Generate the skeleton structure based on user's course duration
     const skeleton = getExpectedSemesters(
-      Number(user.year_awarded), // Ensure this matches your DB column for Batch/Year Awarded
-      user.course_duration,
-      user.midyear_classes
+      Number(user.batch), // Ensure this matches your DB column for Batch/Year Awarded
+      Number(user.course_duration) || 4, // Fallback to 4 if missing
+      user.midyear_classes || []
     );
 
     // Merge with real data
@@ -98,18 +126,11 @@ export function StipendTrackingPanel() {
       let status = 'Not Available'; // Default if no record and in future
       let received = 0;
       let pending = 0;
-      let breakdown = [];
-
+      
       if (record) {
-        status = record.status || 'Processing'; // Use DB status
+        status = (record.status as UIStipendStatus)|| 'Pending'; // Use DB status
         received = record.received || 0;
         pending = record.unreleased || 0; // Assuming 'unreleased' column exists
-        // If you have a JSON column for breakdown, parse it here:
-        // breakdown = record.breakdown || []; 
-      } else {
-        // Simple logic for "Locked" vs "Not Available"
-        // You can enhance this with date comparisons if needed
-        status = 'Locked'; 
       }
 
       return {
@@ -126,41 +147,48 @@ export function StipendTrackingPanel() {
     });
   }, [user, stipendRecords]);
 
-  // 5. Filter Logic
-  const filteredSemesters = filterAcademicYear === 'All'
-    ? processedSemesters
-    : processedSemesters.filter((s) => s.academicYear === filterAcademicYear);
-
-  // 6. Generate Filter Options
-  const academicYearOptions = Array.from(new Set(processedSemesters.map(s => s.academicYear)));
+  // 6. Filter Logic (Removed 'All' check)
+  const filteredSemesters = processedSemesters.filter(
+    (s) => s.academicYear === filterAcademicYear
+  );
 
   // 7. Derive Recent Activity
   const recentActivities = useMemo(() => {
     if (!stipendRecords) return [];
+    
     return stipendRecords
-      .filter(r => r.received > 0) // Only show releases
-      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-      .slice(0, 5) // Top 5
+      .filter(r => r.received && r.received > 0) // Only show actual releases
+      .sort((a, b) => {
+         // Sort by updated_at descending
+         return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      })
       .map((r, index) => ({
         id: index,
         title: `${r.year_level}${getOrdinal(r.year_level)} Year - ${r.semester}`,
-        amount: `₱${r.received.toLocaleString()}`,
+        amount: `₱${(r.received || 0).toLocaleString()}`,
         date: new Date(r.updated_at).toLocaleDateString(),
-        status: 'Released'
+        status: r.status
       }));
   }, [stipendRecords]);
+  console.log("Stipend Records: ", stipendRecords);    
 
   // 8. Handlers
   const handleCardClick = (sem: any) => {
-    if (sem.stipendStatus === 'Locked' || sem.stipendStatus === 'Not Available') {
-      toast.info("No stipend record available for this semester yet. Please ensure your grades are approved.");
-      return;
+    // Allow clicking if status is valid
+    // Adjust this condition based on your exact requirements
+    const validStatuses = ['Released', 'On hold', 'Pending'];
+    console.log("Includes? ", validStatuses.includes(sem.stipendStatus))
+    console.log(sem.stipendStatus == 'Pending')
+    console.log("Stipend Status: ", sem.stipendStatus,'Pending')
+    if (validStatuses.includes(sem.stipendStatus)) {
+        setSelectedSemesterData(sem);
+        setIsModalOpen(true);
+    } else {
+        toast.info("No stipend details available for this semester yet.");
     }
-    setSelectedSemesterData(sem);
-    setIsModalOpen(true);
   };
 
-  if (!user) return <div>Loading user context...</div>;
+  if (!user) return <div className="p-8 text-center text-gray-500">Loading user profile...</div>;
 
   return (
     <div className="space-y-6">
@@ -196,10 +224,7 @@ export function StipendTrackingPanel() {
           label="Filter by Academic Year"
           value={filterAcademicYear}
           onChange={(e) => setFilterAcademicYear(e.target.value)}
-          options={[
-            { value: 'All', label: 'View All' },
-            ...academicYearOptions.map(ay => ({ value: ay, label: ay }))
-          ]}
+          options={academicYearOptions.map(ay => ({ value: ay, label: ay }))}
         />
       </div>
 

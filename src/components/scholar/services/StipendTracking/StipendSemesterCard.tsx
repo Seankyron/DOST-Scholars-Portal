@@ -24,7 +24,7 @@ const statusConfig: Record<string, { icon: React.ElementType, cta: string, color
     colorClass: "bg-green-100 text-green-600 group-hover:bg-green-600 group-hover:text-white",
     tooltip: "All expected stipend/allowances have been released."
   },
-  'Processing': { 
+  'Pending': { 
     icon: AlertTriangle, 
     cta: 'View Details',
     colorClass: "bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white",

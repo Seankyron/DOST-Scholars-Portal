@@ -8,7 +8,7 @@ import { RecentSubmissions } from './RecentSubmissions';
 import { GradeSubmissionModal } from './GradeSubmissionModal';
 import { toast } from '@/components/ui/toaster';
 import { Select } from '@/components/ui/select';
-import { useCurrentScholarGrade, type iGradeSubmissions } from '@/hooks/scholar/useCurrentScholarGrade';
+import { useCurrentScholarGrade, type iGradeSubmissions } from '@/hooks/scholar/Grade Submission/useCurrentScholarGrade';
 import type { SemesterAvailability, SubmissionStatus, Semester } from '@/types';
 
 // 1. Constants

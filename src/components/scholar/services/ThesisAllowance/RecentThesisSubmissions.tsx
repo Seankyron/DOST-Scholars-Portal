@@ -8,7 +8,7 @@ import type { SubmissionStatus } from '@/types/services';
 
 export interface ThesisRequest {
   id: number | string;
-  percentage: 90 | 10 | 100;
+  type: "90%" | "10%" | "100%";
   status: SubmissionStatus;
   dateSubmitted: string;
   adminComment?: string;
@@ -40,7 +40,7 @@ export function RecentThesisSubmissions({ onViewDetails, requests = [] }: Recent
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">
-                      {req.percentage}% Thesis Allowance Release
+                      {req.type} Thesis Allowance Release
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5">
                       Submitted {formatRelativeTime(req.dateSubmitted)}

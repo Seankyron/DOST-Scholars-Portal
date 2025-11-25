@@ -30,12 +30,13 @@ export function useCurrentScholarStipend(spas_id: string)
       try {
         const query = supabase
             .from('Stipend Tracking')
-            .select(`id, spas_id, year_level, semester, 
-              stipend_type, received, unreleased, status, 
-              grade_submission_id, allowance_breakdown`)
+            .select(`id, spas_id, year_level, semester, received,
+              unreleased, status, grade_submission_id, allowance_breakdown`)
             .eq('spas_id', spas_id)
-        
+
+            
         const { data, error } = await query;
+        console.log("Query: ", data);
 
         if (error) throw error;
 
@@ -52,5 +53,6 @@ export function useCurrentScholarStipend(spas_id: string)
     fetchStipend();
   }, []);
 
+  console.log(stipend);
   return { stipend: stipend, loading, error };
 }

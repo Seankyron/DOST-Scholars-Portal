@@ -12,6 +12,11 @@ interface FormProps {
   isReadOnly?: boolean;
   isResubmit?: boolean;
   adminComment?: string;
+  DTRUrl?: string;
+  certUrl?: string;
+  form126Url?: string;
+  form127Url?: string;
+  form128Url?: string;
 }
 
 export function CompletionSubmissionForm({
@@ -20,8 +25,17 @@ export function CompletionSubmissionForm({
   form128, setForm128,
   dtr, setDtr,
   certCompletion, setCertCompletion,
+  DTRUrl, certUrl, form126Url, form127Url, form128Url,
   isReadOnly, isResubmit, adminComment = ''
 }: FormProps) {
+  const userStr = typeof window !== 'undefined' ? sessionStorage.getItem('user') : null;
+  const user = userStr ? JSON.parse(userStr) : null;
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const DTRFKUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${DTRUrl}.pdf`;
+  const certFKUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${certUrl}.pdf`;
+  const form126FKUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${form126Url}.pdf`;
+  const form127FKUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${form127Url}.pdf`;
+  const form128FKUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${form128Url}.pdf`;
 
   const checkVisibility = (keywords: string[]) => {
     if (!isResubmit) return { isEditable: !isReadOnly };
@@ -47,7 +61,9 @@ export function CompletionSubmissionForm({
                     required
                 />
             ) : (
-                <FileDisplayReadOnly label="Form 126" fileName="Submitted File" />
+                <FileDisplayReadOnly label="Form 126"
+                fileName={`${user.spas_id} – Form 126.pdf`}
+                fileUrl={form126FKUrl} />
             )}
 
             {showForm127.isEditable ? (
@@ -58,7 +74,9 @@ export function CompletionSubmissionForm({
                     required
                 />
             ) : (
-                <FileDisplayReadOnly label="Form 127" fileName="Submitted File" />
+                <FileDisplayReadOnly label="Form 127"
+                fileName={`${user.spas_id} – Form 127.pdf`}
+                fileUrl={form127FKUrl}/>
             )}
          </div>
 
@@ -71,7 +89,9 @@ export function CompletionSubmissionForm({
                     required
                 />
             ) : (
-                <FileDisplayReadOnly label="Form 128" fileName="Submitted File" />
+                <FileDisplayReadOnly label="Form 128"
+                fileName={`${user.spas_id} – Form 128.pdf`}
+                fileUrl={form128FKUrl}/>
             )}
 
             {showDtr.isEditable ? (
@@ -82,7 +102,9 @@ export function CompletionSubmissionForm({
                     required
                 />
             ) : (
-                <FileDisplayReadOnly label="Daily Time Record (DTR)" fileName="Submitted File" />
+                <FileDisplayReadOnly label="Daily Time Record (DTR)"
+                fileName={`${user.spas_id} – DTR.pdf`}
+                fileUrl={DTRFKUrl}/>
             )}
          </div>
       </div>
@@ -96,7 +118,9 @@ export function CompletionSubmissionForm({
                 required
             />
         ) : (
-            <FileDisplayReadOnly label="Certificate of Completion" fileName="Submitted File" />
+            <FileDisplayReadOnly label="Certificate of Completion"
+            fileName={`${user.spas_id} – Certification of Completion.pdf`}
+            fileUrl={certFKUrl}/>
         )}
       </div>
     </div>

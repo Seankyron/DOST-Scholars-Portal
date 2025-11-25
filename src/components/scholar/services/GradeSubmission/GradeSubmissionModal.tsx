@@ -20,10 +20,10 @@ import { formatDate } from '@/lib/utils/date';
 import type { SemesterAvailability, YearLevel } from '@/types'; 
 import type { GradeSubmission, SubmissionStatus } from '@/types/services'; 
 import { toast } from '@/components/ui/toaster';
-import { type iGradeSubmissions, useCurrentScholarGrade } from '@/hooks/scholar/useCurrentScholarGrade';
+import { type iGradeSubmissions, useCurrentScholarGrade } from '@/hooks/scholar/Grade Submission/useCurrentScholarGrade';
 import { useCloudinaryUpload } from '@/hooks/scholar/useDocumentUpload';
-import { useSubmitGrade } from '@/hooks/scholar/useSubmitGrade';
-import { useUpdateGrade } from '@/hooks/scholar/useUpdateGrade';
+import { useSubmitGrade } from '@/hooks/scholar/Grade Submission/useSubmitGrade';
+import { useUpdateGrade } from '@/hooks/scholar/Grade Submission/useUpdateGrade';
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;

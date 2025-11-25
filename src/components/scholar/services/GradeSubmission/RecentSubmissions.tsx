@@ -5,7 +5,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatRelativeTime } from '@/lib/utils/date';
 import type { SubmissionStatus, SemesterAvailability, Semester } from '@/types';
 import { Button } from '@/components/ui/button';
-import { useCurrentScholarGrade } from '@/hooks/scholar/useCurrentScholarGrade';
+import { useCurrentScholarGrade } from '@/hooks/scholar/Grade Submission/useCurrentScholarGrade';
 import { Loader2 } from 'lucide-react';
 
 const yearLabels: { [key: number]: string } = {
