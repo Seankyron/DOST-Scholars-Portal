@@ -20,6 +20,7 @@ import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge'; 
 import { PTPPlan } from '@/types/services';
 import type { PTPRequestDetails } from '@/types/admin';
+import {supabase} from '@/lib/supabase/client'
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -117,7 +118,6 @@ export function PTPModal({
   onUpdate
 }: PTPModalProps) {
   const { scholarInfo, placementInfo, submissionInfo, files } = request;
-  
   const [adminComment, setAdminComment] = useState(submissionInfo.adminComment || '');
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
@@ -131,10 +131,25 @@ export function PTPModal({
   };
 
   const handleApprove = async () => {
-    toast.success('Request Approved', { description: `${scholarInfo.name} has been notified.` });
-    onUpdate();
-    setIsApproveOpen(false);
-    onClose();
+    
+    try{
+      const { error: updateError } = await supabase
+            .from('PTP Submission')
+            .update({
+              status: "Approved",
+            })
+            .eq('id', parseInt(request.id));
+    
+            if(updateError) throw new Error(updateError.message);
+            toast.success('Request Approved', { description: `${scholarInfo.name} has been notified.` });
+    }catch(e: any){
+        console.error('Update failed:', e);
+        toast.error('Update Failed', { description: e.message });
+    }finally{
+        onUpdate();
+        setIsResubmitOpen(false);
+        onClose();
+    }
   };
 
   const handleResubmit = async () => {
@@ -142,10 +157,26 @@ export function PTPModal({
       toast.error('Please provide a comment before requesting resubmission.');
       return;
     }
-    toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
-    onUpdate();
-    setIsResubmitOpen(false);
-    onClose();
+    try{
+      const { error: updateError } = await supabase
+            .from('PTP Submission')
+            .update({
+              status: "Resubmit",
+              comment: adminComment,
+            })
+            .eq('id', parseInt(request.id));
+    
+            if(updateError) throw new Error(updateError.message);
+    
+      toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
+    }catch(e: any){
+        console.error('Update failed:', e);
+        toast.error('Update Failed', { description: e.message });
+    }finally{
+        onUpdate();
+        setIsResubmitOpen(false);
+        onClose();
+    }
   };
   
   const handleReject = async () => {
