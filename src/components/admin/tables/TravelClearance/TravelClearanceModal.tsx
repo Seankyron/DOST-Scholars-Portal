@@ -19,6 +19,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge'; 
 import type { TravelRequestDetails } from './TravelClearanceTable';
+import {supabase} from '@/lib/supabase/client';
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -117,21 +118,51 @@ export function TravelClearanceModal({
   };
 
   const handleApprove = async () => {
-    toast.success('Travel Clearance Approved', { description: `${scholarInfo.name} has been notified.` });
-    onUpdate();
-    setIsApproveOpen(false);
-    onClose();
+    try{
+        const { error: updateError } = await supabase
+                .from('Travel Clearance')
+                .update({
+                  status: "Approved",
+                })
+                .eq('id', parseInt(request.id));
+        
+            if(updateError) throw new Error(updateError.message);
+            toast.success('Request Approved', { description: `${scholarInfo.name} has been notified.` });
+        }catch(e: any){
+            console.error('Update failed:', e);
+            toast.error('Update Failed', { description: e.message });
+        }finally{
+            onUpdate();
+            setIsResubmitOpen(false);
+            onClose();
+        }
   };
 
   const handleResubmit = async () => {
-    if (adminComment.trim() === '') {
-      toast.error('Please provide a comment before requesting resubmission.');
-      return;
-    }
-    toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
-    onUpdate();
-    setIsResubmitOpen(false);
-    onClose();
+        if (adminComment.trim() === '') {
+          toast.error('Please provide a comment before requesting resubmission.');
+          return;
+        }
+        try{
+          const { error: updateError } = await supabase
+                .from('Travel Clearance')
+                .update({
+                  status: "Resubmit",
+                  comment: adminComment,
+                })
+                .eq('id', parseInt(request.id));
+        
+                if(updateError) throw new Error(updateError.message);
+        
+          toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
+        }catch(e: any){
+            console.error('Update failed:', e);
+            toast.error('Update Failed', { description: e.message });
+        }finally{
+            onUpdate();
+            setIsResubmitOpen(false);
+            onClose();
+        }
   };
 
   const comment = adminComment.toLowerCase();
