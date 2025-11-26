@@ -70,21 +70,27 @@ export function StipendTrackingFilters() {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Date Filter & Reset Section - Adapted for Mobile */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-gray-50">
         
         {/* Date Filter Section */}
-        <div className="w-full sm:flex-1 flex items-center gap-2 text-sm text-gray-500">
-          <Calendar className="h-4 w-4 shrink-0 text-gray-400 hidden sm:block" />
-          <span className="hidden lg:inline text-nowrap">Filter by Date:</span>
+        <div className="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center gap-2 mb-1 sm:mb-0">
+             <Calendar className="h-4 w-4 shrink-0 text-gray-400" />
+             <span className="sm:inline text-nowrap">Filter by Date Submitted:</span>
+          </div>
           
           {/* Container for Date Picker */}
-          <div className="w-full sm:max-w-[260px]">
+          <div className="flex-1 w-full sm:w-auto">
+            {/* Removed h-9 to allow auto-height on mobile */}
             <DateRangeFilter
               onFilter={(start, end) => console.log(start, end)}
-              className="w-full h-9"
+              className="w-full"
             />
           </div>
         </div>
+
         <Button
           type="button"
           variant="ghost"

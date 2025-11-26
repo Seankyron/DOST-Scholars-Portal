@@ -18,6 +18,7 @@ export function GradeSubmissionFilters() {
       
       {/* Primary Filters Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+        {/* ... (Select inputs remain unchanged) ... */}
         
         {/* 1. Status */}
         <Select>
@@ -71,7 +72,7 @@ export function GradeSubmissionFilters() {
           </SelectContent>
         </Select>
 
-        {/* 5. Program (Enabled & Renamed) */}
+        {/* 5. Program */}
         <Select>
           <SelectTrigger className="bg-white h-10">
             <SelectValue placeholder="Program: All" />
@@ -80,20 +81,23 @@ export function GradeSubmissionFilters() {
             <SelectItem value="All">All Programs</SelectItem>
             <SelectItem value="BS Computer Science">BS Computer Science</SelectItem>
             <SelectItem value="BS Information Technology">BS Information Technology</SelectItem>
-            {/* Add mapped programs here if available in constants */}
           </SelectContent>
         </Select>
       </div>
 
       {/* Secondary Row: Date Range & Reset */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-gray-50">
-        <div className="w-full sm:w-auto flex items-center gap-2 text-sm text-gray-500">
-           <Calendar className="h-4 w-4" />
-           <span className="hidden sm:inline">Filter by Date Submitted:</span>
-           <div className="flex-1 sm:w-64">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 border-t border-gray-50">
+        <div className="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-500">
+           <div className="flex items-center gap-2 mb-1 sm:mb-0">
+             <Calendar className="h-4 w-4" />
+             <span className="sm:inline">Filter by Date:</span>
+           </div>
+           
+           <div className="flex-1 w-full sm:w-auto">
+             {/* Removed fixed h-9 to prevent clipping on mobile */}
              <DateRangeFilter 
                 onFilter={(start, end) => console.log(start, end)} 
-                className="w-full h-9"
+                className="w-full"
              />
            </div>
         </div>
