@@ -70,31 +70,25 @@ export function StipendTrackingFilters() {
           </SelectContent>
         </Select>
       </div>
-
-      {/* Secondary Row: Date Range & Reset */}
-      {/* LAYOUT: Vertical Stack on Mobile (flex-col), Horizontal on Tablet+ (sm:flex-row) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-gray-50">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-gray-50">
         
         {/* Date Filter Section */}
         <div className="w-full sm:flex-1 flex items-center gap-2 text-sm text-gray-500">
-          <Calendar className="h-4 w-4 shrink-0" />
-          {/* Label shortened to save space. If you see 'Submitted', the update didn't apply. */}
+          <Calendar className="h-4 w-4 shrink-0 text-gray-400 hidden sm:block" />
           <span className="hidden lg:inline text-nowrap">Filter by Date:</span>
-          <div className="flex-1 sm:max-w-[260px]">
+          
+          {/* Container for Date Picker */}
+          <div className="w-full sm:max-w-[260px]">
             <DateRangeFilter
               onFilter={(start, end) => console.log(start, end)}
               className="w-full h-9"
             />
           </div>
         </div>
-
-        {/* Reset Button */}
         <Button
           type="button"
           variant="ghost"
-          // ON MOBILE: w-full (full width bar), h-9
-          // ON DESKTOP: w-auto (fits content), sits to the right
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 h-9 px-3 w-full sm:w-auto sm:shrink-0"
+          className="w-full sm:w-auto text-red-600 hover:text-red-700 hover:bg-red-50 h-9 px-3 flex items-center justify-center sm:justify-start"
           title="Reset Filters"
         >
           <X className="h-4 w-4 mr-2" /> 
