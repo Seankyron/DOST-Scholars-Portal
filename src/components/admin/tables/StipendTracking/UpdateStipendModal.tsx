@@ -127,10 +127,12 @@ export function UpdateStipendModal({
                 <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Scholar Information
                 </h2>
-                <InfoItem label="Name" value={scholarInfo.name} />
-                <InfoItem label="SPAS ID" value={scholarInfo.scholarId} />
-                <InfoItem label="Email" value={scholarInfo.email} />
-                <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <InfoItem label="Name" value={scholarInfo.name} />
+                  <InfoItem label="SPAS ID" value={scholarInfo.scholarId} />
+                  <InfoItem label="Email" value={scholarInfo.email} />
+                  <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
+                </div>
             </section>
 
             {/* Placement Information Column */}
@@ -138,10 +140,12 @@ export function UpdateStipendModal({
                 <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Placement Information
                 </h2>
-                <InfoItem label="Scholarship Type" value={scholarInfo.scholarshipType} />
-                <InfoItem label="Batch / Year Awarded" value={scholarInfo.batch} />
-                <InfoItem label="School / University" value={placementInfo.university} />
-                <InfoItem label="Program / Course" value={placementInfo.program} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <InfoItem label="Scholarship Type" value={scholarInfo.scholarshipType} />
+                  <InfoItem label="Batch / Year Awarded" value={scholarInfo.batch} />
+                  <InfoItem label="School / University" value={placementInfo.university} />
+                  <InfoItem label="Program / Course" value={placementInfo.program} />
+                </div>
             </section>
           </div>
 

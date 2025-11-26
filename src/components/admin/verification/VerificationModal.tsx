@@ -70,7 +70,10 @@ export function VerificationModal({
       <Modal open={isOpen} onOpenChange={onClose}>
         <ModalContent size="4xl">
           <ModalHeader>
-            <ModalTitle>Account Verification</ModalTitle>
+             <div className="flex flex-col">
+                <ModalTitle>Account Verification</ModalTitle>
+                <p className="text-sm text-gray-500 font-normal mt-1">Verify the Account for {name}</p>
+             </div>
           </ModalHeader>
 
           <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6">

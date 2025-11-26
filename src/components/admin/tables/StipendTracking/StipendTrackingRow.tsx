@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { Edit } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import type { StipendDetails } from './StipendTrackingTable';
 import { formatDate } from '@/lib/utils/date';
@@ -88,7 +88,7 @@ export function StipendTrackingRow({
           onClick={onUpdate}
           title="Update Stipend Details"
         >
-          <Edit className="h-4 w-4" />
+          <Eye className="h-4 w-4" />
         </Button>
       </td>
     </tr>

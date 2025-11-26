@@ -229,10 +229,12 @@ export function GradeSubmissionModal({
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Scholar Information
                   </h2>
-                  <InfoItem label="Name" value={scholarInfo.name} />
-                  <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
-                  <InfoItem label="Date of Birth" value={scholarInfo.dateOfBirth} />
-                  <InfoItem label="Complete Address" value={scholarInfo.completeAddress} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <InfoItem label="Name" value={scholarInfo.name} />
+                    <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
+                    <InfoItem label="Date of Birth" value={scholarInfo.dateOfBirth} />
+                    <InfoItem label="Complete Address" value={scholarInfo.completeAddress} />
+                  </div>
                 </section>
 
                 {/* Card 2: Submission Details & Status Update */}
@@ -242,7 +244,7 @@ export function GradeSubmissionModal({
                   </h2>
                   
                   {/* Read-Only Info */}
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoItem label="Academic Year" value={submissionInfo.academicYear} />
                     <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
                     <InfoItem label="Current Submission Status" value={
@@ -320,10 +322,12 @@ export function GradeSubmissionModal({
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Placement Information
                   </h2>
-                  <InfoItem label="Scholarship Type" value={placementInfo.scholarshipType} />
-                  <InfoItem label="Batch / Year Awarded" value={placementInfo.batch} />
-                  <InfoItem label="School / University" value={placementInfo.university} />
-                  <InfoItem label="Program / Course" value={placementInfo.program} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <InfoItem label="Scholarship Type" value={placementInfo.scholarshipType} />
+                    <InfoItem label="Batch / Year Awarded" value={placementInfo.batch} />
+                    <InfoItem label="School / University" value={placementInfo.university} />
+                    <InfoItem label="Program / Course" value={placementInfo.program} />
+                  </div>
                 </section>
 
                 {/* Card 4: Documents */}
@@ -331,7 +335,7 @@ export function GradeSubmissionModal({
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Submitted Documents
                   </h2>
-                  <div className="flex flex-col gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <FileDisplay
                         label="Course Curriculum"
                         fileName={files.curriculumFile}

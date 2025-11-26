@@ -182,26 +182,29 @@ export function PTPModal({
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Scholar Information
                   </h2>
-                  <InfoItem label="Name" value={scholarInfo.name} />
-                  <InfoItem label="SPAS ID" value={request.spas_id} />
-                  <InfoItem label="Email" value={scholarInfo.email} />
-                  <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <InfoItem label="Name" value={scholarInfo.name} />
+                    <InfoItem label="SPAS ID" value={request.spas_id} />
+                    <InfoItem label="Email" value={scholarInfo.email} />
+                    <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
+                  </div>
                 </section>
 
                 <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex-1 flex flex-col">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Request Details
                   </h2>
-                  <div className="space-y-3 flex-1"> {/* Content wrapper */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3"> {/* Content wrapper */}
                     <InfoItem label="Transaction Type" value={request.type} />
                     <InfoItem label="Academic Term" value={`${submissionInfo.semester}, ${submissionInfo.academicYear}`} />
                     <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
                     <InfoItem label="Current Status" value={
                        <StatusBadge status={submissionInfo.status} className="mt-1"/>
                     } />
-                    
+                    </div>
+                    <div className="mt-4">
                     {request.type === 'Referral Letter' && (
-                      <div className="pt-2">
+                      <div className="pt-1">
                         <p className="text-xs font-medium text-gray-500">Selected Plan</p>
                         <p className="text-sm font-semibold text-gray-800 break-words mt-1">
                           {formatPTPPlan(submissionInfo.plan)}
@@ -218,10 +221,12 @@ export function PTPModal({
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Placement Information
                   </h2>
-                  <InfoItem label="Scholarship Type" value={placementInfo.scholarshipType} />
-                  <InfoItem label="Batch / Year Awarded" value={placementInfo.batch} />
-                  <InfoItem label="School / University" value={placementInfo.university} />
-                  <InfoItem label="Program / Course" value={placementInfo.program} />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <InfoItem label="Scholarship Type" value={placementInfo.scholarshipType} />
+                    <InfoItem label="Batch / Year Awarded" value={placementInfo.batch} />
+                    <InfoItem label="School / University" value={placementInfo.university} />
+                    <InfoItem label="Program / Course" value={placementInfo.program} />
+                  </div>
                 </section>
 
                 <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex-1 flex flex-col">
@@ -229,7 +234,7 @@ export function PTPModal({
                     Submitted Documents
                   </h2>
                   
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {request.type === 'Referral Letter' ? (
                         <>
                            <FileDisplay

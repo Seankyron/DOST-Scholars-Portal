@@ -16,54 +16,44 @@ import { HistoryScholarModal } from '@/components/admin/scholars/HistoryScholarM
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
 
-// (Helper functions: getYearLevelNumber)
-const getYearLevelNumber = (yearString: string): number | null => {
-  if (yearString === '1st Year') return 1;
-  if (yearString === '2nd Year') return 2;
-  if (yearString === '3rd Year') return 3;
-  if (yearString === '4th Year') return 4;
-  if (yearString === 'Graduated') return 5;
-  return null;
-};
-
 const ITEMS_PER_PAGE = 7;
 
 export default function ScholarManagementPage() {
-  const router = useRouter(); // For refreshing data
+  const router = useRouter();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState<ScholarFiltersState>({
+  
+  // Initial filter state
+  const initialFilters: ScholarFiltersState = {
     scholarshipType: 'All',
     status: 'All',
     university: 'All',
     course: 'All',
     yearLevel: 'All',
-  });
+  };
+
+  const [filters, setFilters] = useState<ScholarFiltersState>(initialFilters);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State for modals
-  const [viewingScholar, setViewingScholar] = useState<ScholarRowData | null>(
-    null
-  );
-  const [editingScholar, setEditingScholar] = useState<ScholarRowData | null>(
-    null
-  );
-  const [historyScholar, setHistoryScholar] = useState<ScholarRowData | null>(
-    null
-  );
-  const [deletingScholar, setDeletingScholar] = useState<ScholarRowData | null>(
-    null
-  );
-  // --- END ADDED STATE ---
+  const [viewingScholar, setViewingScholar] = useState<ScholarRowData | null>(null);
+  const [editingScholar, setEditingScholar] = useState<ScholarRowData | null>(null);
+  const [historyScholar, setHistoryScholar] = useState<ScholarRowData | null>(null);
+  const [deletingScholar, setDeletingScholar] = useState<ScholarRowData | null>(null);
 
   const handleFilterChange = (
     filterName: keyof ScholarFiltersState,
     value: string
   ) => {
     setFilters((prev) => ({ ...prev, [filterName]: value }));
-    setCurrentPage(1); // Reset page when filters change
+    setCurrentPage(1); 
+  };
+  
+  const handleResetFilters = () => {
+    setFilters(initialFilters);
+    setCurrentPage(1);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -72,7 +62,7 @@ export default function ScholarManagementPage() {
 
   const handleSearch = (query: string) => {
     setSearchTerm(query);
-    setCurrentPage(1); // Reset page when search changes
+    setCurrentPage(1); 
   };
 
   const handleView = (scholar: ScholarRowData) => setViewingScholar(scholar);
@@ -83,8 +73,8 @@ export default function ScholarManagementPage() {
   const handleCloseModals = () => {
     setViewingScholar(null);
     setEditingScholar(null);
-    setHistoryScholar(null); // MODIFIED
-    setDeletingScholar(null); // MODIFIED
+    setHistoryScholar(null);
+    setDeletingScholar(null);
   };
 
   const handleUpdateScholar = async (updatedData: ScholarRowData) => {
@@ -106,7 +96,7 @@ export default function ScholarManagementPage() {
       setRefreshKey((prevKey) => prevKey + 1);
     } catch (error: any) {
       console.error(error);
-      toast.error('Error: ${error.message}');
+      toast.error(`Error: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -120,7 +110,7 @@ export default function ScholarManagementPage() {
       const response = await fetch('/api/admin/delete-scholar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: deletingScholar.id }), // Send only the ID
+        body: JSON.stringify({ id: deletingScholar.id }),
       });
 
       const result = await response.json();
@@ -130,10 +120,10 @@ export default function ScholarManagementPage() {
 
       toast.success('Scholar deleted successfully!');
       handleCloseModals();
-      router.refresh(); // Refresh the table data
+      setRefreshKey((prev) => prev + 1); // Trigger table refresh
     } catch (error: any) {
       console.error(error);
-      toast.error('Error: ${error.message}');
+      toast.error(`Error: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -145,9 +135,14 @@ export default function ScholarManagementPage() {
         Scholar Management
       </h1>
 
-      {/* Filters are controlled by this page */}
-      <ScholarFilters filters={filters} onFilterChange={handleFilterChange} />
+      {/* Filter Components */}
+      <ScholarFilters 
+        filters={filters} 
+        onFilterChange={handleFilterChange} 
+        onReset={handleResetFilters}
+      />
 
+      {/* Table Section */}
       <div className="bg-white rounded-lg shadow-md">
         <div className="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center gap-3">
@@ -156,15 +151,13 @@ export default function ScholarManagementPage() {
             </h2>
             <AddScholarModal />
           </div>
-
           <SearchInput
-            placeholder="Search Scholars...."
+            placeholder="Search Scholars..."
             onSearch={handleSearch}
             className="w-full sm:max-w-xs"
           />
         </div>
 
-        {/* ScholarTable passes all event handlers down */}
         <ScholarTable
           filters={filters}
           searchTerm={searchTerm}
@@ -179,7 +172,7 @@ export default function ScholarManagementPage() {
         />
       </div>
 
-      {/* Modals are still rendered here, controlled by this page's state */}
+      {/* Modals */}
       {viewingScholar && (
         <ViewScholarModal
           scholar={viewingScholar}
@@ -197,7 +190,6 @@ export default function ScholarManagementPage() {
         />
       )}
 
-      {/* --- 5. ADDED MODALS --- */}
       {historyScholar && (
         <HistoryScholarModal
           scholar={historyScholar}
