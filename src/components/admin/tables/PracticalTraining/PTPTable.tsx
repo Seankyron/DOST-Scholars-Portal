@@ -16,87 +16,64 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockData: PTPRequestDetails[] = [
-        {
-          id: '1',
-          spas_id: '2021-001',
-          type: 'Referral Letter',
-          scholarInfo: {
-            name: 'Juan Dela Cruz',
-            spas_id: '2021-001',
-            email: 'juan.delacruz@example.com',
-            contactNumber: '09123456789',
-            dateOfBirth: '2000-01-01',
-            completeAddress: 'Manila',
-          },
-          placementInfo: {
-            scholarshipType: 'RA 7687',
-            batch: 2021,
-            university: 'University of the Philippines',
-            program: 'BS Computer Science',
-          },
-          submissionInfo: {
-            dateSubmitted: new Date().toISOString(),
-            status: 'Pending',
-            trainingYear: 2024,
-            plan: 'undertake_ptp',
-            semester: 'Midyear', // FIXED: Changed from 'Mid-Year Term' to 'Midyear'
-            academicYear: '2023-2024'
-          },
-          files: {
-            grades: 'grades.pdf',
-            replySlip: 'reply_slip.pdf',
-            curriculum: 'curriculum.pdf',
-          },
-        },
-        {
-          id: '2',
-          spas_id: '2021-002',
-          type: 'Program Completion',
-          scholarInfo: {
-            name: 'Maria Clara',
-            spas_id: '2021-002',
-            email: 'maria.clara@example.com',
-            contactNumber: '09987654321',
-            dateOfBirth: '2001-05-05',
-            completeAddress: 'Quezon City',
-          },
-          placementInfo: {
-            scholarshipType: 'Merit',
-            batch: 2021,
-            university: 'Ateneo de Manila University',
-            program: 'BS Physics',
-          },
-          submissionInfo: {
-            dateSubmitted: new Date(Date.now() - 86400000).toISOString(),
-            status: 'Approved',
-            trainingYear: 2024,
-            semester: 'Midyear', // FIXED: Changed from 'Mid-Year Term' to 'Midyear'
-            academicYear: '2023-2024'
-          },
-          files: {
-            form126: 'f126.pdf',
-            form127: 'f127.pdf',
-            form128: 'f128.pdf',
-            dtr: 'dtr_signed.pdf',
-            certCompletion: 'certificate.pdf',
-          },
-        },
-      ];
 
-      setRequests(mockData);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch requests.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+   const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+          const response = await fetch('/api/admin/ptp/get');
+          if (!response.ok) throw new Error('Failed to fetch data');
+
+          const res = await response.json();
+
+          const data: PTPRequestDetails[] = res.submissions.map((item: any) => ({
+            id: item.ptp_id?.toString() ?? '',
+            spas_id: item.spas_id ?? '',
+            type: item.ptp_type ?? '',
+            
+            scholarInfo: {
+              name: item.full_name ?? '',
+              spas_id: item.spas_id ?? '',
+              email: item.email ?? '',
+              contactNumber: item.contact_number ?? '',
+              completeAddress: item.address ?? '',
+            },
+
+            placementInfo: {
+              scholarshipType: item.scholarship_type ?? '',
+              batch: item.year_awarded ? Number(item.year_awarded) : null,
+              university: item.university ?? '',
+              program: item.program_course ?? '',
+            },
+
+            submissionInfo: {
+              dateSubmitted: item.ptp_created_at ?? '',
+              status: item.ptp_status ?? '',
+              trainingYear: "Wala sa database, don't know where to add",
+              plan: item.ptp_plan ?? '',
+              semester: "Wala sa database, don't know where to add",
+              academicYear: "Wala sa database, don't know where to add",
+            },
+
+            files: {
+              grades: item.grade_file_key ?? '',
+              replySlip: item.reply_slip_file_key ?? '',
+              curriculum: "Wala sa database, don't know where to add",
+              form126: item.form_126_file_key ?? '',
+              form127: item.form_127_file_key ?? '',
+              form128: item.form_128_file_key ?? '',
+              dtr: item.dtr_file_key ?? '',
+              trainingCompletion: item.training_completion_file_key ?? '',
+            },
+          }));
+
+          setRequests(data);
+        } catch (err) {
+          console.error(err);
+          setError('Failed to fetch requests.');
+        } finally {
+          setLoading(false);
+        }
+      }, []);
 
   useEffect(() => {
     fetchData();
