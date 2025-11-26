@@ -56,91 +56,74 @@ export function TravelClearanceTable({ searchTerm }: TravelClearanceTableProps) 
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockData: TravelRequestDetails[] = [
-        {
-          id: '1',
-          spas_id: '2021-001',
-          purpose: 'Official Business Travel',
-          scholarInfo: {
-            name: 'Juan Dela Cruz',
-            spas_id: '2021-001',
-            email: 'juan.delacruz@example.com',
-            contactNumber: '09123456789',
-            completeAddress: 'Manila',
-          },
-          placementInfo: {
-            scholarshipType: 'RA 7687',
-            batch: 2021,
-            university: 'UP Diliman',
-            program: 'BS Physics',
-          },
-          travelDetails: {
-            destination: 'Tokyo, Japan',
-            departureDate: '2024-06-15',
-            arrivalDate: '2024-06-20',
-            duration: '5 Days'
-          },
-          submissionInfo: {
-            dateSubmitted: new Date().toISOString(),
-            status: 'Pending',
-          },
-          files: {
-            requestLetter: 'letter_to_director.pdf',
-            requestForm: 'travel_request_form.pdf',
-            guaranteeLetter: 'employer_guarantee.pdf',
-          },
-        },
-        // Late Submission Mock Data
-        {
-          id: '3',
-          spas_id: '2022-055',
-          purpose: 'Other',
-          scholarInfo: {
-            name: 'Isabella Late',
-            spas_id: '2022-055',
-            email: 'isabella.late@example.com',
-            contactNumber: '09171234567',
-            completeAddress: 'Cebu City',
-          },
-          placementInfo: {
-            scholarshipType: 'Merit',
-            batch: 2022,
-            university: 'San Carlos University',
-            program: 'BS Biology',
-          },
-          travelDetails: {
-            destination: 'Seoul, South Korea',
-            departureDate: '2024-05-20', 
-            arrivalDate: '2024-05-25',
-            duration: '5 Days'
-          },
-          submissionInfo: {
-            dateSubmitted: new Date().toISOString(),
-            status: 'Pending',
-            delayReason: 'I received my Visa approval late and could not submit the requirements earlier.', 
-          },
-          files: {
-            requestLetter: 'letter.pdf',
-            requestForm: 'form.pdf',
-            deedOfUndertaking: 'deed.pdf',
-            coMakerEmployment: 'employ.pdf',
-            coMakerId: 'id.pdf'
-          },
-        },
-      ];
-
-      setRequests(mockData);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch requests.');
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    const response = await fetch('/api/admin/travel/get');
+    
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
     }
-  }, []);
+    const res = await response.json();
+    const data: TravelRequestDetails[] = res.submissions.map((item: any) => {
+
+      const start = new Date(item.departure);
+      const end = new Date(item.arrival);
+      const durationMs = end.getTime() - start.getTime();
+      const durationDays = Math.ceil(durationMs / (1000 * 60 * 60 * 24)); 
+
+      return {
+        id: String(item.travel_id), 
+        spas_id: item.spas_id,
+        purpose: item.type as TravelPurpose,
+        
+        scholarInfo: {
+          name: item.full_name,
+          spas_id: item.spas_id,
+          email: item.email,
+          contactNumber: item.contact_number,
+          completeAddress: item.address, 
+        },
+        
+        placementInfo: {
+          scholarshipType: item.scholarship_type,
+          batch: Number(item.year_awarded), 
+          university: item.university.trim(),
+          program: item.program_course,
+        },
+        
+        travelDetails: {
+          destination: item.destination,
+          departureDate: item.departure,
+          arrivalDate: item.arrival,
+          duration: `${durationDays} days`, 
+        },
+        
+        submissionInfo: {
+          dateSubmitted: item.submitted_at,
+          status: item.status as SubmissionStatus,
+          adminComment: item.comment || undefined, 
+          delayReason: item.cause_of_submission_delay || undefined,
+        },
+        
+        files: {
+          requestLetter: item.request_letter_file_key || '',
+          requestForm: item.completed_request_form_file_key || '',
+          guaranteeLetter: item.guarantee_letter_file_key || undefined,
+          deedOfUndertaking: item.deed_of_undertaking_file_key || undefined,
+          coMakerEmployment: item.employment_file_key || undefined,
+          coMakerId: item.valid_id_file_key || undefined,
+        },
+      };
+    });
+
+    setRequests(data)
+  } catch (err) {
+    console.error(err);
+    setError('Failed to fetch requests.');
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   useEffect(() => {
     fetchData();
