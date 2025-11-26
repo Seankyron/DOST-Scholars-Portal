@@ -14,9 +14,9 @@ import { UNIVERSITIES } from '@/lib/utils/constants';
 
 export function StipendTrackingFilters() {
   return (
-    <div className="flex flex-col gap-4">
-      {/* Primary Filters Grid - Adjusted to grid-cols-4 to be full width with 4 items */}
-     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="flex flex-col gap-4 bg-white p-1">
+      {/* Primary Filters Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* 1. Status */}
         <Select>
           <SelectTrigger className="bg-white h-10 w-full">
@@ -69,15 +69,18 @@ export function StipendTrackingFilters() {
             ))}
           </SelectContent>
         </Select>
-        
       </div>
 
       {/* Secondary Row: Date Range & Reset */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-gray-50">
-        <div className="w-full sm:w-auto flex items-center gap-2 text-sm text-gray-500">
-          <Calendar className="h-4 w-4" />
-          <span className="hidden sm:inline">Filter by Date Submitted:</span>
-          <div className="flex-1 sm:w-64">
+      {/* LAYOUT: Vertical Stack on Mobile (flex-col), Horizontal on Tablet+ (sm:flex-row) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-gray-50">
+        
+        {/* Date Filter Section */}
+        <div className="w-full sm:flex-1 flex items-center gap-2 text-sm text-gray-500">
+          <Calendar className="h-4 w-4 shrink-0" />
+          {/* Label shortened to save space. If you see 'Submitted', the update didn't apply. */}
+          <span className="hidden lg:inline text-nowrap">Filter by Date:</span>
+          <div className="flex-1 sm:max-w-[260px]">
             <DateRangeFilter
               onFilter={(start, end) => console.log(start, end)}
               className="w-full h-9"
@@ -85,12 +88,16 @@ export function StipendTrackingFilters() {
           </div>
         </div>
 
+        {/* Reset Button */}
         <Button
           type="button"
           variant="ghost"
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 h-10 w-full sm:w-auto"
+          // ON MOBILE: w-full (full width bar), h-9
+          // ON DESKTOP: w-auto (fits content), sits to the right
+          className="text-red-600 hover:text-red-700 hover:bg-red-50 h-9 px-3 w-full sm:w-auto sm:shrink-0"
+          title="Reset Filters"
         >
-          <X className="h-4 w-4 mr-2" />
+          <X className="h-4 w-4 mr-2" /> 
           Reset Filters
         </Button>
       </div>

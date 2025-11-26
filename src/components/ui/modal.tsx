@@ -64,7 +64,8 @@ const ModalContent = React.forwardRef<
       <DialogContent // This is the base Radix DialogContent
         ref={ref}
         className={cn(
-          "w-full", 
+          // UPDATED: Use 95% width or calc(100% - 2rem) on mobile to show margins
+          "w-[calc(100%-2rem)] sm:w-full", 
           sizes[size], 
           className
         )}

@@ -99,6 +99,7 @@ export function UpdateStipendModal({
       },
     };
     onSave(updatedStipend);
+    toast.success('Stipend updated successfully!');
   };
 
   return (
@@ -118,7 +119,8 @@ export function UpdateStipendModal({
         <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
           
           {/* --- TOP SECTION: Info Grid --- */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* CHANGED: Used lg:grid-cols-2 instead of md:grid-cols-2 to prevent overlap on tablets */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Scholar Information Column */}
             <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 h-full">
@@ -143,11 +145,12 @@ export function UpdateStipendModal({
             </section>
           </div>
 
-          {/* --- MIDDLE SECTION: Allowance Breakdown (Maximized Spacing & Columns) --- */}
+          {/* --- MIDDLE SECTION: Allowance Breakdown --- */}
           <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
             <Label className="text-base font-semibold text-gray-800 border-b pb-2 block">
               Allowance Breakdown
             </Label>
+            {/* CHANGED: Used grid-cols-1 on mobile, md:grid-cols-2 on tablets+ */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {breakdown.map((allowance, index) => (
                 <div 
@@ -169,7 +172,7 @@ export function UpdateStipendModal({
             </div>
           </section>
 
-          {/* --- BOTTOM SECTION: Admin Custom Update (Below Whole Row) --- */}
+          {/* --- BOTTOM SECTION: Admin Custom Update --- */}
           <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
             <Label className="text-base font-semibold text-gray-800 border-b pb-2 block">
               Add Custom Update

@@ -32,7 +32,7 @@ export type ScholarStipendData = {
   status: SubmissionStatus | ScholarStatus;
   breakdown: Allowance[];
   updates: StipendUpdate[];
-  dateApproved: string; // Renamed from dateSubmitted
+  effectiveDate: string;
 };
 
 export interface StipendDetails {
@@ -86,7 +86,7 @@ let MOCK_DB: StipendDetails[] = [
       onHold: true,
       total: 46000,
       status: 'On hold',
-      dateApproved: '2023-10-15T09:30:00Z', // Renamed
+      effectiveDate: '2023-10-15T09:30:00Z',
       breakdown: [
         { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
         { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
@@ -134,7 +134,7 @@ let MOCK_DB: StipendDetails[] = [
       onHold: false,
       total: 45000,
       status: 'Released',
-      dateApproved: '2024-03-20T14:00:00Z', // Renamed
+      effectiveDate: '2024-03-20T14:00:00Z',
       breakdown: [
         { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
         { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
@@ -177,7 +177,7 @@ let MOCK_DB: StipendDetails[] = [
       onHold: false,
       total: 45000,
       status: 'Processing',
-      dateApproved: '2024-10-18T11:20:00Z', // Renamed
+      effectiveDate: '2024-10-18T11:20:00Z',
       breakdown: [
         { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Pending' },
         { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Pending' },
@@ -220,7 +220,7 @@ let MOCK_DB: StipendDetails[] = [
       onHold: true,
       total: 46000,
       status: 'On hold',
-      dateApproved: '2023-10-15T09:30:00Z', // Renamed
+      effectiveDate: '2023-10-15T09:30:00Z',
       breakdown: [
         { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
         { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
@@ -435,8 +435,8 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
   return (
     <>
       {/* Bulk Action Bar */}
-      <div className="bg-gray-50 px-4 py-2 border-b flex items-center justify-between min-h-[50px]">
-        <div className="flex items-center gap-2">
+      <div className="bg-gray-50 px-4 py-2 border-b flex flex-wrap items-center justify-between gap-2 min-h-[50px]">
+        <div className="flex items-center gap-2 flex-wrap">
             {selectedCount > 0 ? (
                 <>
                 <span className="text-sm font-medium text-gray-700 mr-2">
@@ -486,7 +486,7 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University / Program</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Academic Term</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Approved</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Effective Date</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Received</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pending / On Hold</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
