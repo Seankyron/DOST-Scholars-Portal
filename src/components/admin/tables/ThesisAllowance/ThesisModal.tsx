@@ -19,7 +19,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { ThesisRequestDetails } from '@/types/admin';
-import {supabase} from '@/lib/supabase/client'
+import {supabase} from '@/lib/supabase/client';
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
