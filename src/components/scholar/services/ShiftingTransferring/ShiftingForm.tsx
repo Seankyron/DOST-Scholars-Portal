@@ -121,16 +121,10 @@ export function ShiftingForm(prop: ShiftingFormProps) {
         </div>
       ) : (
         <Select value={value} onValueChange={setter}>
-          <SelectTrigger>
-            <SelectValue placeholder={placeholder} />
-          </SelectTrigger>
+          <SelectTrigger> <SelectValue placeholder={placeholder} /> </SelectTrigger>
 
-          <SelectContent>
-            {options.map(o => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.label}
-              </SelectItem>
-            ))}
+          <SelectContent> 
+            { options.map(o => ( <SelectItem key={o.value} value={o.value}> {o.label}</SelectItem> ))}
           </SelectContent>
         </Select>
       )}
