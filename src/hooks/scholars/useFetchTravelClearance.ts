@@ -21,7 +21,7 @@ interface iTravelClearance {
   destination?: string | null;
 }
 
-export function useFetchTravelClearance (spas_id: string) {
+export function useFetchTravelClearance (spas_id: string, length: number) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [data, setData] = useState<iTravelClearance[] | null>(null);
@@ -38,7 +38,9 @@ export function useFetchTravelClearance (spas_id: string) {
                   cause_of_submission_delay, requested_at, updated_at,
                   status, deed_of_undertaking_file_key, employment_file_key,
                   valid_id_file_key, type, destination`)
-          .eq('spas_id', spas_id);
+          .eq('spas_id', spas_id)
+          .order('updated_at', { ascending: false })
+          .limit(length);
         
         if (error) throw new Error(error.message);
 
