@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { FileUpload } from '@/components/ui/file-upload';
 import { FileDisplayReadOnly } from '@/components/shared/FileDisplayReadOnly';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import { Select, SelectContent, SelectTrigger, SelectItem, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
@@ -91,12 +91,12 @@ export function ShiftingForm(prop: ShiftingFormProps) {
   const storedScholar = sessionStorage.getItem('scholar');
   const scholar = storedScholar ? JSON.parse(storedScholar) : null;
   
-  const showAppForm = { isEditable: false };
-  const showCertAdmission = { isEditable: false };
-  const showCertSubjects = { isEditable: false };
-  const showCertYearLevel = { isEditable: false };
-  const showCertGrades = { isEditable: false };
-  const showProgramOfStudy = { isEditable: false };
+  const showAppForm         = { isEditable: prop.existingRequest === null };
+  const showCertAdmission   = { isEditable: prop.existingRequest === null };
+  const showCertSubjects    = { isEditable: prop.existingRequest === null };
+  const showCertYearLevel   = { isEditable: prop.existingRequest === null };
+  const showCertGrades      = { isEditable: prop.existingRequest === null };
+  const showProgramOfStudy  = { isEditable: prop.existingRequest === null };
 
   // --- OPTIONS ---
   const universityOptions = UNIVERSITIES.map(u => ({ value: u, label: u }));
@@ -107,6 +107,7 @@ export function ShiftingForm(prop: ShiftingFormProps) {
     { value: '2nd Semester, AY 2025-2026', label: '2nd Semester, AY 2025-2026' },
   ];
   const durationOptions = [{ value: '4', label: '4 years' }, { value: '5', label: '5 years' }];
+
 
   // --- RENDER HELPERS ---
   const renderSelect = (label: string, value: string, setter: any, options: any[], placeholder?: string) => (
@@ -119,13 +120,19 @@ export function ShiftingForm(prop: ShiftingFormProps) {
             </div>
         </div>
       ) : (
-        <Select
-            label={label}
-            value={value}
-            onChange={(e) => setter(e.target.value)}
-            options={options}
-            placeholder={placeholder}
-        />
+        <Select value={value} onValueChange={setter}>
+          <SelectTrigger>
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+
+          <SelectContent>
+            {options.map(o => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       )}
     </div>
   );
