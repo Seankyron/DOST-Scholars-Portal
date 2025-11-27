@@ -37,11 +37,7 @@ export function RecentTravelRequests({ onViewDetails }: RecentTravelRequestsProp
   const storedScholar = sessionStorage.getItem('scholar');
   const scholar = storedScholar ? JSON.parse(storedScholar) : null;
 
-  const { data, success, error } = useFetchTravelClearance(scholar?.spas_id);
-
-  console.log('Data:', data);
-
-  if (!data) return;
+  const { data, success, error } = useFetchTravelClearance(scholar?.spas_id, 5);
 
   return (
     <Card className="shadow-md bg-white">
@@ -53,7 +49,11 @@ export function RecentTravelRequests({ onViewDetails }: RecentTravelRequestsProp
 
       <CardContent>
         <ul className="divide-y divide-gray-200">
-          {data!.length > 0 ? (
+          {!data || data!.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-4">
+              No recent travel clearance requests found.
+            </p>
+          ) : (
             data.map((req) => (
               <li key={req.id} className="py-1 last:pb-0 first:pt-0">
                 <Button
@@ -74,10 +74,6 @@ export function RecentTravelRequests({ onViewDetails }: RecentTravelRequestsProp
                 </Button>
               </li>
             ))
-          ) : (
-            <p className="text-sm text-gray-500 text-center py-4">
-              No recent travel clearance requests found.
-            </p>
           )}
         </ul>
       </CardContent>
