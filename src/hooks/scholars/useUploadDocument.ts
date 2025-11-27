@@ -1,7 +1,9 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from '@/components/ui/toaster';
 
 export function useUploadDocument() {
+  const [error, setError] = useState<string | null>(null);
+
   const uploadDocument = useCallback(async (file: File, folder: string) => {
     try {
       const formData = new FormData();
@@ -18,10 +20,13 @@ export function useUploadDocument() {
       const data = await res.json();
       return data;
     } catch (err: any) {
-      toast.error(err.message || 'Upload failed');
+      // toast.error(err.message || 'Upload failed');
+      setError(err);
       return null;
     }
   }, []);
 
-  return { uploadDocument };
+  // if (error) { throw new Error('An error occurred. Failed to upload documents.'); }
+
+  return { uploadDocument, error};
 }
