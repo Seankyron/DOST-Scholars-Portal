@@ -45,8 +45,8 @@ export function TravelClearanceModal({ isOpen, onClose, purpose, existingRequest
 
   // Form Fields State
   const [destination, setDestination] = useState(existingRequest?.destination || '');
-  const [departureDate, setDepartureDate] = useState(existingRequest?.departureDate || '');
-  const [returnDate, setReturnDate] = useState(existingRequest?.returnDate || '');
+  const [departureDate, setDepartureDate] = useState(existingRequest?.departure || '');
+  const [returnDate, setReturnDate] = useState(existingRequest?.arrival || '');
   const [delayReason, setDelayReason] = useState(existingRequest?.delayReason || ''); // New State
 
   // File States

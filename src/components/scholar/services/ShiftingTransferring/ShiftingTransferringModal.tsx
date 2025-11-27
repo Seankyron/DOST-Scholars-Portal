@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   ModalContent,
@@ -63,15 +63,6 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
   const [programOfStudy, setProgramOfStudy] = useState<File | null>(null);
 
   const handleSubmit = async () => {
-    if(existingRequest) { 
-      setNewCourse(existingRequest.new_course);
-      setNewSchool(existingRequest.new_school);
-      setEffectivity(existingRequest.effectivity_of_shifting);
-      setCourseDuration("4");
-      setOjtSemester(existingRequest.ojt.semester);
-      setOjtYear(existingRequest.ojt.year);
-    }
-
     if ((type === "Shifting Course" && !newCourse) || 
         (type === "Transferring School" && !newSchool) || 
         (type === "Shifting Course & Transferring School" && !newCourse && !newSchool)) 
@@ -162,6 +153,20 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
   };
 
   const showAdminAlert = existingRequest && (status === 'Resubmit' || status === 'Approved');
+
+  useEffect(() => {
+    if (!existingRequest) return;
+
+    setNewSchool(existingRequest.new_school);
+    setNewCourse(existingRequest.new_course);
+    setEffectivity(existingRequest.effectivity_of_shifting);
+    setReason(existingRequest.reason);
+    setCourseDuration(existingRequest.course_duration);
+    setOjtYear(existingRequest.ojt.year);
+    setOjtSemester(existingRequest.ojt.semester);
+
+  }, [existingRequest]);
+
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>

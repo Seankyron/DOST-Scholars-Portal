@@ -20,6 +20,8 @@ import { CompletionSubmissionForm } from './CompletionSubmissionForm';
 import { AdminCommentAlert } from '@/components/shared/AdminCommenAlert';
 import { toast } from '@/components/ui/toaster';
 import { PTPTransactionType } from './PracticalTrainingPanel';
+import { useSubmitPraticalTraining, SubmissionData } from '@/hooks/scholars/useSubmitPracticalTraining';
+import { useUploadDocument } from '@/hooks/scholars/useUploadDocument';
 
 interface PracticalTrainingModalProps {
   isOpen: boolean;
@@ -52,6 +54,12 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
   const [dtr, setDtr] = useState<File | null>(null);
   const [certCompletion, setCertCompletion] = useState<File | null>(null);
 
+  const { submitPracticalTraining } = useSubmitPraticalTraining();
+  const { uploadDocument } = useUploadDocument();
+
+  const storedScholar = sessionStorage.getItem('scholar');
+  const scholar = storedScholar ? JSON.parse(storedScholar) : null;
+
   const handleSubmit = async () => {
     if (!isConfirmed) {
       toast.error('Please confirm that your documents are correct.');
@@ -73,16 +81,59 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
     }
 
     setIsLoading(true);
+    const loadingID = toast.loading('Submitting request...');
+
     try {
-      // Simulate API Submission
-      console.log("Submitting:", { type, plan }); 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      let gradesUrl = null, replySlipUrl = null;
+      let form126Url = null, form127Url = null, form128Url = null;
+      let dtrUrl = null, certCompletionUrl = null;
+      
+      if (type === 'Referral Letter') {
+        ({ url:gradesUrl } = await uploadDocument(grades!, `DOST/${scholar?.spas_id}/ptp/${type}/grades`));
+        ({ url:replySlipUrl } = await uploadDocument(replySlip!, `DOST/${scholar?.spas_id}/ptp/${type}/reply-slip`));
+      }
+
+      if (type === 'Program Completion') {
+        ({ url:form126Url } = await uploadDocument(form126!, `DOST/${scholar?.spas_id}/ptp/${type}/form-126`));
+        ({ url:form127Url } = await uploadDocument(form127!, `DOST/${scholar?.spas_id}/ptp/${type}/form-127`));
+        ({ url:form128Url } = await uploadDocument(form128!, `DOST/${scholar?.spas_id}/ptp/${type}/form-128`));
+        ({ url:dtrUrl } = await uploadDocument(dtr!, `DOST/${scholar?.spas_id}/ptp/${type}/dtr`));
+        ({ url:certCompletionUrl } = await uploadDocument(certCompletion!, `DOST/${scholar?.spas_id}/ptp/${type}/cert-completion`));
+      }
+
+      const data: SubmissionData = {
+        spas_id: scholar.spas_id,
+        dtr_file_key: dtrUrl,
+        form_126_file_key: form126Url,
+        form_127_file_key: form127Url,
+        form_128_file_key: form128Url,
+        reply_slip_file_key: replySlipUrl,
+        grade_file_key: gradesUrl,
+        training_completion_file_key: certCompletionUrl,
+        plan: plan,
+        comment: null,
+        type: type,
+        status: 'Pending'
+      }
+
+      if (!existingRequest) {
+        await submitPracticalTraining(data, null);
+      }
+      else {
+        const id = existingRequest.id;
+        if (!id) throw new Error('An error occurred. Failed to update request.');
+
+        await submitPracticalTraining(data, id);
+      }
+      
       toast.success('Documents submitted successfully!');
-      onClose();
-    } catch (error) {
-      toast.error('Submission failed.');
+    } catch (error: any) {
+      // toast.error('Submission failed.');
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
+      toast.dismiss(loadingID);
+      onClose();
     }
   };
 

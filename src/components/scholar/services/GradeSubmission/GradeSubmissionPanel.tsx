@@ -10,7 +10,7 @@ import type { SemesterAvailability } from '@/types/curriculum';
 import type { SubmissionStatus, CurriculumConfig, Semester } from '@/types'; 
 import { hasMidyear } from '@/lib/utils/curriculum'; 
 import { toast } from '@/components/ui/toaster';
-import { Select } from '@/components/ui/select'; 
+import { Select, SelectContent, SelectTrigger, SelectItem, SelectValue } from '@/components/ui/select'; 
 import { iGradeSubmissions, useFetchGrades } from '@/hooks/scholars/useFetchGrade';
 
 
@@ -147,7 +147,7 @@ export function GradeSubmissionPanel() {
 
   const [selectedSemester, setSelectedSemester] = useState<SemesterAvailability | null>(null);
   const [isClosing, setIsClosing] = useState(false);
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState('AY 2025-2026'); 
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState(academicYearOptions[0].value); 
 
   const handleOpenModal = (semester: SemesterAvailability) => {
     if (semester.status !== 'Not Available') {
@@ -202,12 +202,13 @@ export function GradeSubmissionPanel() {
         </CardContent>
       </Card>
 
-      <Select 
-        label="Select Academic Year"
-        value={selectedAcademicYear}
-        onChange={(e) => setSelectedAcademicYear(e.target.value)}
-        options={academicYearOptions}
-      />
+      <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
+        <SelectTrigger> <SelectValue placeholder={selectedAcademicYear} /> </SelectTrigger>
+
+        <SelectContent> 
+          { academicYearOptions.map(o => ( <SelectItem key={o.value} value={o.value}> {o.label}</SelectItem> ))}
+        </SelectContent>
+      </Select>
 
       {/* Semester Grid serves as the "Selection" UI here */}
       <SemesterGrid 
