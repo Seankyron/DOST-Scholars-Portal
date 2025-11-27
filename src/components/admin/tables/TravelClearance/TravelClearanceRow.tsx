@@ -34,18 +34,6 @@ export function TravelClearanceRow({ request, onUpdate }: TravelClearanceRowProp
           </div>
         </td>
 
-        {/* University / Program */}
-        <td className="px-4 py-3 whitespace-nowrap">
-          <div className="flex flex-col max-w-xs truncate">
-            <span className="text-sm text-gray-900 truncate" title={request.placementInfo.university}>
-              {request.placementInfo.university}
-            </span>
-            <span className="text-xs text-gray-500 truncate" title={request.placementInfo.program}>
-              {request.placementInfo.program}
-            </span>
-          </div>
-        </td>
-
         {/* Purpose */}
         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
           {request.purpose}
@@ -91,6 +79,18 @@ export function TravelClearanceRow({ request, onUpdate }: TravelClearanceRowProp
                 </Tooltip>
               </TooltipProvider>
             )}
+          </div>
+        </td>
+
+        {/* University / Program */}
+        <td className="px-4 py-3 whitespace-nowrap">
+          <div className="flex flex-col max-w-xs truncate">
+            <span className="text-sm text-gray-900 truncate" title={request.placementInfo.university}>
+              {request.placementInfo.university}
+            </span>
+            <span className="text-xs text-gray-500 truncate" title={request.placementInfo.program}>
+              {request.placementInfo.program}
+            </span>
           </div>
         </td>
 

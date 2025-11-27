@@ -18,12 +18,13 @@ import { formatDate } from '@/lib/utils/date';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge'; 
-import type { TravelRequestDetails } from './TravelClearanceTable';
+import type { ShiftingRequestDetails } from './ShiftingTransferringTable';
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
       <p className="text-xs font-medium text-gray-500">{label}</p>
+      {/* Change this from <p> to <div> */}
       <div className="text-sm font-semibold text-gray-800 break-words">
         {value || 'N/A'}
       </div>
@@ -75,41 +76,40 @@ const PREBUILT_COMMENTS = [
     short: 'Missing Docs',
   },
   {
-    key: 'invalid_letter',
-    text: 'The Request Letter to the Director is missing key details (dates or destination).',
-    short: 'Invalid Letter',
+    key: 'invalid_grades',
+    text: 'The Certification of Grades is incomplete or blurred.',
+    short: 'Invalid Grades',
   },
   {
-    key: 'notarized_deed',
-    text: 'The Deed of Undertaking must be notarized.',
-    short: 'Notarize Deed',
+    key: 'program_mismatch',
+    text: 'The new program is not within the priority science and technology courses.',
+    short: 'Program Invalid',
   },
   {
-    key: 'comaker_id',
-    text: 'Please attach a valid ID for the Co-maker.',
-    short: 'Co-maker ID',
+    key: 'missing_admission',
+    text: 'Please provide proof of admission to the new university.',
+    short: 'Missing Admission',
   },
 ];
 
-interface TravelClearanceModalProps {
+interface ShiftingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  request: TravelRequestDetails; 
+  request: ShiftingRequestDetails; 
   onUpdate: () => void; 
 }
 
-export function TravelClearanceModal({
+export function ShiftingTransferringModal({
   isOpen,
   onClose,
   request,
   onUpdate
-}: TravelClearanceModalProps) {
-  const { scholarInfo, placementInfo, submissionInfo, travelDetails, files, purpose } = request;
+}: ShiftingModalProps) {
+  const { scholarInfo, currentPlacement, newPlacement, submissionInfo, files, applicationType } = request;
   
   const [adminComment, setAdminComment] = useState(submissionInfo.adminComment || '');
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
-  const [isRejectOpen, setIsRejectOpen] = useState(false);
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {
@@ -119,7 +119,7 @@ export function TravelClearanceModal({
   };
 
   const handleApprove = async () => {
-    toast.success('Travel Clearance Approved', { description: `${scholarInfo.name} has been notified.` });
+    toast.success('Application Approved', { description: `${scholarInfo.name} has been notified.` });
     onUpdate();
     setIsApproveOpen(false);
     onClose();
@@ -145,8 +145,8 @@ export function TravelClearanceModal({
           <ModalHeader>
              <div className="flex items-center justify-between w-full pr-8">
                 <div className="flex flex-col">
-                   <ModalTitle>Travel Clearance Request</ModalTitle>
-                   <p className="text-sm text-gray-500 font-normal mt-1">{purpose}</p>
+                   <ModalTitle>Shifting & Transferring Request</ModalTitle>
+                   <p className="text-sm text-gray-500 font-normal mt-1">{applicationType}</p>
                 </div>  
              </div>
           </ModalHeader>
@@ -171,32 +171,38 @@ export function TravelClearanceModal({
                   </div>
                 </section>
 
-                {/* 2. Travel & Request Details */}
+                {/* 2. Application & Status Details */}
                 <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex-1 flex flex-col">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                    Travel Details
+                    Application Details
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <InfoItem label="Destination" value={travelDetails.destination} />
-                    <div className="grid grid-cols-2 gap-2">
-                        <InfoItem label="Departure" value={formatDate(travelDetails.departureDate)} />
-                        <InfoItem label="Return" value={formatDate(travelDetails.arrivalDate)} />
-                    </div>
-                    <InfoItem label="Duration" value={travelDetails.duration} />
+                    <InfoItem label="Effectivity" value={newPlacement.effectivity} />
+                    <InfoItem label="New Duration" value={newPlacement.duration} />
                     <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
                     <InfoItem label="Current Status" value={
                         <StatusBadge status={submissionInfo.status} className="mt-1"/>
                     } />
-                    </div>
-                    {submissionInfo.delayReason && (
-                        <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-md mt-3">
-                            <div className="flex items-center gap-2 text-yellow-700 font-semibold text-xs uppercase mb-1">
-                                <AlertTriangle className="h-3 w-3" />
-                                Late Submission Reason
-                            </div>
-                            <p className="text-sm text-gray-800">{submissionInfo.delayReason}</p>
-                        </div>
-                    )}
+                  </div>
+                  
+                  {/* Proposed Changes Section */}
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                     <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Proposed Changes</p>
+                     <div className="bg-blue-50 border border-blue-100 p-3 rounded-md space-y-2">
+                        {newPlacement.university && (
+                            <InfoItem label="New University" value={newPlacement.university} />
+                        )}
+                        {newPlacement.program && (
+                            <InfoItem label="New Program" value={newPlacement.program} />
+                        )}
+                     </div>
+                  </div>
+
+                  <div className="mt-2">
+                     <InfoItem label="Reason for Application" value={
+                        <p className="font-normal italic text-gray-700">{submissionInfo.reason}</p>
+                     } />
+                  </div>
                   
                 </section>
               </div>
@@ -204,16 +210,16 @@ export function TravelClearanceModal({
               {/* RIGHT COLUMN */}
               <div className="flex flex-col gap-6 h-full">
                 
-                {/* 3. Placement Information */}
+                {/* 3. Current Placement Information */}
                 <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                    Placement Information
+                    Current Placement
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <InfoItem label="Scholarship Type" value={placementInfo.scholarshipType} />
-                    <InfoItem label="Batch / Year Awarded" value={placementInfo.batch} />
-                    <InfoItem label="School / University" value={placementInfo.university} />
-                    <InfoItem label="Program / Course" value={placementInfo.program} />
+                    <InfoItem label="Scholarship Type" value={currentPlacement.scholarshipType} />
+                    <InfoItem label="Batch / Year Awarded" value={currentPlacement.batch} />
+                    <InfoItem label="University" value={currentPlacement.university} />
+                    <InfoItem label="Program" value={currentPlacement.program} />
                  </div>
                 </section>
 
@@ -225,43 +231,35 @@ export function TravelClearanceModal({
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <FileDisplay
-                        label="Request Letter to Director"
-                        fileName={files.requestLetter}
-                        needsResubmit={comment.includes('letter')}
-                    />
-                    <FileDisplay
-                        label="Travel Request Form"
-                        fileName={files.requestForm}
+                        label="Application Form"
+                        fileName={files.applicationForm}
                         needsResubmit={comment.includes('form')}
                     />
-
-                    {purpose === 'Official Business Travel' && (
-                        <FileDisplay
-                            label="Guarantee Letter"
-                            fileName={files.guaranteeLetter}
-                            needsResubmit={comment.includes('guarantee')}
-                        />
-                    )}
-
-                    {purpose === 'Other' && (
-                        <>
-                           <FileDisplay
-                              label="Deed of Undertaking"
-                              fileName={files.deedOfUndertaking}
-                              needsResubmit={comment.includes('deed')}
-                           />
-                           <FileDisplay
-                              label="Co-Maker's Employment/ITR"
-                              fileName={files.coMakerEmployment}
-                              needsResubmit={comment.includes('employment') || comment.includes('itr')}
-                           />
-                           <FileDisplay
-                              label="Co-Maker's Valid ID"
-                              fileName={files.coMakerId}
-                              needsResubmit={comment.includes('id')}
-                           />
-                        </>
-                    )}
+                    <FileDisplay
+                        label="Cert. of Admission"
+                        fileName={files.certificationAdmission}
+                        needsResubmit={comment.includes('admission')}
+                    />
+                     <FileDisplay
+                        label="Cert. of Grades"
+                        fileName={files.certificationGrades}
+                        needsResubmit={comment.includes('grades')}
+                    />
+                    <FileDisplay
+                        label="Approved Program"
+                        fileName={files.approvedProgram}
+                        needsResubmit={comment.includes('program')}
+                    />
+                    <FileDisplay
+                        label="Cert. of Year Level"
+                        fileName={files.certificationYearLevel}
+                        needsResubmit={comment.includes('year level')}
+                    />
+                    <FileDisplay
+                        label="Cert. Accredited Subj."
+                        fileName={files.certificationAccredited}
+                        needsResubmit={comment.includes('accredited')}
+                    />
                   </div>
                 </section>
               </div>
@@ -331,8 +329,8 @@ export function TravelClearanceModal({
         isOpen={isApproveOpen}
         onClose={() => setIsApproveOpen(false)}
         onConfirm={handleApprove}
-        title="Approve Travel Clearance"
-        description={`Are you sure you want to approve the travel request for ${scholarInfo.name}?`}
+        title="Approve Application"
+        description={`Are you sure you want to approve the shifting/transferring request for ${scholarInfo.name}?`}
         variant="info"
         confirmText="Yes, approve"
       />
@@ -347,5 +345,5 @@ export function TravelClearanceModal({
         confirmText="Yes, request resubmission"
       />
     </>
-  );
+  );    
 }
