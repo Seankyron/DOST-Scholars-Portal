@@ -6,7 +6,31 @@ import { formatRelativeTime } from '@/lib/utils/date';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { PTPTransactionType } from './PracticalTrainingPanel';
-import { useCurrentScholarPTP } from '@/hooks/scholar/PTP Submission/useCurrentScholarPTP';
+import { useFetchPracticalTraining } from '@/hooks/scholars/Get/useFetchPraticalTraining';
+
+// Mock Data for PTP
+const mockRequests = [
+  {
+    id: 1,
+    type: 'Program Completion' as PTPTransactionType,
+    // Use a property to distinguish if it's completion so the panel knows which form to open
+    trainingCompletion: true, 
+    status: 'Resubmit' as SubmissionStatus,
+    dateSubmitted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    adminComment: 'Please ensure your DTR is signed by your supervisor.',
+    // Mock file existence
+    files: { form126: true, form127: true, form128: true, dtr: true, certCompletion: true }
+  },
+  {
+    id: 2,
+    type: 'Referral Letter' as PTPTransactionType,
+    trainingCompletion: false,
+    status: 'Approved' as SubmissionStatus,
+    dateSubmitted: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), // 45 days ago
+    adminComment: 'Referral letter sent to your email.',
+    files: { grades: true, replySlip: true }
+  },
+];
 
 interface RecentPTPRequestsProps {
   onViewDetails: (request: any) => void;

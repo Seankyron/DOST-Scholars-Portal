@@ -19,8 +19,8 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatDate } from '@/lib/utils/date';
 import { toast } from '@/components/ui/toaster';
 import type { ShiftingType } from '@/types';
-import { useSubmitShifting, SubmissionData } from '@/hooks/scholars/useSubmitShifting';
-import { useUploadDocument } from '@/hooks/scholars/useUploadDocument';
+import { useSubmitShifting, SubmissionData } from '@/hooks/scholars/Post/useSubmitShifting';
+import { useUploadDocument } from '@/hooks/scholars/Post/useUploadDocument';
 
 interface ShiftingTransferringModalProps {
   isOpen: boolean;
