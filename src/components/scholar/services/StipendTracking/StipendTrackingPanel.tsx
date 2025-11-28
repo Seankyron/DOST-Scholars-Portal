@@ -6,7 +6,7 @@ import { AlertCircle, Wallet, Loader2 } from 'lucide-react';
 import { StipendSemCard } from './StipendSemCard';
 import { StipendDetailsModal } from './StipendDetailsModal';
 import { RecentStipendActivity } from './RecentStipendReleases';
-import { Select } from '@/components/ui/select';
+import { FormSelect } from '@/components/ui/form-select';
 import { toast } from '@/components/ui/toaster';
 import { useCurrentScholarStipend } from '@/hooks/scholar/Stipend Tracking/useCurrentScholarStipend';
 import type { StipendPeriodStatus, Semester} from '@/types';
@@ -245,10 +245,10 @@ export function StipendTrackingPanel() {
 
       {/* 2. Filters */}
       <div className="w-full max-w-xs">
-        <Select
+        <FormSelect
           label="Filter by Academic Year"
           value={filterAcademicYear}
-          onChange={(e) => setFilterAcademicYear(e.target.value)}
+          onChange={(e) => setFilterAcademicYear(e)}
           options={academicYearOptions.map(ay => ({ value: ay, label: ay }))}
         />
       </div>
