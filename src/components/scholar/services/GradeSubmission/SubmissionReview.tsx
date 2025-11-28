@@ -94,12 +94,12 @@ export function SubmissionReview({ submission }: SubmissionReviewProps) {
           <FileDisplay 
             label={`Official Registration Form ${submission.semester}`}
             fileName={submission.registrationForm} 
-            fileUrl={submission.registrationFormUrl} // Use the actual URL
+            fileUrl={submission.registrationForm} // Use the actual URL
           />
           <FileDisplay 
             label="Transcript of Records / Certified Complete Grades"
             fileName={submission.copyOfGrades} 
-            fileUrl={submission.copyOfGradesUrl} // Use the actual URL
+            fileUrl={submission.copyOfGrades} // Use the actual URL
           />
         </div>
       </div>

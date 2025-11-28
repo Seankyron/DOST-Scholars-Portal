@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { FullPageLoader } from '@/components/shared/FullPageLoader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { SelectInput as Select } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FileUpload } from '@/components/ui/file-upload';
 import { 

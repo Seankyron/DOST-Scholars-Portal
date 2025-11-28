@@ -1,10 +1,13 @@
+// src/components/ui/select.tsx
+
 'use client';
 
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
+// --- PRIMITIVES (Standard Radix UI / Shadcn Implementation) ---
 const Select = SelectPrimitive.Root;
 const SelectGroup = SelectPrimitive.Group;
 const SelectValue = SelectPrimitive.Value;
@@ -82,6 +85,67 @@ const SelectItem = React.forwardRef<
 ));
 SelectItem.displayName = SelectPrimitive.Item.displayName;
 
+// --- SMART WRAPPER (For Forms) ---
+
+interface SelectInputProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root> {
+  label?: string;
+  error?: string;
+  options: { value: string; label: string | number }[];
+  onChange?: (e: { target: { value: string } }) => void; // Adapter for synthetic event
+  placeholder?: string;
+  className?: string; // Explicitly add className since Root doesn't have it
+}
+
+const SelectInput = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Trigger>,
+  SelectInputProps
+>(({ 
+  className, 
+  label, 
+  options = [], 
+  error, 
+  onChange, 
+  value, 
+  placeholder, 
+  required, 
+  disabled, 
+  ...props 
+}, ref) => {
+  return (
+    <div className={cn("w-full space-y-2", className)}>
+      {label && (
+        <label className={cn("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", error && "text-red-500")}>
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+      )}
+      <Select
+        value={value}
+        onValueChange={(val) => onChange?.({ target: { value: val } })}
+        disabled={disabled}
+        required={required}
+        {...props}
+      >
+        <SelectTrigger ref={ref} className={error && "border-red-500 focus:ring-red-500"}>
+          <SelectValue placeholder={placeholder || "Select option"} />
+        </SelectTrigger>
+        <SelectContent>
+            {options.length > 0 ? (
+                options.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                    </SelectItem>
+                ))
+            ) : (
+                <div className="p-2 text-sm text-gray-500">No options available</div>
+            )}
+        </SelectContent>
+      </Select>
+      {error && <p className="text-sm text-red-500">{error}</p>}
+    </div>
+  )
+})
+SelectInput.displayName = "SelectInput"
+
 export {
   Select,
   SelectGroup,
@@ -89,4 +153,5 @@ export {
   SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectInput,
 };
