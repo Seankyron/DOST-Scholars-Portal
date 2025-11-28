@@ -46,7 +46,7 @@ function FileDisplay({
   return (
     <div>
       <div className="flex justify-between items-center mb-1">
-        <Label className="text-sm font-medium text-gray-700 truncate" title={label}>{label}</Label>
+        <Label className="text-xs font-medium text-gray-700 truncate" title={label}>{label}</Label>
         {/* Red Indicator Label */}
         {needsResubmit && (
           <span className="text-[10px] font-medium text-red-600 flex-shrink-0 ml-2">To Resubmit</span>
