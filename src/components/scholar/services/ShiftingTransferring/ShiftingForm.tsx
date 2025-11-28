@@ -67,37 +67,6 @@ export function ShiftingForm(prop: ShiftingFormProps) {
   const isShifting = prop.type.includes('Shifting');
   const isTransferring = prop.type.includes('Transferring');
 
-  // --- STATE ---
-  // const [newSchool, setNewSchool] = useState('');
-  // const [newCourse, setNewCourse] = useState('');
-  // const [effectivity, setEffectivity] = useState('');
-  // const [reason, setReason] = useState('');
-  // const [courseDuration, setCourseDuration] = useState('4');
-  // const [ojtYear, setOjtYear] = useState('');
-  // const [ojtSemester, setOjtSemester] = useState('');
-  
-  // const [midyearClasses, setMidyearClasses] = useState({'1': false, '2': false, '3': false, '4': false});
-  // const [thesisYear, setThesisYear] = useState({'1': false, '2': false, '3': false, '4': false});
-
-  // // File States
-  // const [appForm, setAppForm] = useState<File | null>(null);
-  // const [certAdmission, setCertAdmission] = useState<File | null>(null);
-  // const [certSubjects, setCertSubjects] = useState<File | null>(null);
-  // const [certYearLevel, setCertYearLevel] = useState<File | null>(null);
-  // // const [certGrades, setCertGrades] = useState<File | null>(null);
-  // const [programOfStudy, setProgramOfStudy] = useState<File | null>(null);
-
-  
-  const storedScholar = sessionStorage.getItem('scholar');
-  const scholar = storedScholar ? JSON.parse(storedScholar) : null;
-  
-  const showAppForm         = { isEditable: prop.existingRequest === null };
-  const showCertAdmission   = { isEditable: prop.existingRequest === null };
-  const showCertSubjects    = { isEditable: prop.existingRequest === null };
-  const showCertYearLevel   = { isEditable: prop.existingRequest === null };
-  const showCertGrades      = { isEditable: prop.existingRequest === null };
-  const showProgramOfStudy  = { isEditable: prop.existingRequest === null };
-
   // --- OPTIONS ---
   const universityOptions = UNIVERSITIES.map(u => ({ value: u, label: u }));
   const allPrograms = Object.values(PROGRAMS_BY_UNIVERSITY).flat(); 
@@ -246,67 +215,19 @@ export function ShiftingForm(prop: ShiftingFormProps) {
         </div>
 
         <div className="p-6 border rounded-xl bg-white space-y-6 shadow-sm">
-            {showAppForm.isEditable ? (
-              renderFileUpload("Application Form for Shifting/Transferring", "Upload the duly signed application form.", prop.appForm, prop.setAppForm)
-            ):(
-              <FileDisplayReadOnly 
-                label="Application Form for Shifting/Transferring"
-                fileName={`${scholar.last_name}-AppForm.pdf`}
-                fileUrl={prop.existingRequest.application_form_file_key}
-              />
-            )} 
+            {(renderFileUpload("Application Form for Shifting/Transferring", "Upload the duly signed application form.", prop.appForm, prop.setAppForm))} 
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {showCertAdmission.isEditable ? (
-                  renderFileUpload("Certification of Admission", "Proof of acceptance in the new course/school.", prop.certAdmission, prop.setCertAdmission)
-                ) : (
-                  <FileDisplayReadOnly 
-                    label="Certification of Admission"
-                    fileName={`${scholar.last_name}-CertAdmission.pdf`}
-                    fileUrl={prop.existingRequest.admission_cert_file_key}
-                  />
-                )}
-                {showCertSubjects.isEditable ? (
-                  renderFileUpload("Certification of Accredited Subjects", "List of credited subjects from previous course.", prop.certSubjects, prop.setCertSubjects)
-                ) :(
-                  <FileDisplayReadOnly 
-                    label="Certification of Accredited Subjects"
-                    fileName={`${scholar.last_name}-AccreditedSubjects.pdf`}
-                    fileUrl={prop.existingRequest.accredited_sub_file_key}
-                  />
-                )}
+                {(renderFileUpload("Certification of Admission", "Proof of acceptance in the new course/school.", prop.certAdmission, prop.setCertAdmission))}
+                {(renderFileUpload("Certification of Accredited Subjects", "List of credited subjects from previous course.", prop.certSubjects, prop.setCertSubjects))}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {showCertYearLevel.isEditable ? (
-                  renderFileUpload("Certification of Year Level", "Official certification of your new year level.", prop.certYearLevel, prop.setCertYearLevel)
-                ) :(
-                  <FileDisplayReadOnly 
-                    label="Certification of Year Level"
-                    fileName={`${scholar.last_name}-YearLevel.pdf`}
-                    fileUrl={prop.existingRequest.new_year_level_file_key}
-                  />
-                )}
-                {showCertGrades.isEditable ? (
-                  renderFileUpload("Certification of Grades", "Grades from all semesters enrolled (Original/Certified True Copy).", prop.certGrades, prop.setCertGrades)
-                ) :(
-                  <FileDisplayReadOnly 
-                    label="Certification of Grades"
-                    fileName={`${scholar.last_name}-Grades.pdf`}
-                    fileUrl={prop.existingRequest.all_grades_file_key}
-                  />
-                )}
+                {(renderFileUpload("Certification of Year Level", "Official certification of your new year level.", prop.certYearLevel, prop.setCertYearLevel))}
+                {(renderFileUpload("Certification of Grades", "Grades from all semesters enrolled (Original/Certified True Copy).", prop.certGrades, prop.setCertGrades))}
             </div>
 
-            {showProgramOfStudy.isEditable ? (
-              renderFileUpload("Approved Program of Study / Curriculum", "Must be the official curriculum of the new course/school.", prop.programOfStudy, prop.setProgramOfStudy)
-            ) :(
-              <FileDisplayReadOnly 
-                label="Approved Program of Study / Curriculum"
-                fileName={`${scholar.last_name}-Curriculum.pdf`}
-                fileUrl={prop.existingRequest.all_grades_file_key}
-              />
-            )}
+            {(renderFileUpload("Approved Program of Study / Curriculum", "Must be the official curriculum of the new course/school.", prop.programOfStudy, prop.setProgramOfStudy))}
         </div>
       </div>
 

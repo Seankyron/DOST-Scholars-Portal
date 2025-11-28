@@ -6,6 +6,7 @@ import { formatRelativeTime } from '@/lib/utils/date';
 import { formatCurrency } from '@/lib/utils/format';
 import { Button } from '@/components/ui/button';
 import type { SubmissionStatus } from '@/types/services';
+import { useFetchReimbursement } from '@/hooks/scholars/useFetchReimbursement';
 
 // Mock Data
 const mockRequests = [
@@ -37,6 +38,12 @@ interface RecentReimbursementsProps {
 }
 
 export function RecentReimbursements({ onViewDetails }: RecentReimbursementsProps) {
+  const storedScholar = sessionStorage.getItem('scholar');
+  const scholar = storedScholar ? JSON.parse(storedScholar) : null;
+
+  const { data, success, error } = useFetchReimbursement(scholar?.spas_id, 5);
+  console.log('Data:', data);
+
   return (
     <Card className="shadow-md bg-white">
       <CardHeader>
@@ -47,8 +54,12 @@ export function RecentReimbursements({ onViewDetails }: RecentReimbursementsProp
 
       <CardContent>
         <ul className="divide-y divide-gray-200">
-          {mockRequests.length > 0 ? (
-            mockRequests.map((req) => (
+          {!data || data.length === 0 ?  (
+            <p className="text-sm text-gray-500 text-center py-4">
+              No recent reimbursement requests found.
+            </p>
+          ) : (
+            data.map((req) => (
               <li key={req.id} className="py-1 last:pb-0 first:pt-0">
                 <Button
                   variant="ghost"
@@ -61,23 +72,19 @@ export function RecentReimbursements({ onViewDetails }: RecentReimbursementsProp
                         {req.type}
                         </p>
                         <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                            {formatCurrency(req.amount)}
+                          {formatCurrency(req.amount)}
                         </span>
                     </div>
                     
                     <p className="text-xs text-gray-400 mt-0.5">
-                      Submitted {formatRelativeTime(req.dateSubmitted)}
+                      Submitted {formatRelativeTime(req.updated_at)}
                     </p>
                   </div>
 
-                  <StatusBadge status={req.status} className="ml-2 shrink-0" />
+                  <StatusBadge status={req.status as SubmissionStatus} className="ml-2 shrink-0" />
                 </Button>
               </li>
             ))
-          ) : (
-            <p className="text-sm text-gray-500 text-center py-4">
-              No recent reimbursement requests found.
-            </p>
           )}
         </ul>
       </CardContent>
