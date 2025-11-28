@@ -5,6 +5,8 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatRelativeTime } from '@/lib/utils/date';
 import type { SubmissionStatus, LOAReason } from '@/types';
 import { Button } from '@/components/ui/button';
+import { useFetchLoa } from '@/hooks/scholars/Get/useFetchLoa';
+import { COMPILER_NAMES } from 'next/dist/shared/lib/constants';
 
 // Mock data with Status, Date Submitted, and details for Modal View
 const mockRequests = [
@@ -46,6 +48,11 @@ interface RecentLOARequestsProps {
 }
 
 export function RecentLOARequests({ onViewDetails }: RecentLOARequestsProps) {
+  const storedScholar = sessionStorage.getItem('scholar');
+  const scholar = storedScholar ? JSON.parse(storedScholar) : null;
+
+  const { data } = useFetchLoa(scholar.spas_id, 5);
+
   return (
     <Card className="shadow-md bg-white">
       <CardHeader>
@@ -56,8 +63,12 @@ export function RecentLOARequests({ onViewDetails }: RecentLOARequestsProps) {
 
       <CardContent>
         <ul className="divide-y divide-gray-200">
-          {mockRequests.length > 0 ? (
-            mockRequests.map((req) => (
+          {!data || data.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-4">
+              No recent leave of absence requests found.
+            </p>
+          ) : (
+            data.map((req) => (
               <li key={req.id} className="py-1 last:pb-0 first:pt-0">
                 <Button
                   variant="ghost"
@@ -70,27 +81,23 @@ export function RecentLOARequests({ onViewDetails }: RecentLOARequestsProps) {
                       {req.reason}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5 truncate">
-                       {req.semester} | {req.academicYear}
+                       {req.semester} | {req.academic_year}
                     </p>
                     
                     {/* Date Submitted Display */}
                     <p className="text-xs text-gray-400 mt-1">
-                      Submitted {formatRelativeTime(req.dateSubmitted)}
+                      Submitted {formatRelativeTime(req.updated_at ?? new Date().toISOString())}
                     </p>
                   </div>
 
                   {/* Status Badge Display */}
                   <StatusBadge
-                    status={req.status} 
+                    status={(req.status ?? ' Pending') as SubmissionStatus} 
                     className="ml-2 shrink-0"
                   />
                 </Button>
               </li>
             ))
-          ) : (
-            <p className="text-sm text-gray-500 text-center py-4">
-              No recent leave of absence requests found.
-            </p>
           )}
         </ul>
       </CardContent>

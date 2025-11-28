@@ -18,8 +18,8 @@ import { formatDate } from '@/lib/utils/date';
 import { toast } from '@/components/ui/toaster';
 import { AdminCommentAlert } from '@/components/shared/AdminCommenAlert';
 import { ReimbursementForm } from './ReimbursementForm';
-import { useSubmitReimbursement, SubmissionData } from '@/hooks/scholars/useSubmitReimbursement';
-import { useUploadDocument } from '@/hooks/scholars/useUploadDocument';
+import { useSubmitReimbursement, SubmissionData } from '@/hooks/scholars/Post/useSubmitReimbursement';
+import { useUploadDocument } from '@/hooks/scholars/Post/useUploadDocument';
 import { de } from 'zod/v4/locales';
 
 interface ReimbursementModalProps {

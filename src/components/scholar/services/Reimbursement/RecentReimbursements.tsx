@@ -6,7 +6,7 @@ import { formatRelativeTime } from '@/lib/utils/date';
 import { formatCurrency } from '@/lib/utils/format';
 import { Button } from '@/components/ui/button';
 import type { SubmissionStatus } from '@/types/services';
-import { useFetchReimbursement } from '@/hooks/scholars/useFetchReimbursement';
+import { useFetchReimbursement } from '@/hooks/scholars/Get/useFetchReimbursement';
 
 // Mock Data
 const mockRequests = [

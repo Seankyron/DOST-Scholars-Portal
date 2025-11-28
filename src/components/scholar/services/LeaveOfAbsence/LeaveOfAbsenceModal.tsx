@@ -31,6 +31,8 @@ import { formatDate } from '@/lib/utils/date';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { toast } from '@/components/ui/toaster';
 import type { LOAReason } from '@/types';
+import { useUploadDocument } from '@/hooks/scholars/Post/useUploadDocument';
+import { SubmissionData, useSubmitLoa } from '@/hooks/scholars/Post/useSubmitLoa';
 
 // Helper for View Mode
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
@@ -88,7 +90,11 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
   const [regForm, setRegForm] = useState<File | null>(null);
   const [proofAdmission, setProofAdmission] = useState<File | null>(null);
 
-  const { uploadFile } = useFileUpload('leave-of-absence');
+  const storedScholar = sessionStorage.getItem('scholar');
+  const scholar = storedScholar ? JSON.parse(storedScholar) : null;
+
+  const { uploadDocument } = useUploadDocument();
+  const { submitLoa } = useSubmitLoa();
 
   const isRequired = (keywords: string[]) => {
     if (!existingRequest) return true;
@@ -150,16 +156,71 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
             return;
         }
     }
+    
+    setIsLoading(true);
+    const loadingID = toast.loading('Submitting request...');
 
     try {
-      setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      let appFormUrl = null, gradeUrl = null;
+      let regFormUrl = null, proofAdmissionUrl = null;
+      let univApprovalUrl = null, medCertUrl = null, otherDocsUrl = null;
+
+      ({ url:appFormUrl } = await uploadDocument(appForm!, `DOST/${scholar.spas_id}/loa/${reason}/Application Form`));
+      ({ url:gradeUrl } = await uploadDocument(grades!, `DOST/${scholar.spas_id}/loa/${reason}/Grades`));
+
+      if (reason === 'Medical/Personal') {
+        ({ url:univApprovalUrl } = await uploadDocument(univApproval!, `DOST/${scholar.spas_id}/loa/${reason}/University Approval`));
+        ({ url:medCertUrl } = await uploadDocument(medCert!, `DOST/${scholar.spas_id}/loa/${reason}/Medical Certificate`));
+
+        if (otherDocs) {
+          ({ url:otherDocsUrl } = await uploadDocument(otherDocs!, `DOST/${scholar.spas_id}/loa/${reason}/Other Documents`));
+        }
+      }
+
+      if (reason === 'Exchange Student Program') {  
+        ({ url:regFormUrl } = await uploadDocument(regForm!, `DOST/${scholar.spas_id}/loa/${reason}/Registration Form`));
+        ({ url:proofAdmissionUrl } = await uploadDocument(proofAdmission!, `DOST/${scholar.spas_id}/loa/${reason}/Proof of Admission`));
+      }
+
+      const submissionData: SubmissionData = {
+        spas_id: scholar.spas_id,
+        LOA_form_file_key: appFormUrl,
+        required_document_file_key: {
+          'Grades': gradeUrl,
+          'Registration Form': regFormUrl,
+          'Proof of Admission': proofAdmissionUrl,
+          'University Approval': univApprovalUrl,
+          'Medical Certificate': medCertUrl,
+          'Other Documents': otherDocsUrl,
+        },
+        updated_at: new Date().toISOString(),
+        status: 'Pending',
+        semester: startSemester,
+        academic_year: academicYear,
+        duration: duration,
+        reason: reasonText,
+        comment: null,
+        type: reason
+      }
+
+      if (!existingRequest) {
+        await submitLoa(submissionData, null);
+      }
+      else {
+        const id = existingRequest.id;
+        if (!id) { throw new Error('An error occured. Failed to update request.'); }
+        
+        submissionData.status = 'Resubmit - Pending';
+        await submitLoa(submissionData, id);
+      }
+
       toast.success(isResubmit ? 'Resubmission successful!' : 'Application submitted successfully!');
       onClose();
     } catch (error) {
       toast.error('Failed to submit application.');
     } finally {
       setIsLoading(false);
+      toast.dismiss(loadingID);
     }
   };
 
