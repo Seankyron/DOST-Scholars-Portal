@@ -20,17 +20,15 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState(searchParams.get('message') || '');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
-    setIsLoading(true);
+    setIsLoading(true); // Show splash screen
 
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           identifier: formData.identifier,
           password: formData.password,
@@ -43,19 +41,17 @@ export default function LoginPage() {
         throw new Error(result.error || 'Login failed');
       }
 
-      // On success, the API route returns the redirect path
+      // SUCCESS: Redirect
       if (result.redirectTo) {
-        // router.push(result.redirectTo); // This is good
-        // This is better, as it re-fetches server components
         window.location.href = result.redirectTo;
       } else {
         throw new Error('An unexpected error occurred.');
       }
+
     } catch (error: any) {
       setErrorMessage(error.message || 'An unknown error occurred.');
-    } finally {
-      setIsLoading(false);
-    }
+      setIsLoading(false); 
+    } 
   };
 
   return (

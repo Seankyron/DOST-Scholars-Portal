@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { SelectInput as Select } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FileUpload } from '@/components/ui/file-upload';
+import { FormSelect } from '@/components/ui/form-select';
 import { 
   SCHOLARSHIP_TYPES, 
   UNIVERSITIES, 
@@ -16,16 +17,14 @@ import {
   SEMESTERS,
   PROVINCES,
   PROGRAMS_BY_UNIVERSITY 
-} from '@/lib/utils/constants'; // Assuming this path is correct
-import { isValidScholarId } from '@/lib/utils/validation'; // Assuming this path is correct
+} from '@/lib/utils/constants'; 
+import { isValidScholarId } from '@/lib/utils/validation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-
 
 type SignupStep = 1 | 2 | 3 | 4;
 
-// FormData remains the same, it's the component's internal state
 interface FormData {
-  // Step 1: Scholar Information
+  // Step 1
   firstName: string;
   middleName: string;
   surname: string;
@@ -35,14 +34,12 @@ interface FormData {
   addressBrgy: string;
   addressCity: string;
   addressProvince: string;
-
-  // Step 2: Study Placement
+  // Step 2
   scholarshipType: string;
-  yearAwarded: string; // Keep as string (e.g., "2022")
+  yearAwarded: string;
   university: string;
   program: string;
-
-  // Step 3: Curriculum Information
+  // Step 3
   midyear1stYear: boolean;
   midyear2ndYear: boolean;
   midyear3rdYear: boolean;
@@ -51,12 +48,11 @@ interface FormData {
   thesis2ndYear: boolean;
   thesis3rdYear: boolean;
   thesis4thYear: boolean;
-  courseDuration: string; // Keep as string (e.g., "4")
-  ojtYear: string; // This will now be "1", "2", "3", or "4"
+  courseDuration: string;
+  ojtYear: string;
   ojtSemester: string;
   curriculumFile: File | null;
-
-  // Step 4: Account Setup
+  // Step 4
   scholarId: string;
   email: string;
   password: string;
@@ -112,15 +108,10 @@ export default function SignupPage() {
     label: prog,
   }));
 
-  // updateFormData and validateStep are unchanged from your original file
-  // ... (keep your existing updateFormData and validateStep functions)
-  // --- [Your existing updateFormData function] ---
   const updateFormData = (field: keyof FormData, value: any) => {
     if (field === 'scholarshipType') {
       const isJlssScholar = (value as string).includes('JLSS');
       setIsJlss(isJlssScholar);
-      
-      // If JLSS is selected, clear and disable 1st/2nd year options
       if (isJlssScholar) {
         setFormData(prev => ({
           ...prev,
@@ -130,18 +121,10 @@ export default function SignupPage() {
           thesis1stYear: false,
           thesis2ndYear: false,
         }));
-        setErrors(prev => ({
-          ...prev,
-          [field]: '',
-          midyear1stYear: '',
-          midyear2ndYear: '',
-          thesis1stYear: '',
-          thesis2ndYear: '',
-        }));
-        return; // Exit early
+        setErrors(prev => ({ ...prev, [field]: '' }));
+        return; 
       }
     }
-    
     setFormData(prev => ({ ...prev, [field]: value }));
     setErrors(prev => ({ ...prev, [field]: '' }));
 
@@ -150,8 +133,7 @@ export default function SignupPage() {
       setErrors(prev => ({ ...prev, program: '' }));
     }
   };
-  
-  // --- [Your existing validateStep function] ---
+
   const validateStep = (step: SignupStep): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -160,7 +142,7 @@ export default function SignupPage() {
       if (!formData.surname) newErrors.surname = 'Surname is required';
       if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
       if (!formData.contactNumber || formData.contactNumber === '+63' || formData.contactNumber.length < 13) {
-        newErrors.contactNumber = 'Valid contact number is required (e.g., +639123456789)';
+        newErrors.contactNumber = 'Valid contact number is required';
       }
       if (!formData.addressBrgy) newErrors.addressBrgy = 'Barangay is required';
       if (!formData.addressCity) newErrors.addressCity = 'City/Municipality is required';
@@ -187,26 +169,18 @@ export default function SignupPage() {
       if (!formData.scholarId) {
         newErrors.scholarId = 'Scholar ID is required';
       } else if (!isValidScholarId(formData.scholarId)) {
-        newErrors.scholarId = 'Invalid format. Use YYYY-XXXX (e.g., 2022-1234)';
+        newErrors.scholarId = 'Invalid format. Use YYYY-XXXX';
       }
-      
       if (!formData.email) newErrors.email = 'Email is required';
-      if (formData.password.length < 8) {
-        newErrors.password = 'Password must be at least 8 characters';
-      }
-      if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'Passwords do not match';
-      }
-      if (!formData.agreeToTerms) {
-        newErrors.agreeToTerms = 'You must agree to terms and conditions';
-      }
+      if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+      if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
+      if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to terms';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
-  // --- [Your existing handleNext and handlePrevious functions] ---
+
   const handleNext = () => {
     if (validateStep(currentStep)) {
       setCurrentStep((prev) => Math.min(prev + 1, 4) as SignupStep);
@@ -217,29 +191,23 @@ export default function SignupPage() {
     setCurrentStep((prev) => Math.max(prev - 1, 1) as SignupStep);
   };
 
-  // --- [MODIFIED handleSubmit function] ---
+  // --- FIXED HANDLE SUBMIT ---
   const handleSubmit = async () => {
     if (!validateStep(4)) return;
 
-    setIsLoading(true);
+    setIsLoading(true); // Shows the FullPageLoader
     setErrorMessage('');
 
     try {
-      let curriculumFileKey = ''; // This will hold the Cloudinary public_id
+      let curriculumFileKey = ''; 
       if (formData.curriculumFile) {
-        
-        // 1. Prepare the file for the API route
         const fileFormData = new FormData();
         fileFormData.append('file', formData.curriculumFile);
-        // "bucket" here just means the top-level folder in Cloudinary
         fileFormData.append('bucket', 'scholars'); 
 
-        console.log(fileFormData);
-        // 2. Call your new API upload handler
         const uploadResponse = await fetch('/api/auth/upload-curriculum', {
           method: 'POST',
           body: fileFormData,
-          // No 'Content-Type' header, browser sets it for FormData
         });
 
         const uploadResult = await uploadResponse.json();
@@ -247,13 +215,9 @@ export default function SignupPage() {
         if (!uploadResponse.ok) {
           throw new Error(uploadResult.error || 'Curriculum file upload failed');
         }
-        
-        // 3. Get the "file key" (Cloudinary public_id)
         curriculumFileKey = uploadResult.key;
-        console.log('Cloudinary Key:', curriculumFileKey);
       }
 
-      // Step 2: Prepare the final JSON payload
       const midyearYears = [];
       if (formData.midyear1stYear) midyearYears.push(1);
       if (formData.midyear2ndYear) midyearYears.push(2);
@@ -265,14 +229,12 @@ export default function SignupPage() {
                         formData.thesis3rdYear ? 3 : 4;
 
       const ojtInfo = {
-        ojtYear: parseInt(formData.ojtYear), // "3" -> 3
+        ojtYear: parseInt(formData.ojtYear),
         ojtSemester: formData.ojtSemester,
       };
       
       const completeAddress = `${formData.addressBrgy}, ${formData.addressCity}, ${formData.addressProvince}`;
 
-      // This is the data object that will be passed to `user_metadata`
-      // and read by your SQL trigger.
       const payload = {
         email: formData.email,
         password: formData.password,
@@ -289,26 +251,23 @@ export default function SignupPage() {
             municipality_city: formData.addressCity,
             province: formData.addressProvince,
             scholarship_type: formData.scholarshipType,
-            year_awarded: formData.yearAwarded, // Keep as string, your trigger expects text
+            year_awarded: formData.yearAwarded,
             university: formData.university,
             program_course: formData.program,
-            midyear_classes: midyearYears, // This is a JSON array
+            midyear_classes: midyearYears,
             thesis_year: thesisYear,
-            ojt: ojtInfo, // This is a JSON object
-            course_duration: parseInt(formData.courseDuration), // "4" -> 4
+            ojt: ojtInfo,
+            course_duration: parseInt(formData.courseDuration),
             curriculum_file_key: curriculumFileKey,
             is_verified: false,
-            scholarship_status: 'pending', // Default status
+            scholarship_status: 'pending',
           },
         },
       };
 
-      // Step 3: Call your new API route
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
@@ -318,15 +277,21 @@ export default function SignupPage() {
         throw new Error(result.error || 'Failed to create account');
       }
 
-      // Redirect to the success page
+      // SUCCESS:
+      // Redirect to success page. 
+      // NOTE: We do NOT call setIsLoading(false) here. 
+      // We want the splash screen to cover the transition.
       router.push('/signup/success');
 
     } catch (error: any) {
       console.error('Signup error:', error);
       setErrorMessage(error.message || 'Failed to create account');
-    } finally {
-      setIsLoading(false);
+      
+      // ERROR:
+      // We MUST turn off the loader here so the user can fix the error.
+      setIsLoading(false); 
     }
+    // REMOVED: finally { setIsLoading(false) }
   };
 
   const yearOptions = Array.from({ length: 10 }, (_, i) => {
@@ -343,391 +308,346 @@ export default function SignupPage() {
 
   return (
     <>
-    <FullPageLoader 
-        isLoading={isLoading} 
-        message="Creating your account..." 
-      />
-    <div className="bg-white rounded-2xl shadow-xl p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-dost-title mb-2">Create Account</h2>
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <span className={currentStep >= 1 ? 'text-dost-title font-medium' : ''}>
-            Scholar Information
-          </span>
-          <span>→</span>
-          <span className={currentStep >= 2 ? 'text-dost-title font-medium' : ''}>
-            Study Placement
-          </span>
-          <span>→</span>
-          <span className={currentStep >= 3 ? 'text-dost-title font-medium' : ''}>
-            Curriculum
-          </span>
-          <span>→</span>
-          <span className={currentStep >= 4 ? 'text-dost-title font-medium' : ''}>
-            Account
-          </span>
+      {/* 2. ADD THE LOADER HERE */}
+      <FullPageLoader isLoading={isLoading} message="Creating your account..." />
+
+      <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-dost-title mb-2">Create Account</h2>
+          {/* Progress Indicators */}
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span className={currentStep >= 1 ? 'text-dost-title font-medium' : ''}>Scholar Information</span>
+            <span>→</span>
+            <span className={currentStep >= 2 ? 'text-dost-title font-medium' : ''}>Study Placement</span>
+            <span>→</span>
+            <span className={currentStep >= 3 ? 'text-dost-title font-medium' : ''}>Curriculum</span>
+            <span>→</span>
+            <span className={currentStep >= 4 ? 'text-dost-title font-medium' : ''}>Account</span>
+          </div>
         </div>
-      </div>
 
-      {errorMessage && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">{errorMessage}</p>
-        </div>
-      )}
+        {errorMessage && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600">{errorMessage}</p>
+          </div>
+        )}
 
-      {/* Step 1: Scholar Information */}
-      {currentStep === 1 && (
-        <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="First Name"
-              value={formData.firstName}
-              onChange={(e) => updateFormData('firstName', e.target.value)}
-              error={errors.firstName}
+        {/* --- STEP 1: SCHOLAR INFO --- */}
+        {currentStep === 1 && (
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="First Name"
+                value={formData.firstName}
+                onChange={(e) => updateFormData('firstName', e.target.value)}
+                error={errors.firstName}
+                required
+                disabled={isLoading}
+              />
+              <Input
+                label="Middle Name"
+                value={formData.middleName}
+                onChange={(e) => updateFormData('middleName', e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Surname"
+                value={formData.surname}
+                onChange={(e) => updateFormData('surname', e.target.value)}
+                error={errors.surname}
+                required
+                disabled={isLoading}
+              />
+              <Input
+                label="Suffix (Sr., Jr., III, etc.)"
+                value={formData.suffix}
+                onChange={(e) => updateFormData('suffix', e.target.value)}
+                placeholder="Optional"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Date of Birth"
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={(e) => updateFormData('dateOfBirth', e.target.value)}
+                error={errors.dateOfBirth}
+                required
+                disabled={isLoading}
+              />
+              <Input
+                label="Active Contact Number"
+                type="tel"
+                value={formData.contactNumber}
+                onChange={(e) => updateFormData('contactNumber', e.target.value)}
+                error={errors.contactNumber}
+                placeholder="+639123456789"
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <h4 className="text-sm font-medium text-gray-700 pt-2">Complete Address</h4>
+              <div className="grid grid-cols-2 gap-4">
+              <FormSelect
+                label="Province"
+                value={formData.addressProvince}
+                onChange={(val) => updateFormData('addressProvince', val)}
+                options={provinceOptions}
+                error={errors.addressProvince}
+                required
+                disabled={isLoading}
+                placeholder="Select province"
+              />
+                <Input
+                  label="City / Municipality"
+                  value={formData.addressCity}
+                  onChange={(e) => updateFormData('addressCity', e.target.value)}
+                  error={errors.addressCity}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              {/* Barangay stays full width below them */}
+              <Input
+                label="Barangay, Street, House/Unit No."
+                value={formData.addressBrgy}
+                onChange={(e) => updateFormData('addressBrgy', e.target.value)}
+                error={errors.addressBrgy}
+                placeholder="e.g., Brgy. San Juan, 123 Rizal St."
+                required
+                disabled={isLoading}
+              />
+          </div>
+        )}
+
+        {/* --- STEP 2: STUDY PLACEMENT --- */}
+        {currentStep === 2 && (
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 gap-4">
+              <FormSelect
+                label="Scholarship Type"
+                value={formData.scholarshipType}
+                onChange={(val) => updateFormData('scholarshipType', val)}
+                options={SCHOLARSHIP_TYPES.map(t => ({ value: t, label: t }))}
+                error={errors.scholarshipType}
+                required
+                disabled={isLoading}
+              />
+              
+              <FormSelect
+                label="Batch / Year Awarded"
+                value={formData.yearAwarded}
+                onChange={(val) => updateFormData('yearAwarded', val)}
+                options={yearOptions}
+                error={errors.yearAwarded}
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <FormSelect
+              label="School / University"
+              value={formData.university}
+              onChange={(val) => updateFormData('university', val)}
+              options={UNIVERSITIES.map(u => ({ value: u, label: u }))}
+              error={errors.university}
               required
+              disabled={isLoading}
             />
-            <Input
-              label="Middle Name"
-              value={formData.middleName}
-              onChange={(e) => updateFormData('middleName', e.target.value)}
+
+            <FormSelect
+              label="Program / Course"
+              value={formData.program}
+              onChange={(val) => updateFormData('program', val)}
+              options={programOptions}
+              error={errors.program}
+              required
+              disabled={!formData.university || programOptions.length === 0 || isLoading}
             />
           </div>
+        )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Surname"
-              value={formData.surname}
-              onChange={(e) => updateFormData('surname', e.target.value)}
-              error={errors.surname}
-              required
-            />
-            <Input
-              label="Suffix (Sr., Jr., III, etc.)"
-              value={formData.suffix}
-              onChange={(e) => updateFormData('suffix', e.target.value)}
-              placeholder="Optional"
-            />
-          </div>
+        {/* --- STEP 3: CURRICULUM --- */}
+        {currentStep === 3 && (
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Midyear Classes in the Curriculum:
+              </label>
+              <div className="grid grid-cols-4 gap-3">
+                <Checkbox label="1st Year" checked={formData.midyear1stYear} onChange={(e) => updateFormData('midyear1stYear', e.target.checked)} disabled={isJlss || isLoading} />
+                <Checkbox label="2nd Year" checked={formData.midyear2ndYear} onChange={(e) => updateFormData('midyear2ndYear', e.target.checked)} disabled={isJlss || isLoading} />
+                <Checkbox label="3rd Year" checked={formData.midyear3rdYear} onChange={(e) => updateFormData('midyear3rdYear', e.target.checked)} disabled={isLoading} />
+                <Checkbox label="4th Year" checked={formData.midyear4thYear} onChange={(e) => updateFormData('midyear4thYear', e.target.checked)} disabled={isLoading} />
+              </div>
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Date of Birth"
-              type="date"
-              value={formData.dateOfBirth}
-              onChange={(e) => updateFormData('dateOfBirth', e.target.value)}
-              error={errors.dateOfBirth}
-              required
-            />
-            <Input
-              label="Active Contact Number"
-              type="tel"
-              value={formData.contactNumber}
-              onChange={(e) => updateFormData('contactNumber', e.target.value)}
-              error={errors.contactNumber}
-              placeholder="+639123456789"
-              required
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Thesis in the Curriculum: <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-4 gap-3">
+                <Checkbox label="1st Year" checked={formData.thesis1stYear} onChange={(e) => updateFormData('thesis1stYear', e.target.checked)} disabled={isJlss || isLoading} />
+                <Checkbox label="2nd Year" checked={formData.thesis2ndYear} onChange={(e) => updateFormData('thesis2ndYear', e.target.checked)} disabled={isJlss || isLoading} />
+                <Checkbox label="3rd Year" checked={formData.thesis3rdYear} onChange={(e) => updateFormData('thesis3rdYear', e.target.checked)} disabled={isLoading} />
+                <Checkbox label="4th Year" checked={formData.thesis4thYear} onChange={(e) => updateFormData('thesis4thYear', e.target.checked)} disabled={isLoading} />
+              </div>
+              {errors.thesis && <p className="mt-1 text-sm text-red-500">{errors.thesis}</p>}
+            </div>
 
-          <h4 className="text-sm font-medium text-gray-700 pt-2">Complete Address</h4>
-          <div className="grid grid-cols-2 gap-4">
             <Select
-              label="Province"
-              value={formData.addressProvince}
-              onChange={(e) => updateFormData('addressProvince', e.target.value)}
-              options={provinceOptions}
-              error={errors.addressProvince}
+              label="Duration of Course"
+              value={formData.courseDuration}
+              onChange={(e) => updateFormData('courseDuration', e.target.value)}
+              options={durationOptions}
               required
+              disabled={isLoading}
             />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormSelect
+                label="Year of OJT"
+                value={formData.ojtYear}
+                onChange={(val) => updateFormData('ojtYear', val)}
+                options={YEAR_LEVELS.slice(0, 4).map((year, idx) => ({ 
+                  value: (idx + 1).toString(), 
+                  label: year 
+                }))}
+                error={errors.ojtYear}
+                required
+                disabled={isLoading}
+              />
+              
+              <FormSelect
+                label="OJT Semester"
+                value={formData.ojtSemester}
+                onChange={(val) => updateFormData('ojtSemester', val)}
+                options={SEMESTERS.map(sem => ({ value: sem, label: sem }))}
+                error={errors.ojtSemester}
+                required
+                disabled={isLoading}
+              />
+            </div>
+
+            <FileUpload
+              label="Course Curriculum (PDF)"
+              accept=".pdf"
+              onChange={(file) => updateFormData('curriculumFile', file)}
+              error={errors.curriculumFile}
+              required
+              helperText="Upload your official curriculum from your school."
+              disabled={isLoading}
+            />
+          </div>
+        )}
+
+        {/* --- STEP 4: ACCOUNT --- */}
+        {currentStep === 4 && (
+          <div className="space-y-5">
             <Input
-              label="City / Municipality"
-              value={formData.addressCity}
-              onChange={(e) => updateFormData('addressCity', e.target.value)}
-              error={errors.addressCity}
+              label="Scholar ID"
+              value={formData.scholarId}
+              onChange={(e) => updateFormData('scholarId', e.target.value)}
+              error={errors.scholarId}
+              placeholder="YYYY-XXXX"
               required
+              disabled={isLoading}
             />
+            
+            <Input
+              label="Email Address"
+              type="email"
+              value={formData.email}
+              onChange={(e) => updateFormData('email', e.target.value)}
+              error={errors.email}
+              required
+              disabled={isLoading}
+            />
+
+            <Input
+              label="Password"
+              type="password"
+              value={formData.password}
+              onChange={(e) => updateFormData('password', e.target.value)}
+              error={errors.password}
+              helperText="Min 8 characters."
+              required
+              disabled={isLoading}
+            />
+
+            <Input
+              label="Confirm Password"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={(e) => updateFormData('confirmPassword', e.target.value)}
+              error={errors.confirmPassword}
+              required
+              disabled={isLoading}
+            />
+
+            <div className="space-y-3 pt-2">
+              <Checkbox
+                label="I agree to the Terms and Conditions"
+                checked={formData.agreeToTerms}
+                onChange={(e) => updateFormData('agreeToTerms', e.target.checked)}
+                disabled={isLoading}
+              />
+              {errors.agreeToTerms && <p className="text-sm text-red-500">{errors.agreeToTerms}</p>}
+
+              <Checkbox
+                label="Receive email updates"
+                checked={formData.subscribeToUpdates}
+                onChange={(e) => updateFormData('subscribeToUpdates', e.target.checked)}
+                disabled={isLoading}
+              />
+            </div>
           </div>
-          <Input
-            label="Barangay, Street, House/Unit No."
-            value={formData.addressBrgy}
-            onChange={(e) => updateFormData('addressBrgy', e.target.value)}
-            error={errors.addressBrgy}
-            placeholder="e.g., Brgy. San Juan, 123 Rizal St."
-            required
-          />
-        </div>
-      )}
+        )}
 
-      {/* Step 2: Study Placement */}
-      {currentStep === 2 && (
-        <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
-            <Select
-              label="Scholarship Type"
-              value={formData.scholarshipType}
-              onChange={(e) => updateFormData('scholarshipType', e.target.value)}
-              options={SCHOLARSHIP_TYPES.map(type => ({ value: type, label: type }))}
-              error={errors.scholarshipType}
-              required
-            />
-            <Select
-              label="Batch / Year Awarded"
-              value={formData.yearAwarded}
-              onChange={(e) => updateFormData('yearAwarded', e.target.value)}
-              options={yearOptions}
-              error={errors.yearAwarded}
-              required
-            />
-          </div>
-
-          <Select
-            label="School / University"
-            value={formData.university}
-            onChange={(e) => updateFormData('university', e.target.value)}
-            options={UNIVERSITIES.map(uni => ({ value: uni, label: uni }))}
-            error={errors.university}
-            required
-          />
-
-          <Select
-            label="Program / Course"
-            value={formData.program}
-            onChange={(e) => updateFormData('program', e.target.value)}
-            options={programOptions}
-            error={errors.program}
-            required
-            disabled={!formData.university || programOptions.length === 0}
-          />
-          {programOptions.length === 0 && formData.university && (
-            <p className="mt-1 text-sm text-gray-500">
-              No programs listed for this university. Please contact support if this is an error.
-            </p>
+        {/* Navigation Buttons */}
+        <div className="flex items-center justify-between mt-8 pt-6 border-t">
+          {currentStep > 1 ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={isLoading}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              PREVIOUS
+            </Button>
+          ) : (
+            <div />
           )}
 
+          {currentStep < 4 ? (
+            <Button type="button" onClick={handleNext} disabled={isLoading}>
+              NEXT
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button type="button" onClick={handleSubmit} isLoading={isLoading}>
+              CREATE ACCOUNT
+            </Button>
+          )}
         </div>
-      )}
 
-      {/* Step 3: Curriculum Information */}
-      {currentStep === 3 && (
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Midyear Classes in the Curriculum:
-            </label>
-            <div className="grid grid-cols-4 gap-3">
-              <Checkbox
-                label="1st Year"
-                checked={formData.midyear1stYear}
-                onChange={(e) => updateFormData('midyear1stYear', e.target.checked)}
-                disabled={isJlss} 
-              />
-              <Checkbox
-                label="2nd Year"
-                checked={formData.midyear2ndYear}
-                onChange={(e) => updateFormData('midyear2ndYear', e.target.checked)}
-                disabled={isJlss}
-              />
-              <Checkbox
-                label="3rd Year"
-                checked={formData.midyear3rdYear}
-                onChange={(e) => updateFormData('midyear3rdYear', e.target.checked)}
-              />
-              <Checkbox
-                label="4th Year"
-                checked={formData.midyear4thYear}
-                onChange={(e) => updateFormData('midyear4thYear', e.target.checked)}
-              />
-            </div>
-            {isJlss && (
-              <p className="mt-2 text-xs text-gray-500">
-                1st and 2nd Year are disabled for JLSS scholars.
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Thesis in the Curriculum: <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-4 gap-3">
-              {/* This logic should be updated to be radio buttons, but keeping as-is */}
-              <Checkbox
-                label="1st Year"
-                checked={formData.thesis1stYear}
-                onChange={(e) => updateFormData('thesis1stYear', e.target.checked)}
-                disabled={isJlss}
-              />
-              <Checkbox
-                label="2nd Year"
-                checked={formData.thesis2ndYear}
-                onChange={(e) => updateFormData('thesis2ndYear', e.target.checked)}
-                disabled={isJlss}
-              />
-              <Checkbox
-                label="3rd Year"
-                checked={formData.thesis3rdYear}
-                onChange={(e) => updateFormData('thesis3rdYear', e.target.checked)}
-              />
-              <Checkbox
-                label="4th Year"
-                checked={formData.thesis4thYear}
-                onChange={(e) => updateFormData('thesis4thYear', e.target.checked)}
-              />
-            </div>
-            {errors.thesis && <p className="mt-1 text-sm text-red-500">{errors.thesis}</p>}
-          </div>
-
-          <Select
-            label="Duration of Course"
-            value={formData.courseDuration}
-            onChange={(e) => updateFormData('courseDuration', e.target.value)}
-            options={durationOptions}
-            required
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <Select
-              label="Year of OJT"
-              value={formData.ojtYear}
-              onChange={(e) => updateFormData('ojtYear', e.target.value)}
-              // --- IMPORTANT FIX ---
-              // This now sends "1", "2", "3", "4" instead of "1st Year", etc.
-              // This matches what your SQL trigger expects
-              options={YEAR_LEVELS.slice(0, 4).map((year, idx) => ({ 
-                value: (idx + 1).toString(), 
-                label: year 
-              }))}
-              error={errors.ojtYear}
-              required
-            />
-            <Select
-              label="OJT Semester"
-              value={formData.ojtSemester}
-              onChange={(e) => updateFormData('ojtSemester', e.target.value)}
-              options={SEMESTERS.map(sem => ({ value: sem, label: sem }))}
-              error={errors.ojtSemester}
-              required
-            />
-          </div>
-
-          <FileUpload
-            label="Course Curriculum (PDF)"
-            accept=".pdf"
-            onChange={(file) => updateFormData('curriculumFile', file)}
-            error={errors.curriculumFile}
-            required
-            helperText="Upload your official curriculum from your school for verification purposes."
-          />
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link href="/login" className="text-dost-title font-medium hover:underline">
+              Sign In
+            </Link>
+          </p>
         </div>
-      )}
-
-      {/* Step 4: Account Setup */}
-      {currentStep === 4 && (
-        <div className="space-y-5">
-          <Input
-            label="Scholar ID"
-            type="text"
-            value={formData.scholarId}
-            onChange={(e) => updateFormData('scholarId', e.target.value)}
-            error={errors.scholarId}
-            placeholder="YYYY-XXXX"
-            helperText="Your official scholar ID provided by DOST-SEI."
-            required
-          />
-          
-          <Input
-            label="Email Address"
-            type="email"
-            value={formData.email}
-            onChange={(e) => updateFormData('email', e.target.value)}
-            error={errors.email}
-            helperText="Use your active email address for account verification and communications."
-            required
-          />
-
-          <Input
-            label="Password"
-            type="password"
-            value={formData.password}
-            onChange={(e) => updateFormData('password', e.target.value)}
-            error={errors.password}
-            helperText="Minimum 8 characters with letters, numbers, and symbols."
-            required
-          />
-
-          <Input
-            label="Confirm Password"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={(e) => updateFormData('confirmPassword', e.target.value)}
-            error={errors.confirmPassword}
-            required
-          />
-
-          <div className="space-y-3 pt-2">
-            <Checkbox
-              label="I agree to the Terms and Conditions and Privacy Policy"
-              checked={formData.agreeToTerms}
-              onChange={(e) => updateFormData('agreeToTerms', e.target.checked)}
-            />
-            {errors.agreeToTerms && (
-              <p className="text-sm text-red-500">{errors.agreeToTerms}</p>
-            )}
-
-            <Checkbox
-              label="I want to receive updates and announcements via email"
-              checked={formData.subscribeToUpdates}
-              onChange={(e) => updateFormData('subscribeToUpdates', e.target.checked)}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Navigation Buttons */}
-      <div className="flex items-center justify-between mt-8 pt-6 border-t">
-        {currentStep > 1 ? (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handlePrevious}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            PREVIOUS
-          </Button>
-        ) : (
-          <div />
-        )}
-
-        {currentStep < 4 ? (
-          <Button
-            type="button"
-            onClick={handleNext}
-          >
-            NEXT
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            isLoading={isLoading}
-          >
-            CREATE ACCOUNT
-          </Button>
-        )}
       </div>
-
-      {/* Sign In Link */}
-      <div className="mt-6 text-center">
-        <p className="text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link href="/login" className="text-dost-title font-medium hover:underline">
-            Sign In
-          </Link>
-        </p>
-      </div>
-    </div>
     </>
   );
 }
