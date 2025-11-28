@@ -6,24 +6,38 @@ import { formatRelativeTime } from '@/lib/utils/date';
 import type { SubmissionStatus, LOAReason } from '@/types';
 import { Button } from '@/components/ui/button';
 
-// Mock data with Status and Date Submitted
+// Mock data with Status, Date Submitted, and details for Modal View
 const mockRequests = [
   {
     id: 1,
     reason: 'Medical/Personal' as LOAReason,
+    reasonText: 'I need to undergo surgery for appendicitis and require recovery time.',
     semester: '1st Semester', 
-    academicYear: 'AY 2024-2025',
-    status: 'Resubmit' as SubmissionStatus, // <--- STATUS
-    dateSubmitted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // <--- DATE SUBMITTED (2 days ago)
-    adminComment: 'Please attach a clearer copy of your Medical Certificate.'
+    academicYear: '2024-2025',
+    duration: '1 Semester',
+    status: 'Resubmit' as SubmissionStatus, 
+    dateSubmitted: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    adminComment: 'Please attach a clearer copy of your Medical Certificate. The seal is not visible.'
   },
   {
     id: 2,
     reason: 'Exchange Student Program' as LOAReason,
+    reasonText: 'Accepted into the Semester Exchange Program at National University of Singapore (NUS).',
     semester: '2nd Semester',
-    academicYear: 'AY 2023-2024',
-    status: 'Approved' as SubmissionStatus, // <--- STATUS
-    dateSubmitted: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // <--- DATE SUBMITTED (30 days ago)
+    academicYear: '2023-2024',
+    duration: '1 Semester',
+    status: 'Approved' as SubmissionStatus, 
+    dateSubmitted: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), // 45 days ago
+  },
+  {
+    id: 3,
+    reason: 'Medical/Personal' as LOAReason,
+    reasonText: 'Family emergency requiring me to return to my province to assist with business matters.',
+    semester: '1st Semester',
+    academicYear: '2025-2026',
+    duration: '1 Academic Year',
+    status: 'Pending' as SubmissionStatus, 
+    dateSubmitted: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
   },
 ];
 
@@ -51,13 +65,16 @@ export function RecentLOARequests({ onViewDetails }: RecentLOARequestsProps) {
                   onClick={() => onViewDetails(req)}
                 >
                   <div className="flex-1 min-w-0">
-                    {/* Title: Reason - Semester | AY */}
+                    {/* Title: Reason Category - Semester | AY */}
                     <p className="text-sm font-semibold text-gray-900 truncate">
-                      {req.reason} - {req.semester} | {req.academicYear}
+                      {req.reason}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5 truncate">
+                       {req.semester} | {req.academicYear}
                     </p>
                     
                     {/* Date Submitted Display */}
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-400 mt-1">
                       Submitted {formatRelativeTime(req.dateSubmitted)}
                     </p>
                   </div>

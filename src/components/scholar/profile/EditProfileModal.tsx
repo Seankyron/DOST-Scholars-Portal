@@ -123,6 +123,7 @@ export function EditProfileModal({ isOpen, onClose, scholar, onSuccess }: EditPr
                   <p className="text-xs text-red-500">{form.formState.errors.dateOfBirth.message}</p>
                 )}
               </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="contactNumber">Contact Number</Label>
                 <Input id="contactNumber" {...form.register('contactNumber')} placeholder="09xxxxxxxxx" />
