@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   ModalContent,
@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Download, MessageSquarePlus, AlertTriangle } from 'lucide-react';
+import { Download, MessageSquarePlus } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
@@ -24,10 +24,7 @@ function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
       <p className="text-xs font-medium text-gray-500">{label}</p>
-      {/* Change this from <p> to <div> */}
-      <div className="text-sm font-semibold text-gray-800 break-words">
-        {value || 'N/A'}
-      </div>
+      <div className="text-sm font-semibold text-gray-800 break-words">{value || 'N/A'}</div>
     </div>
   );
 }
@@ -44,15 +41,17 @@ function FileDisplay({
   return (
     <div>
       <div className="flex justify-between items-center mb-1">
-        <Label className="text-sm font-medium text-gray-700 truncate" title={label}>{label}</Label>
+        <Label className="text-xs font-medium text-gray-700 truncate" title={label}>{label}</Label>
         {needsResubmit && (
-          <span className="text-xs font-medium text-red-600 flex-shrink-0 ml-2">To Resubmit</span>
+          <span className="text-[10px] font-medium text-red-600 flex-shrink-0 ml-2">To Resubmit</span>
         )}
       </div>
-      <div className="flex items-center justify-between p-3 pl-4 border rounded-lg bg-gray-50">
+      <div className={`flex items-center justify-between p-3 pl-4 border rounded-lg transition-colors ${needsResubmit ? 'bg-red-50 border-red-200' : 'bg-gray-50'}`}>
         {fileName ? (
            <>
-             <span className="text-sm font-medium text-gray-800 truncate" title={fileName}>{fileName}</span>
+             <span className={`text-sm font-medium truncate ${needsResubmit ? 'text-red-700' : 'text-gray-800'}`} title={fileName}>
+               {fileName}
+             </span>
              <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
                <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="View">
                </Button>
@@ -77,7 +76,7 @@ const PREBUILT_COMMENTS = [
   },
   {
     key: 'invalid_grades',
-    text: 'The Certification of Grades is incomplete or blurred.',
+    text: 'The Certification of Grades is incomplete or blurred. Please upload a clear copy.',
     short: 'Invalid Grades',
   },
   {
@@ -107,9 +106,19 @@ export function ShiftingTransferringModal({
 }: ShiftingModalProps) {
   const { scholarInfo, currentPlacement, newPlacement, submissionInfo, files, applicationType } = request;
   
+  // Local state to handle immediate updates and inputs
+  const [currentStatus, setCurrentStatus] = useState(submissionInfo.status);
   const [adminComment, setAdminComment] = useState(submissionInfo.adminComment || '');
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
+
+  // Sync local state when the prop changes
+  useEffect(() => {
+    setCurrentStatus(submissionInfo.status);
+    setAdminComment(submissionInfo.adminComment || '');
+  }, [submissionInfo.status, submissionInfo.adminComment]);
+
+  const isActionable = currentStatus === 'Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {
@@ -118,8 +127,50 @@ export function ShiftingTransferringModal({
     });
   };
 
+  // --- LOGIC FOR RESUBMISSION DETECTION ---
+  const comment = (adminComment || '').toLowerCase();
+
+  const hasKeyword = (keywords: string[]) => {
+    return keywords.some((keyword) => {
+      const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${safeKeyword}\\b`, 'i'); 
+      return regex.test(comment);
+    });
+  };
+
+  const mentionsBoth = hasKeyword(['both', 'all', 'everything', 'documents']);
+
+  // Specific Document Logic
+  const showFormResubmit = (mentionsBoth || hasKeyword(['form', 'application'])) && currentStatus !== 'Approved';
+  const showAdmissionResubmit = (mentionsBoth || hasKeyword(['admission', 'acceptance', 'enrollment'])) && currentStatus !== 'Approved';
+  const showGradesResubmit = (mentionsBoth || hasKeyword(['grade', 'grades', 'cog', 'scholastic', 'rating'])) && currentStatus !== 'Approved';
+  const showProgramResubmit = (mentionsBoth || hasKeyword(['program', 'curriculum', 'prospectus'])) && currentStatus !== 'Approved';
+  const showYearLevelResubmit = (mentionsBoth || hasKeyword(['year', 'level', 'standing'])) && currentStatus !== 'Approved';
+  const showAccreditedResubmit = (mentionsBoth || hasKeyword(['accredited', 'credit', 'evaluation'])) && currentStatus !== 'Approved';
+
+  // General Blocker Logic (prevents approving if issues are mentioned)
+  const hasResubmitRequest = (
+    showFormResubmit || showAdmissionResubmit || showGradesResubmit || 
+    showProgramResubmit || showYearLevelResubmit || showAccreditedResubmit ||
+    hasKeyword(['resubmit', 'wrong', 'invalid', 'incorrect', 'missing', 'blur', 'unclear', 'mismatch', 'error', 'unsigned'])
+  );
+
+  const handleAttemptApprove = () => {
+    if (hasResubmitRequest) {
+      toast.error("Action Blocked", {
+        description: "You cannot approve this request while the comment indicates issues. Please edit the comment or request resubmission."
+      });
+      return;
+    }
+    setIsApproveOpen(true);
+  };
+
   const handleApprove = async () => {
+    // In a real app, you would call your API here
     toast.success('Application Approved', { description: `${scholarInfo.name} has been notified.` });
+    
+    // Simulate update
+    setCurrentStatus('Approved');
     onUpdate();
     setIsApproveOpen(false);
     onClose();
@@ -127,16 +178,22 @@ export function ShiftingTransferringModal({
 
   const handleResubmit = async () => {
     if (adminComment.trim() === '') {
-      toast.error('Please provide a comment before requesting resubmission.');
+      toast.error('Comment Required', { description: 'Please provide a comment before requesting resubmission.' });
       return;
     }
-    toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
+    // In a real app, you would call your API here
+    toast.warning('Resubmission Requested', { 
+        description: `${scholarInfo.name} has been notified.`,
+        className: "bg-yellow-50 border-yellow-200", 
+    });
+    
+    // Simulate update
+    setCurrentStatus('Resubmit');
     onUpdate();
     setIsResubmitOpen(false);
-    onClose();
+    // Modal stays open or closes depending on preference, usually close:
+    // onClose(); 
   };
-
-  const comment = adminComment.toLowerCase();
   
   return (
     <>
@@ -181,7 +238,7 @@ export function ShiftingTransferringModal({
                     <InfoItem label="New Duration" value={newPlacement.duration} />
                     <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
                     <InfoItem label="Current Status" value={
-                        <StatusBadge status={submissionInfo.status} className="mt-1"/>
+                        <StatusBadge status={currentStatus} className="mt-1"/>
                     } />
                   </div>
                   
@@ -233,32 +290,32 @@ export function ShiftingTransferringModal({
                     <FileDisplay
                         label="Application Form"
                         fileName={files.applicationForm}
-                        needsResubmit={comment.includes('form')}
+                        needsResubmit={showFormResubmit}
                     />
                     <FileDisplay
                         label="Cert. of Admission"
                         fileName={files.certificationAdmission}
-                        needsResubmit={comment.includes('admission')}
+                        needsResubmit={showAdmissionResubmit}
                     />
                      <FileDisplay
                         label="Cert. of Grades"
                         fileName={files.certificationGrades}
-                        needsResubmit={comment.includes('grades')}
+                        needsResubmit={showGradesResubmit}
                     />
                     <FileDisplay
                         label="Approved Program"
                         fileName={files.approvedProgram}
-                        needsResubmit={comment.includes('program')}
+                        needsResubmit={showProgramResubmit}
                     />
                     <FileDisplay
                         label="Cert. of Year Level"
                         fileName={files.certificationYearLevel}
-                        needsResubmit={comment.includes('year level')}
+                        needsResubmit={showYearLevelResubmit}
                     />
                     <FileDisplay
                         label="Cert. Accredited Subj."
                         fileName={files.certificationAccredited}
-                        needsResubmit={comment.includes('accredited')}
+                        needsResubmit={showAccreditedResubmit}
                     />
                   </div>
                 </section>
@@ -271,28 +328,37 @@ export function ShiftingTransferringModal({
                   <Label htmlFor="admin-comment" className="block text-sm font-medium text-gray-700">
                     Admin Comments
                   </Label>
-                  <Textarea
-                    id="admin-comment"
-                    placeholder="Add comments, instructions for resubmission, or reason for rejection..."
-                    className="min-h-[100px]"
-                    value={adminComment}
-                    onChange={(e) => setAdminComment(e.target.value)}
-                  />
-                  <div className="flex flex-wrap gap-1.5">
-                    {PREBUILT_COMMENTS.map((c) => (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        key={c.key}
-                        onClick={() => handleAddComment(c.text)}
-                        className="text-xs h-auto py-1 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
-                      >
-                        <MessageSquarePlus className="h-3 w-3 mr-1.5" />
-                        {c.short}
-                      </Button>
-                    ))}
-                  </div>
+                  
+                  {isActionable ? (
+                    <>
+                        <Textarea
+                            id="admin-comment"
+                            placeholder="Add comments, instructions for resubmission, or reason for rejection..."
+                            className="min-h-[100px]"
+                            value={adminComment}
+                            onChange={(e) => setAdminComment(e.target.value)}
+                        />
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                            {PREBUILT_COMMENTS.map((c) => (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                key={c.key}
+                                onClick={() => handleAddComment(c.text)}
+                                className="text-xs h-auto py-1 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                            >
+                                <MessageSquarePlus className="h-3 w-3 mr-1.5" />
+                                {c.short}
+                            </Button>
+                            ))}
+                        </div>
+                    </>
+                  ) : (
+                    <div className="p-3 bg-gray-50 border rounded-md min-h-[60px] text-sm text-gray-600 whitespace-pre-line">
+                        {adminComment || <span className="text-gray-400 italic">No comments provided.</span>}
+                    </div>
+                  )}
                 </div>
             </section>
 
@@ -301,25 +367,31 @@ export function ShiftingTransferringModal({
           <ModalFooter>
             <ModalClose asChild>
               <Button type="button" variant="outline">
-                Cancel
+                {isActionable ? 'Cancel' : 'Close'}
               </Button>
             </ModalClose>
-            <Button
-              type="button"
-              variant="primary"
-              className="bg-red-600 hover:bg-red-700"
-              onClick={() => setIsResubmitOpen(true)}
-            >
-              REQUEST RESUBMISSION
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              className="bg-green-600 hover:bg-green-700"
-              onClick={() => setIsApproveOpen(true)}
-            >
-              APPROVE
-            </Button>
+            
+            {/* ACTION BUTTONS: Only visible if status is Pending */}
+            {isActionable && (
+                <>
+                    <Button
+                    type="button"
+                    variant="primary"
+                    className="bg-red-600 hover:bg-red-700"
+                    onClick={() => setIsResubmitOpen(true)}
+                    >
+                    REQUEST RESUBMISSION
+                    </Button>
+                    <Button
+                    type="button"
+                    variant="primary"
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={handleAttemptApprove}
+                    >
+                    APPROVE
+                    </Button>
+                </>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -345,5 +417,5 @@ export function ShiftingTransferringModal({
         confirmText="Yes, request resubmission"
       />
     </>
-  );    
+  );
 }

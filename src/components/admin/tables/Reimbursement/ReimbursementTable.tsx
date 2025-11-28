@@ -1,23 +1,24 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { ShiftingTransferringRow } from './ShiftingTransferringRow';
+import { ReimbursementRow } from './ReimbursementRow';
 import { Pagination } from '@/components/shared/Pagination';
 import { Loader2, Download } from 'lucide-react'; 
 import { Button } from '@/components/ui/button'; 
 import { toast } from '@/components/ui/toaster';
-import type { SubmissionStatus, ShiftingType } from '@/types/services';
+import type { SubmissionStatus } from '@/types/services';
 
-export interface ShiftingRequestDetails {
+// Extended interface for Admin View
+export interface ReimbursementRequestDetails {
   id: string;
   spas_id: string;
-  applicationType: ShiftingType;
+  reimbursementType: 'Tuition Fee' | 'Transportation Allowance' | 'Review Fee' | 'Others';
+  amount: number;
   scholarInfo: {
     name: string;
     spas_id: string;
     email: string;
     contactNumber: string;
-    completeAddress: string;
   };
   currentPlacement: {
     scholarshipType: string;
@@ -25,155 +26,115 @@ export interface ShiftingRequestDetails {
     university: string;
     program: string;
   };
-  newPlacement: {
-    university?: string;
-    program?: string;
-    effectivity: string;
-    duration: string;
-  };
   submissionInfo: {
     dateSubmitted: string;
     status: SubmissionStatus;
-    reason: string;
+    reason: string; // Maps to "Particulars / Details" from Scholar Form
     adminComment?: string;
-    delayReason?: string;
   };
   files: {
-    applicationForm: string;
-    certificationAdmission: string;
-    certificationAccredited: string;
-    certificationYearLevel: string;
-    certificationGrades: string;
-    approvedProgram: string;
+    officialReceipt: string; // Maps to the single "receipt" file from Scholar Form
   };
 }
 
-interface ShiftingTransferringTableProps {
+interface ReimbursementTableProps {
   searchTerm: string;
 }
 
-export function ShiftingTransferringTable({ searchTerm }: ShiftingTransferringTableProps) {
-  const [requests, setRequests] = useState<ShiftingRequestDetails[]>([]);
+export function ReimbursementTable({ searchTerm }: ReimbursementTableProps) {
+  const [requests, setRequests] = useState<ReimbursementRequestDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
+      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const mockData: ShiftingRequestDetails[] = [
-        // 1. PENDING (Actionable)
+      const mockData: ReimbursementRequestDetails[] = [
+        // 1. Tuition Fee Reimbursement
         {
           id: '1',
-          spas_id: '2021-00123',
-          applicationType: 'Shifting Course',
+          spas_id: '2023-00123',
+          reimbursementType: 'Tuition Fee',
+          amount: 25000.00,
           scholarInfo: {
             name: 'Juan Dela Cruz',
-            spas_id: '2021-00123',
-            email: 'juan.delacruz@up.edu.ph',
+            spas_id: '2023-00123',
+            email: 'juan.delacruz@ust.edu.ph',
             contactNumber: '09170001234',
-            completeAddress: 'Quezon City',
           },
           currentPlacement: {
-            scholarshipType: 'RA 7687',
-            batch: 2021,
-            university: 'UP Diliman',
-            program: 'BS Physics',
-          },
-          newPlacement: {
-            program: 'BS Mathematics',
-            effectivity: '1st Semester, AY 2024-2025',
-            duration: '4 Years'
+            scholarshipType: 'Merit',
+            batch: 2023,
+            university: 'University of Santo Tomas',
+            program: 'BS Biochemistry',
           },
           submissionInfo: {
             dateSubmitted: new Date().toISOString(),
             status: 'Pending',
-            reason: 'I realized my strengths lie more in pure mathematics.',
+            reason: 'Tuition fee for 1st Sem AY 2024-2025',
           },
           files: {
-            applicationForm: 'shifting_form_juan.pdf',
-            certificationAdmission: 'math_dept_acceptance.pdf',
-            certificationAccredited: 'accredited_sub.pdf',
-            certificationYearLevel: 'year_level.pdf',
-            certificationGrades: 'grades_physics.pdf',
-            approvedProgram: 'math_curriculum.pdf',
+            officialReceipt: 'assessment_form_ust.pdf',
           },
         },
 
-        // 2. APPROVED (Read Only)
+        // 2. Transportation Allowance
         {
           id: '2',
           spas_id: '2022-05501',
-          applicationType: 'Transferring School',
+          reimbursementType: 'Transportation Allowance',
+          amount: 4500.00,
           scholarInfo: {
             name: 'Maria Clara',
             spas_id: '2022-05501',
             email: 'maria.clara@example.com',
             contactNumber: '09171234567',
-            completeAddress: 'Laguna',
-          },
-          currentPlacement: {
-            scholarshipType: 'Merit',
-            batch: 2022,
-            university: 'Ateneo de Manila University',
-            program: 'BS Biology',
-          },
-          newPlacement: {
-            university: 'De La Salle University',
-            effectivity: '1st Semester, AY 2024-2025',
-            duration: '3 Years'
-          },
-          submissionInfo: {
-            dateSubmitted: '2024-05-20T10:00:00Z',
-            status: 'Approved',
-            reason: 'Family relocation.',
-            adminComment: 'Approved as per request.',
-          },
-          files: {
-            applicationForm: 'transfer_form.pdf',
-            certificationAdmission: 'dlsu_admit.pdf',
-            certificationAccredited: 'credit_eval.pdf',
-            certificationYearLevel: 'standing.pdf',
-            certificationGrades: 'grades_ateneo.pdf',
-            approvedProgram: 'bio_curr_dlsu.pdf',
-          },
-        },
-        {
-          id: '5',
-          spas_id: '2020-77112',
-          applicationType: 'Transferring School',
-          scholarInfo: {
-            name: 'Gabriela Silang',
-            spas_id: '2020-77112',
-            email: 'gabriela.s@example.com',
-            contactNumber: '09198887777',
-            completeAddress: 'Ilocos Sur',
           },
           currentPlacement: {
             scholarshipType: 'RA 7687',
-            batch: 2020,
-            university: 'UP Baguio',
-            program: 'BS Biology',
-          },
-          newPlacement: {
-            university: 'UP Manila',
-            effectivity: '1st Semester, AY 2024-2025',
-            duration: '2 Years'
+            batch: 2022,
+            university: 'Ateneo de Manila University',
+            program: 'BS Physics',
           },
           submissionInfo: {
-            dateSubmitted: '2024-05-10T09:15:00Z',
+            dateSubmitted: '2024-05-20T10:00:00Z',
             status: 'Resubmit',
-            reason: 'Transferring to be closer to family.',
-            adminComment: 'The Application Form is unsigned. The Certification of Grades is blurry. Please also re-upload the Program of Study.',
+            reason: 'Round trip bus fare Manila to Cebu for semester break.',
+            adminComment: 'Please upload the original Boarding Pass, not just the booking confirmation.',
           },
           files: {
-            applicationForm: 'app_form_unsigned.pdf',
-            certificationAdmission: 'upm_admission.pdf',
-            certificationAccredited: 'credited_subjs.pdf',
-            certificationYearLevel: 'standing_cert.pdf',
-            certificationGrades: 'grades_blurred.pdf',
-            approvedProgram: 'prog_study_draft.pdf',
+            officialReceipt: 'booking_confirmation.pdf',
+          },
+        },
+
+        // 3. Review Fee
+        {
+          id: '3',
+          spas_id: '2020-09999',
+          reimbursementType: 'Review Fee',
+          amount: 15000.00,
+          scholarInfo: {
+            name: 'Crisostomo Ibarra',
+            spas_id: '2020-09999',
+            email: 'crisostomo@up.edu.ph',
+            contactNumber: '09181234567',
+          },
+          currentPlacement: {
+            scholarshipType: 'Merit',
+            batch: 2020,
+            university: 'UP Diliman',
+            program: 'BS Civil Engineering',
+          },
+          submissionInfo: {
+            dateSubmitted: '2024-06-01T08:30:00Z',
+            status: 'Approved',
+            reason: 'Enrollment in Review Center for CE Board Exam.',
+          },
+          files: {
+            officialReceipt: 'review_center_receipt.pdf',
           },
         },
       ];
@@ -205,7 +166,8 @@ export function ShiftingTransferringTable({ searchTerm }: ShiftingTransferringTa
   if (error) return <p className="p-4 text-red-500 text-center">{error}</p>;
 
   const filteredRequests = requests.filter((r) =>
-    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
+    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.spas_id.includes(searchTerm)
   );
 
   return (
@@ -215,9 +177,9 @@ export function ShiftingTransferringTable({ searchTerm }: ShiftingTransferringTa
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scholar</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Application Type</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Placement</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proposed Changes</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Submitted</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -225,7 +187,7 @@ export function ShiftingTransferringTable({ searchTerm }: ShiftingTransferringTa
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredRequests.map((req) => (
-              <ShiftingTransferringRow 
+              <ReimbursementRow 
                 key={req.id} 
                 request={req} 
                 onUpdate={fetchData}

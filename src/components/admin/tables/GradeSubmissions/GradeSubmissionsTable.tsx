@@ -78,7 +78,7 @@ export function GradeSubmissionsTable({ searchTerm }: GradeSubmissionsTableProps
           academicYear: e.academic_year,
           dateSubmitted: e.updated_at, 
           status: e.submission_status as SubmissionStatus,
-          adminComment: undefined,
+          adminComment: e.comment || '', 
         },
         files: {
           registrationForm: e.cor_file_key,
@@ -92,7 +92,6 @@ export function GradeSubmissionsTable({ searchTerm }: GradeSubmissionsTableProps
     } catch (err) {
       console.error(err);
       setError('Failed to fetch submissions.');
-      // FIX: Use toast.error for sonner
       toast.error("Error", {
         description: "Failed to load grade submissions.",
       });

@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { PTPRow } from './PTPRow';
 import { Pagination } from '@/components/shared/Pagination';
-import { Loader2, Download } from 'lucide-react'; 
-import { Button } from '@/components/ui/button'; 
+import { Loader2, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import type { PTPRequestDetails } from '@/types/admin';
+import { toast } from '@/components/ui/toaster';
 
 interface PTPTableProps {
   searchTerm: string;
@@ -16,68 +17,77 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/admin/ptp/get');
+      if (!response.ok) throw new Error('Failed to fetch data');
 
-   const fetchData = useCallback(async () => {
-        setLoading(true);
-        try {
-          const response = await fetch('/api/admin/ptp/get');
-          if (!response.ok) throw new Error('Failed to fetch data');
+      const res = await response.json();
 
-          const res = await response.json();
+      // Mapping database fields to the PTPRequestDetails interface
+      const data: PTPRequestDetails[] = res.submissions.map((item: any) => ({
+        id: item.ptp_id?.toString() ?? '',
+        spas_id: item.spas_id ?? '',
+        type: item.ptp_type ?? 'Practical Training',
+        
+        scholarInfo: {
+          name: item.full_name ?? 'Unknown',
+          spas_id: item.spas_id ?? '',
+          email: item.email ?? '',
+          contactNumber: item.contact_number ?? '',
+          completeAddress: item.address ?? '',
+        },
 
-          const data: PTPRequestDetails[] = res.submissions.map((item: any) => ({
-            id: item.ptp_id?.toString() ?? '',
-            spas_id: item.spas_id ?? '',
-            type: item.ptp_type ?? '',
-            
-            scholarInfo: {
-              name: item.full_name ?? '',
-              spas_id: item.spas_id ?? '',
-              email: item.email ?? '',
-              contactNumber: item.contact_number ?? '',
-              completeAddress: item.address ?? '',
-            },
+        placementInfo: {
+          scholarshipType: item.scholarship_type ?? '',
+          batch: item.year_awarded ? Number(item.year_awarded) : 0,
+          university: item.university ?? '',
+          program: item.program_course ?? '',
+        },
 
-            placementInfo: {
-              scholarshipType: item.scholarship_type ?? '',
-              batch: item.year_awarded ? Number(item.year_awarded) : null,
-              university: item.university ?? '',
-              program: item.program_course ?? '',
-            },
+        submissionInfo: {
+          dateSubmitted: item.ptp_created_at ?? new Date().toISOString(),
+          status: item.ptp_status ?? 'Pending',
+          trainingYear: "N/A", 
+          plan: item.ptp_plan ?? undefined,
+          semester: "N/A",
+          academicYear: "N/A",
+          adminComment: item.comment || item.ptp_comment || item.admin_comment || item.remarks || '', 
+        },
 
-            submissionInfo: {
-              dateSubmitted: item.ptp_created_at ?? '',
-              status: item.ptp_status ?? '',
-              trainingYear: "Wala sa database, don't know where to add",
-              plan: item.ptp_plan ?? '',
-              semester: "Wala sa database, don't know where to add",
-              academicYear: "Wala sa database, don't know where to add",
-            },
+        files: {
+          grades: item.grade_file_key ?? '',
+          replySlip: item.reply_slip_file_key ?? '',
+          curriculum: item.curriculum_file_key ?? '', 
+          form126: item.form_126_file_key ?? '',
+          form127: item.form_127_file_key ?? '',
+          form128: item.form_128_file_key ?? '',
+          dtr: item.dtr_file_key ?? '',
+          certCompletion: item.training_completion_file_key ?? '',
+        },
+      }));
 
-            files: {
-              grades: item.grade_file_key ?? '',
-              replySlip: item.reply_slip_file_key ?? '',
-              curriculum: "Wala sa database, don't know where to add",
-              form126: item.form_126_file_key ?? '',
-              form127: item.form_127_file_key ?? '',
-              form128: item.form_128_file_key ?? '',
-              dtr: item.dtr_file_key ?? '',
-              trainingCompletion: item.training_completion_file_key ?? '',
-            },
-          }));
-
-          setRequests(data);
-        } catch (err) {
-          console.error(err);
-          setError('Failed to fetch requests.');
-        } finally {
-          setLoading(false);
-        }
-      }, []);
+      setRequests(data);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch requests.');
+      toast.error("Error", {
+        description: "Failed to load PTP requests.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const filteredRequests = requests.filter((r) =>
+    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -87,11 +97,16 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
     );
   }
 
-  if (error) return <p className="p-4 text-red-500 text-center">{error}</p>;
-
-  const filteredRequests = requests.filter((r) =>
-    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-48 gap-4">
+        <p className="text-red-500">{error}</p>
+        <Button variant="outline" onClick={fetchData}>
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <>

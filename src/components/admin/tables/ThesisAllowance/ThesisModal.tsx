@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   ModalContent,
@@ -19,7 +19,9 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { ThesisRequestDetails } from '@/types/admin';
-import {supabase} from '@/lib/supabase/client'
+import { supabase } from '@/lib/supabase/client';
+
+// --- Helper Components ---
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -42,18 +44,18 @@ function FileDisplay({
   return (
     <div>
       <div className="flex justify-between items-center mb-1">
-        <Label className="text-sm font-medium text-gray-700 truncate" title={label}>{label}</Label>
+        <Label className="text-xs font-medium text-gray-700 truncate" title={label}>{label}</Label>
         {needsResubmit && (
-          <span className="text-xs font-medium text-red-600 flex-shrink-0 ml-2">To Resubmit</span>
+          <span className="text-[10px] font-medium text-red-600 flex-shrink-0 ml-2">To Resubmit</span>
         )}
       </div>
-      <div className="flex items-center justify-between p-3 pl-4 border rounded-lg bg-gray-50">
+      <div className={`flex items-center justify-between p-3 pl-4 border rounded-lg transition-colors ${needsResubmit ? 'bg-red-50 border-red-200' : 'bg-gray-50'}`}>
         {fileName ? (
            <>
-             <span className="text-sm font-medium text-gray-800 truncate" title={fileName}>{fileName}</span>
+             <span className={`text-sm font-medium truncate ${needsResubmit ? 'text-red-700' : 'text-gray-800'}`} title={fileName}>
+                {fileName}
+             </span>
              <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
-               <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="View">
-               </Button>
                <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="Download">
                  <Download className="h-4 w-4" />
                </Button>
@@ -79,9 +81,14 @@ const PREBUILT_COMMENTS = [
     short: 'Incomplete Abstract',
   },
   {
-    key: 'manuscript_corrupt',
-    text: 'The Final Manuscript file cannot be opened. Please convert to PDF and re-upload.',
-    short: 'Corrupt File',
+    key: 'cor_invalid',
+    text: 'The Registration Form/COR is for the wrong semester or is invalid.',
+    short: 'Invalid COR',
+  },
+  {
+    key: 'manuscript_issue',
+    text: 'The Final Manuscript file cannot be opened or is incomplete. Please convert to PDF and re-upload.',
+    short: 'Manuscript Issue',
   },
 ];
 
@@ -100,9 +107,19 @@ export function ThesisModal({
 }: ThesisModalProps) {
   const { scholarInfo, percentage, abstract, approvalSheet, finalManuscript, registrationForm } = request;
   
+  // Local state to handle immediate updates
+  const [currentStatus, setCurrentStatus] = useState(request.status);
   const [adminComment, setAdminComment] = useState(request.adminComment || '');
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
+
+  // Sync local state on prop change
+  useEffect(() => {
+    setCurrentStatus(request.status);
+    setAdminComment(request.adminComment || '');
+  }, [request.status, request.adminComment]);
+
+  const isActionable = currentStatus === 'Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev: string) => {
@@ -111,30 +128,74 @@ export function ThesisModal({
     });
   };
 
+  // --- LOGIC FOR RESUBMISSION DETECTION ---
+  const comment = (adminComment || '').toLowerCase();
+
+  const hasKeyword = (keywords: string[]) => {
+    return keywords.some((keyword) => {
+      const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${safeKeyword}\\b`, 'i'); 
+      return regex.test(comment);
+    });
+  };
+
+  const mentionsBoth = hasKeyword(['both', 'all', 'everything']);
+
+  // Specific File Logic
+  const showAbstractResubmit = (mentionsBoth || hasKeyword(['abstract', 'summary', 'rationale'])) && currentStatus !== 'Approved';
+  const showApprovalResubmit = (mentionsBoth || hasKeyword(['approval', 'sheet', 'sign', 'signature', 'adviser'])) && currentStatus !== 'Approved';
+  const showManuscriptResubmit = (mentionsBoth || hasKeyword(['manuscript', 'final', 'paper', 'thesis', 'book'])) && currentStatus !== 'Approved';
+  const showCorResubmit = (mentionsBoth || hasKeyword(['cor', 'registration', 'enrollment', 'load'])) && currentStatus !== 'Approved';
+
+  // General Blocker Logic
+  const hasResubmitRequest = (
+    showAbstractResubmit || showApprovalResubmit || showManuscriptResubmit || showCorResubmit ||
+    hasKeyword(['resubmit', 'wrong', 'invalid', 'incorrect', 'missing', 'blur', 'unclear', 'error', 'corrupt'])
+  );
+
+  const getReleaseTitle = () => {
+    if (percentage === 90) return '90% Partial Release';
+    if (percentage === 10) return '10% Final Release';
+    return '100% Full Release';
+  };
+
+  const handleAttemptApprove = () => {
+    if (hasResubmitRequest) {
+      toast.error("Action Blocked", {
+        description: "You cannot approve this request while the comment indicates issues. Please edit the comment or request resubmission."
+      });
+      return;
+    }
+    setIsApproveOpen(true);
+  };
+
   const handleApprove = async () => {
-     try{
+      try{
           const { error: updateError } = await supabase
                 .from('Thesis Allowance')
                 .update({
                   status: "Approved",
+                  comment: adminComment // Save comment even on approve if exists
                 })
                 .eq('id', parseInt(request.id));
         
                 if(updateError) throw new Error(updateError.message);
+                
                 toast.success('Request Approved', { description: `${scholarInfo.name} has been notified.` });
+                
+                setCurrentStatus('Approved');
+                onUpdate();
+                setIsApproveOpen(false);
+                onClose();
         }catch(e: any){
             console.error('Update failed:', e);
             toast.error('Update Failed', { description: e.message });
-        }finally{
-            onUpdate();
-            setIsResubmitOpen(false);
-            onClose();
         }
   };
 
   const handleResubmit = async () => {
      if (adminComment.trim() === '') {
-          toast.error('Please provide a comment before requesting resubmission.');
+          toast.error('Comment Required', { description: 'Please provide a comment before requesting resubmission.' });
           return;
         }
         try{
@@ -148,23 +209,19 @@ export function ThesisModal({
         
                 if(updateError) throw new Error(updateError.message);
         
-          toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
+          toast.warning('Resubmission Requested', { 
+            description: `${scholarInfo.name} has been notified.`,
+            className: "bg-yellow-50 border-yellow-200"
+          });
+
+          setCurrentStatus('Resubmit');
+          onUpdate();
+          setIsResubmitOpen(false);
+          // Keep modal open so admin can review
         }catch(e: any){
             console.error('Update failed:', e);
             toast.error('Update Failed', { description: e.message });
-        }finally{
-            onUpdate();
-            setIsResubmitOpen(false);
-            onClose();
         }
-  };
-
-  const comment = adminComment.toLowerCase();
-  
-  const getReleaseTitle = () => {
-    if (percentage === 90) return '90% Partial Release';
-    if (percentage === 10) return '10% Final Release';
-    return '100% Full Release';
   };
 
   return (
@@ -180,7 +237,7 @@ export function ThesisModal({
              </div>
           </ModalHeader>
 
-          <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-4 sm:p-6 space-y-6">
+          <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               
@@ -208,7 +265,7 @@ export function ThesisModal({
                     <InfoItem label="Year Level" value={request.yearLevel} />
                     <InfoItem label="Date Submitted" value={formatDate(request.dateSubmitted)} />
                     <InfoItem label="Current Status" value={
-                        <StatusBadge status={request.status} className="mt-1"/>
+                        <StatusBadge status={currentStatus} className="mt-1"/>
                     } />
                   </div>
                 </section>
@@ -234,11 +291,11 @@ export function ThesisModal({
                   </h2>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Always show Registration Form if available */}
+                    {/* Always show Registration Form */}
                     <FileDisplay
                         label="Registration Form / COR"
                         fileName={registrationForm}
-                        needsResubmit={comment.includes('registration') || comment.includes('cor')}
+                        needsResubmit={showCorResubmit}
                     />
 
                     {/* 90% and 100% require Abstract & Approval */}
@@ -247,12 +304,12 @@ export function ThesisModal({
                             <FileDisplay
                                 label="One-Page Abstract"
                                 fileName={abstract}
-                                needsResubmit={comment.includes('abstract')}
+                                needsResubmit={showAbstractResubmit}
                             />
                             <FileDisplay
                                 label="Signed Approval Sheet"
                                 fileName={approvalSheet}
-                                needsResubmit={comment.includes('approval') || comment.includes('signature')}
+                                needsResubmit={showApprovalResubmit}
                             />
                         </>
                     )}
@@ -262,7 +319,7 @@ export function ThesisModal({
                         <FileDisplay
                             label="Final Thesis Manuscript"
                             fileName={finalManuscript}
-                            needsResubmit={comment.includes('manuscript')}
+                            needsResubmit={showManuscriptResubmit}
                         />
                     )}
                   </div>
@@ -276,29 +333,38 @@ export function ThesisModal({
                   <Label htmlFor="admin-comment" className="block text-sm font-medium text-gray-700">
                     Admin Comments
                   </Label>
-                  <Textarea
-                    id="admin-comment"
-                    placeholder="Add comments, instructions for resubmission, or reason for rejection..."
-                    className="min-h-[100px]"
-                    value={adminComment}
-                    onChange={(e) => setAdminComment(e.target.value)}
-                  />
-                  <div className="flex flex-wrap gap-1.5">
-                    {PREBUILT_COMMENTS.map((c) => (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        key={c.key}
-                        onClick={() => handleAddComment(c.text)}
-                        className="text-xs h-auto py-1 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
-                      >
-                        <MessageSquarePlus className="h-3 w-3 mr-1.5" />
-                        {c.short}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+                  
+                  {isActionable ? (
+                    <>
+                      <Textarea
+                        id="admin-comment"
+                        placeholder="Add comments, instructions for resubmission, or reason for rejection..."
+                        className="min-h-[100px]"
+                        value={adminComment}
+                        onChange={(e) => setAdminComment(e.target.value)}
+                      />
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {PREBUILT_COMMENTS.map((c) => (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            key={c.key}
+                            onClick={() => handleAddComment(c.text)}
+                            className="text-xs h-auto py-1 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                          >
+                            <MessageSquarePlus className="h-3 w-3 mr-1.5" />
+                            {c.short}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-3 bg-gray-50 border rounded-md min-h-[60px] text-sm text-gray-600 whitespace-pre-line">
+                      {adminComment || <span className="text-gray-400 italic">No comments provided.</span>}
+                    </div>
+                  )}
+               </div>
             </section>
 
           </ModalBody>
@@ -306,25 +372,30 @@ export function ThesisModal({
           <ModalFooter>
             <ModalClose asChild>
               <Button type="button" variant="outline">
-                Cancel
+                {isActionable ? 'Cancel' : 'Close'}
               </Button>
             </ModalClose>
-            <Button
-              type="button"
-              variant="primary"
-              className="bg-red-600 hover:bg-red-700"
-              onClick={() => setIsResubmitOpen(true)}
-            >
-              REQUEST RESUBMISSION
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              className="bg-green-600 hover:bg-green-700"
-              onClick={() => setIsApproveOpen(true)}
-            >
-              APPROVE
-            </Button>
+            
+            {isActionable && (
+              <>
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="bg-red-600 hover:bg-red-700"
+                  onClick={() => setIsResubmitOpen(true)}
+                >
+                  REQUEST RESUBMISSION
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={handleAttemptApprove}
+                >
+                  APPROVE
+                </Button>
+              </>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>

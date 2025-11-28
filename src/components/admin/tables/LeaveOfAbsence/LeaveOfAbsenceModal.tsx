@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   ModalContent,
@@ -17,7 +17,7 @@ import { Download, MessageSquarePlus } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
-import { StatusBadge } from '@/components/shared/StatusBadge'; 
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { LOARequestDetails } from './LeaveOfAbsenceTable';
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
@@ -45,13 +45,15 @@ function FileDisplay({
       <div className="flex justify-between items-center mb-1">
         <Label className="text-sm font-medium text-gray-700 truncate" title={label}>{label}</Label>
         {needsResubmit && (
-          <span className="text-xs font-medium text-red-600 flex-shrink-0 ml-2">To Resubmit</span>
+          <span className="text-[10px] font-medium text-red-600 flex-shrink-0 ml-2">To Resubmit</span>
         )}
       </div>
-      <div className="flex items-center justify-between p-3 pl-4 border rounded-lg bg-gray-50">
+      <div className={`flex items-center justify-between p-3 pl-4 border rounded-lg ${needsResubmit ? 'bg-red-50 border-red-200' : 'bg-gray-50'}`}>
         {fileName ? (
            <>
-             <span className="text-sm font-medium text-gray-800 truncate" title={fileName}>{fileName}</span>
+             <span className={`text-sm font-medium truncate ${needsResubmit ? 'text-red-700' : 'text-gray-800'}`} title={fileName}>
+                {fileName}
+             </span>
              <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
                <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="View">
                </Button>
@@ -106,9 +108,20 @@ export function LeaveOfAbsenceModal({
 }: LeaveOfAbsenceModalProps) {
   const { scholarInfo, currentPlacement, loaDetails, submissionInfo, files, applicationType } = request;
   
+  // Local state to handle immediate updates within modal session
+  const [currentStatus, setCurrentStatus] = useState(submissionInfo.status);
   const [adminComment, setAdminComment] = useState(submissionInfo.adminComment || '');
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
+
+  // Sync props to state if they change externally (e.g. re-opening modal)
+  useEffect(() => {
+    setCurrentStatus(submissionInfo.status);
+    setAdminComment(submissionInfo.adminComment || '');
+  }, [submissionInfo]);
+
+  // Determine if actions are allowed
+  const isActionable = currentStatus === 'Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {
@@ -119,6 +132,7 @@ export function LeaveOfAbsenceModal({
 
   const handleApprove = async () => {
     toast.success('LOA Request Approved', { description: `${scholarInfo.name} has been notified.` });
+    setCurrentStatus('Approved');
     onUpdate();
     setIsApproveOpen(false);
     onClose();
@@ -130,6 +144,7 @@ export function LeaveOfAbsenceModal({
       return;
     }
     toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
+    setCurrentStatus('Resubmit');
     onUpdate();
     setIsResubmitOpen(false);
     onClose();
@@ -137,6 +152,28 @@ export function LeaveOfAbsenceModal({
 
   const comment = adminComment.toLowerCase();
   const isMedical = applicationType === 'Medical/Personal';
+
+  // --- LOGIC: Check for resubmission keywords ---
+  // The 'needsResubmit' flag on files will now show even if status is 'Resubmit' or 'Approved',
+  // as long as the keyword is present in the comment. This preserves history.
+  // We only hide it if there is NO issue mentioned.
+  const hasKeyword = (keywords: string[]) => {
+      return keywords.some(k => comment.includes(k));
+  };
+
+  const hasResubmitRequest = 
+    hasKeyword(['form', 'grades', 'university', 'approval', 'medical', 'registration', 
+                'admission', 'missing', 'blur', 'invalid', 'other', 'resubmit']);
+
+  const handleAttemptApprove = () => {
+    if (hasResubmitRequest) {
+      toast.error("Action Blocked", {
+        description: "You cannot approve this request while the comment indicates issues. Please edit the comment or request resubmission."
+      });
+      return;
+    }
+    setIsApproveOpen(true);
+  };
 
   return (
     <>
@@ -182,7 +219,7 @@ export function LeaveOfAbsenceModal({
                     <InfoItem label="Duration" value={loaDetails.duration} />
                     <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
                     <InfoItem label="Current Status" value={
-                        <StatusBadge status={submissionInfo.status} className="mt-1"/>
+                        <StatusBadge status={currentStatus} className="mt-1"/>
                     } />
                   </div>
                   
@@ -224,12 +261,12 @@ export function LeaveOfAbsenceModal({
                     <FileDisplay
                         label="Application Form"
                         fileName={files.applicationForm}
-                        needsResubmit={comment.includes('form')}
+                        needsResubmit={hasKeyword(['form', 'application'])}
                     />
                     <FileDisplay
                         label="Cert. of Grades"
                         fileName={files.certificationGrades}
-                        needsResubmit={comment.includes('grades')}
+                        needsResubmit={hasKeyword(['grades', 'certification'])}
                     />
 
                     {/* Medical / Personal Specific */}
@@ -238,12 +275,12 @@ export function LeaveOfAbsenceModal({
                         <FileDisplay
                             label="University Approval"
                             fileName={files.universityApproval}
-                            needsResubmit={comment.includes('approval')}
+                            needsResubmit={hasKeyword(['approval', 'university'])}
                         />
                         <FileDisplay
                             label="Medical Certificate"
                             fileName={files.medicalCertificate}
-                            needsResubmit={comment.includes('medical')}
+                            needsResubmit={hasKeyword(['medical', 'certificate'])}
                         />
                        </>
                     )}
@@ -254,12 +291,12 @@ export function LeaveOfAbsenceModal({
                         <FileDisplay
                             label="Reg. Form (Form 5)"
                             fileName={files.registrationForm}
-                            needsResubmit={comment.includes('registration')}
+                            needsResubmit={hasKeyword(['registration', 'form 5'])}
                         />
                         <FileDisplay
                             label="Proof of Admission"
                             fileName={files.proofOfAdmission}
-                            needsResubmit={comment.includes('admission')}
+                            needsResubmit={hasKeyword(['admission', 'proof'])}
                         />
                         </>
                     )}
@@ -268,7 +305,7 @@ export function LeaveOfAbsenceModal({
                     <FileDisplay
                         label="Other Documents"
                         fileName={files.supportingDocument}
-                        needsResubmit={comment.includes('other')}
+                        needsResubmit={hasKeyword(['other', 'supporting'])}
                     />
                   </div>
                 </section>
@@ -281,28 +318,37 @@ export function LeaveOfAbsenceModal({
                   <Label htmlFor="admin-comment" className="block text-sm font-medium text-gray-700">
                     Admin Comments
                   </Label>
-                  <Textarea
-                    id="admin-comment"
-                    placeholder="Add comments, instructions for resubmission, or reason for rejection..."
-                    className="min-h-[100px]"
-                    value={adminComment}
-                    onChange={(e) => setAdminComment(e.target.value)}
-                  />
-                  <div className="flex flex-wrap gap-1.5">
-                    {PREBUILT_COMMENTS.map((c) => (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        key={c.key}
-                        onClick={() => handleAddComment(c.text)}
-                        className="text-xs h-auto py-1 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
-                      >
-                        <MessageSquarePlus className="h-3 w-3 mr-1.5" />
-                        {c.short}
-                      </Button>
-                    ))}
-                  </div>
+                  
+                  {isActionable ? (
+                    <>
+                      <Textarea
+                        id="admin-comment"
+                        placeholder="Add comments, instructions for resubmission, or reason for rejection..."
+                        className="min-h-[100px]"
+                        value={adminComment}
+                        onChange={(e) => setAdminComment(e.target.value)}
+                      />
+                      <div className="flex flex-wrap gap-1.5">
+                        {PREBUILT_COMMENTS.map((c) => (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            key={c.key}
+                            onClick={() => handleAddComment(c.text)}
+                            className="text-xs h-auto py-1 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                          >
+                            <MessageSquarePlus className="h-3 w-3 mr-1.5" />
+                            {c.short}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-3 bg-gray-50 border rounded-md min-h-[60px] text-sm text-gray-600 whitespace-pre-line">
+                      {adminComment || <span className="text-gray-400 italic">No comments provided.</span>}
+                    </div>
+                  )}
                 </div>
             </section>
 
@@ -311,25 +357,32 @@ export function LeaveOfAbsenceModal({
           <ModalFooter>
             <ModalClose asChild>
               <Button type="button" variant="outline">
-                Cancel
+                {isActionable ? 'Cancel' : 'Close'}
               </Button>
             </ModalClose>
-            <Button
-              type="button"
-              variant="primary"
-              className="bg-red-600 hover:bg-red-700"
-              onClick={() => setIsResubmitOpen(true)}
-            >
-              REQUEST RESUBMISSION
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              className="bg-green-600 hover:bg-green-700"
-              onClick={() => setIsApproveOpen(true)}
-            >
-              APPROVE
-            </Button>
+            
+            {/* ACTION BUTTONS: Only visible if status is Pending */}
+            {isActionable && (
+              <>
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="bg-red-600 hover:bg-red-700"
+                  onClick={() => setIsResubmitOpen(true)}
+                >
+                  REQUEST RESUBMISSION
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={handleAttemptApprove}
+                >
+                  APPROVE
+                </Button>
+              </>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>
