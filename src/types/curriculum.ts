@@ -12,4 +12,5 @@ export interface SemesterAvailability {
   year: number;
   gradeFileKey: string | null;
   corFileKey: string | null;
+  comment: string | null;
 }

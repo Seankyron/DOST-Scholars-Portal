@@ -87,7 +87,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
   const hasSubmission = !!currentGradeRecord;
 
   const missingDocs = isResubmit ? GetMissingDocument(currentGradeRecord) : null;
-  const adminComment = isResubmit ? GetAdminComment(missingDocs) : undefined;
+  const adminComment = isResubmit ? currentGradeRecord?.comment as any : undefined;
 
   // Initialize Edit Mode based on status
   useEffect(() => {
@@ -180,11 +180,14 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
         grade_file_key: gradesKey,
       };
 
+      let currentStatus = 'Pending';
+
       if (hasSubmission) {
+        if(currentGradeRecord?.status === 'Resubmit') currentStatus = 'Resubmit-Pending';
         await updateGrade({
           id: currentGradeRecord.id,
           ...payload,
-          status: 'Pending' 
+          status: currentStatus 
         });
       } else {
         await submitGrade(payload);

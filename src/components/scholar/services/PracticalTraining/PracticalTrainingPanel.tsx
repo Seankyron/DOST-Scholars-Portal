@@ -43,7 +43,8 @@ export function PracticalTrainingPanel() {
   };
 
   const handleViewRequest = (request: any) => {
-    const type = request.trainingCompletion ? 'Program Completion' : 'Referral Letter';
+    const type = request.type;
+    console.log(request)
     setSelectedAction(type);
     setSelectedRequest(request);
     setIsModalOpen(true);

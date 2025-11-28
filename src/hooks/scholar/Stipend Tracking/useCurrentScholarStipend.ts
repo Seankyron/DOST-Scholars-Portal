@@ -31,7 +31,8 @@ export function useCurrentScholarStipend(spas_id: string)
         const query = supabase
             .from('Stipend Tracking')
             .select(`id, spas_id, year_level, semester, received,
-              unreleased, status, grade_submission_id, allowance_breakdown`)
+              unreleased, status, grade_submission_id, allowance_breakdown,
+              updated_at`)
             .eq('spas_id', spas_id)
 
             
