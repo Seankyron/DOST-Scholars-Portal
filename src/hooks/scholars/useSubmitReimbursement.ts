@@ -1,13 +1,14 @@
 import { useState, useCallback } from "react";
 import { createClient } from '@/lib/supabase/client';
-import { setSourceMapsEnabled } from "process";
-import { set } from "date-fns";
 
 
 export interface SubmissionData {
-  spas_id: string;
   type: string;
+  spas_id: string;
+  amount?: number | null;
   reason?: string | null;
+  status?: string | null;
+  updated_at?: string | null;
   receipt_file_key?: string | null;
 }
 
@@ -26,11 +27,13 @@ export const useSubmitReimbursement = () => {
         const { data:insertedData, error } = await supabase
           .from('Reimbursement')
           .insert({
-            spas_id: data?.spas_id,
             type: data.type,
+            amount: data.amount,
             reason: data.reason,
+            status: data.status,
+            spas_id: data.spas_id,
             receipt_file_key: data.receipt_file_key,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
           })
           .select()
           .single();

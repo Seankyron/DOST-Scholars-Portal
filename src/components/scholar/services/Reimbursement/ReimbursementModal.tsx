@@ -34,13 +34,13 @@ export function ReimbursementModal({ isOpen, onClose, type, existingRequest }: R
 
   // State
   const [amount, setAmount] = useState(existingRequest?.amount?.toString() || '');
-  const [details, setDetails] = useState(existingRequest?.details || '');
+  const [details, setDetails] = useState(existingRequest?.reason || '');
   const [receipt, setReceipt] = useState<File | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
   // Status Logic
   const status = existingRequest?.status;
-  const adminComment = existingRequest?.adminComment;
+  const adminComment = existingRequest?.comment;
   const isResubmit = status === 'Resubmit';
   const [isEditing, setIsEditing] = useState(!existingRequest || isResubmit);
 
@@ -71,10 +71,12 @@ export function ReimbursementModal({ isOpen, onClose, type, existingRequest }: R
       if (error) return toast.error('Failed to upload document.');
 
       const data: SubmissionData = {
-        spas_id: scholar?.spas_id,
         type: type,
+        amount: amount,
         reason: details, 
-        receipt_file_key: receiptUrl
+        spas_id: scholar?.spas_id,
+        receipt_file_key: receiptUrl,
+        updated_at: new Date().toISOString()
       };
 
       if (!existingRequest) {
@@ -141,7 +143,7 @@ export function ReimbursementModal({ isOpen, onClose, type, existingRequest }: R
                      <span className="text-xs font-semibold text-gray-500 uppercase">Date Submitted</span>
                      <div className="flex items-center justify-end gap-2 mt-1 text-sm font-medium text-gray-900">
                          <Calendar className="h-4 w-4 text-gray-500" />
-                         {formatDate(existingRequest.dateSubmitted)}
+                         {formatDate(existingRequest.updated_at)}
                      </div>
                  </div>
              </div>
