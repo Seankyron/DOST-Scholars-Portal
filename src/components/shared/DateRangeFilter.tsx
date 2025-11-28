@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/useDebounce';
-import { cn } from '@/lib/utils/cn'; // Import cn
+import { cn } from '@/lib/utils/cn';
 
 interface DateRangeFilterProps {
   onFilter: (startDate: string, endDate: string) => void;
@@ -24,19 +24,31 @@ export function DateRangeFilter({ onFilter, className }: DateRangeFilterProps) {
 
 
   return (
-        <div className={cn('flex flex-col sm:flex-row items-end gap-3', className)}>
-      <Input
-        type="date"
-        label="Start Date"
-        value={startDate}
-        onChange={(e) => setStartDate(e.target.value)}
-      />
-      <Input
-        type="date"
-        label="End Date"
-        value={endDate}
-        onChange={(e) => setEndDate(e.target.value)}
-      />
+    <div className={cn('flex flex-col sm:flex-row items-center gap-2', className)}>
+       {/* Start Date */}
+       <div className="w-full sm:w-auto relative">
+          <Input
+            type="date"
+            className="h-10 py-2 w-full sm:w-[160px] rounded-md" 
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            placeholder="Start Date"
+          />
+       </div>
+
+      {/* Separator */}
+      <span className="text-gray-400 hidden sm:block">-</span>
+
+      {/* End Date */}
+      <div className="w-full sm:w-auto relative">
+          <Input
+            type="date"
+            className="h-10 py-2 w-full sm:w-[160px] rounded-md"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            placeholder="End Date"
+          />
+      </div>
     </div>
   );
 }

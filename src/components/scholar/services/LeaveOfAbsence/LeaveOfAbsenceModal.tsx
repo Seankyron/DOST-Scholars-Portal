@@ -12,7 +12,17 @@ import {
 } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, Calendar } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Edit, Calendar, Clock, FileText } from 'lucide-react';
 import { MedicalPersonalForm } from './MedicalPersonalForm';
 import { ExchangeStudentForm } from './ExchangeStudentForm';
 import { AdminCommentAlert } from '@/components/shared/AdminCommenAlert';
@@ -21,6 +31,30 @@ import { formatDate } from '@/lib/utils/date';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { toast } from '@/components/ui/toaster';
 import type { LOAReason } from '@/types';
+
+// Helper for View Mode
+function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <div className="text-sm font-semibold text-gray-800 break-words">
+        {value || 'N/A'}
+      </div>
+    </div>
+  );
+}
+
+const getAcademicYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let i = -1; i < 3; i++) {
+        const start = currentYear + i;
+        years.push(`${start}-${start + 1}`);
+    }
+    return years;
+};
+
+const ACADEMIC_YEARS = getAcademicYearOptions();
 
 interface LeaveOfAbsenceModalProps {
   isOpen: boolean;
@@ -37,10 +71,15 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
   const adminComment = existingRequest?.adminComment;
   const isResubmit = status === 'Resubmit';
 
-  // Determine initial editing state:
   const [isEditing, setIsEditing] = useState(!existingRequest || isResubmit || status === 'Pending');
 
-  // Form State
+  // --- Data Fields ---
+  const [startSemester, setStartSemester] = useState(existingRequest?.semester || '');
+  const [academicYear, setAcademicYear] = useState(existingRequest?.academicYear || '');
+  const [duration, setDuration] = useState(existingRequest?.duration || '');
+  const [reasonText, setReasonText] = useState(existingRequest?.reasonText || existingRequest?.reason || ''); 
+
+  // Form State (Files)
   const [appForm, setAppForm] = useState<File | null>(null);
   const [univApproval, setUnivApproval] = useState<File | null>(null);
   const [grades, setGrades] = useState<File | null>(null);
@@ -51,50 +90,42 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
 
   const { uploadFile } = useFileUpload('leave-of-absence');
 
-  // Helper to check if a specific file is required based on current state
   const isRequired = (keywords: string[]) => {
-    // 1. If creating a NEW request, standard fields are required
     if (!existingRequest) return true;
-
-    // 2. If PENDING (user is editing voluntarily), standard fields are required 
-    // (assuming they want to replace or just keep existing, but simpler to enforce presence if we had real data binding)
     if (status === 'Pending') return true; 
-
-    // 3. If RESUBMIT, only require fields mentioned in the comment
     if (isResubmit) {
         return keywords.some(k => (adminComment || '').toLowerCase().includes(k));
     }
-    
     return false;
   };
 
   const handleSubmit = async () => {
-    // --- VALIDATION LOGIC ---
-    
+    if (!startSemester || !academicYear || !duration || !reasonText.trim()) {
+       toast.error('Please fill in all required fields.', {
+         description: 'Start Semester, Academic Year, Duration, and Reason are required.'
+       });
+       return;
+    }
+
     if (!isConfirmed) {
       toast.error('Please confirm that your documents are correct.');
       return;
     }
 
+    // Validation logic...
     if (reason === 'Medical/Personal') {
-        // Application Form
         if (isRequired(['application', 'form', 'loa']) && !appForm && !existingRequest) {
-             // Note: In a real app with "existingRequest", you'd check if there's already a file URL.
-             // Since we only have file state here, we assume for "Resubmit" they MUST upload a new one if asked.
              toast.error('Please upload the Application Form for LOA.');
              return;
         }
-        // University Approval
         if (isRequired(['university', 'approval']) && !univApproval && !existingRequest) {
              toast.error('Please upload the University Approval.');
              return;
         }
-        // Grades
         if (isRequired(['grades', 'certification']) && !grades && !existingRequest) {
              toast.error('Please upload the Certification of Grades.');
              return;
         }
-        // Medical Cert (Conditional check for Resubmit)
         if (isResubmit && isRequired(['medical', 'certificate', 'health']) && !medCert) {
              toast.error('Please upload the requested Medical Certificate.');
              return;
@@ -102,22 +133,18 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
     }
 
     if (reason === 'Exchange Student Program') {
-        // Application Form
         if (isRequired(['application', 'form', 'loa']) && !appForm && !existingRequest) {
             toast.error('Please upload the Application Form for LOA.');
             return;
         }
-        // Grades
         if (isRequired(['grades', 'certification']) && !grades && !existingRequest) {
              toast.error('Please upload the Certification of Grades.');
              return;
         }
-        // Registration Form
         if (isRequired(['registration', 'form 5']) && !regForm && !existingRequest) {
             toast.error('Please upload the Registration Form / Form 5.');
             return;
         }
-        // Proof of Admission
         if (isRequired(['proof', 'admission', 'acceptance']) && !proofAdmission && !existingRequest) {
             toast.error('Please upload the Proof of Admission.');
             return;
@@ -125,7 +152,7 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
     }
 
     try {
-      // Simulate API call
+      setIsLoading(true);
       await new Promise(resolve => setTimeout(resolve, 2000));
       toast.success(isResubmit ? 'Resubmission successful!' : 'Application submitted successfully!');
       onClose();
@@ -146,15 +173,12 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
             {existingRequest ? (isEditing ? 'Update Request' : 'View Request') : 'Apply for Leave of Absence'}
           </ModalTitle>
           <p className="text-sm text-gray-500 font-normal mt-1">
-            Reason: <span className="font-semibold text-dost-title">{reason}</span>
+            Category: <span className="font-semibold text-dost-title">{reason}</span>
           </p>
         </ModalHeader>
 
         <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin space-y-6">
           
-          
-
-          {/* 2. Admin Comment Alert */}
           {showAdminAlert && (
             <AdminCommentAlert 
               status={status}
@@ -162,30 +186,95 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
             />
           )}
 
-          {/* 3. Forms */}
-          {reason === 'Medical/Personal' ? (
-            <MedicalPersonalForm 
-               appForm={appForm} setAppForm={setAppForm}
-               univApproval={univApproval} setUnivApproval={setUnivApproval}
-               grades={grades} setGrades={setGrades}
-               medCert={medCert} setMedCert={setMedCert}
-               otherDocs={otherDocs} setOtherDocs={setOtherDocs}
-               isReadOnly={!isEditing}
-               isResubmit={isResubmit}
-               adminComment={adminComment}
-            />
-          ) : (
-            <ExchangeStudentForm 
-               appForm={appForm} setAppForm={setAppForm}
-               univApproval={univApproval} setUnivApproval={setUnivApproval}
-               grades={grades} setGrades={setGrades}
-               regForm={regForm} setRegForm={setRegForm}
-               proofAdmission={proofAdmission} setProofAdmission={setProofAdmission}
-               isReadOnly={!isEditing}
-               isResubmit={isResubmit}
-               adminComment={adminComment}
-            />
+          {isEditing && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-blue-50/50 rounded-lg border border-blue-100">
+               
+               {/* Semester Select */}
+               <div className="space-y-2">
+                  <Label className="text-gray-700">
+                     Start Semester <span className="text-red-500">*</span>
+                  </Label>
+                  <Select value={startSemester} onValueChange={setStartSemester}>
+                     <SelectTrigger className="bg-white">
+                        <SelectValue placeholder="Select Semester" />
+                     </SelectTrigger>
+                     <SelectContent>
+                        <SelectItem value="1st Semester">1st Semester</SelectItem>
+                        <SelectItem value="2nd Semester">2nd Semester</SelectItem>
+                        <SelectItem value="Midyear">Midyear</SelectItem>
+                        <SelectItem value="Summer">Summer</SelectItem>
+                     </SelectContent>
+                  </Select>
+               </div>
+
+               {/* Academic Year Select */}
+               <div className="space-y-2">
+                  <Label className="text-gray-700">
+                     Academic Year <span className="text-red-500">*</span>
+                  </Label>
+                  <Select value={academicYear} onValueChange={setAcademicYear}>
+                     <SelectTrigger className="bg-white">
+                        <SelectValue placeholder="Select A.Y." />
+                     </SelectTrigger>
+                     <SelectContent>
+                        {ACADEMIC_YEARS.map((ay) => (
+                          <SelectItem key={ay} value={ay}>{ay}</SelectItem>
+                        ))}
+                     </SelectContent>
+                  </Select>
+               </div>
+               
+               {/* Duration Input */}
+               <Input 
+                  label="Duration of Leave"
+                  placeholder="e.g. 1 Year" 
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="bg-white"
+                  required
+               />
+
+               {/* Reason Textarea */}
+               <div className="sm:col-span-3 space-y-2">
+                  <Label className="text-gray-700 block">
+                     Reason for Application <span className="text-red-500">*</span>
+                  </Label>
+                  <Textarea 
+                     placeholder="Please explain the reason for your leave of absence..."
+                     className="bg-white resize-none min-h-[80px]"
+                     value={reasonText}
+                     onChange={(e) => setReasonText(e.target.value)}
+                  />
+               </div>
+            </div>
           )}
+
+          {/* Document Uploads */}
+          <div className={!isEditing ? "pointer-events-none opacity-100" : ""}>
+             {reason === 'Medical/Personal' ? (
+                <MedicalPersonalForm 
+                   appForm={appForm} setAppForm={setAppForm}
+                   univApproval={univApproval} setUnivApproval={setUnivApproval}
+                   grades={grades} setGrades={setGrades}
+                   medCert={medCert} setMedCert={setMedCert}
+                   otherDocs={otherDocs} setOtherDocs={setOtherDocs}
+                   isReadOnly={!isEditing}
+                   isResubmit={isResubmit}
+                   adminComment={adminComment}
+                />
+              ) : (
+                <ExchangeStudentForm 
+                   appForm={appForm} setAppForm={setAppForm}
+                   univApproval={univApproval} setUnivApproval={setUnivApproval}
+                   grades={grades} setGrades={setGrades}
+                   regForm={regForm} setRegForm={setRegForm}
+                   proofAdmission={proofAdmission} setProofAdmission={setProofAdmission}
+                   isReadOnly={!isEditing}
+                   isResubmit={isResubmit}
+                   adminComment={adminComment}
+                />
+              )}
+          </div>
 
           {isEditing && (
             <div className="pt-4 border-t">
@@ -196,6 +285,8 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
               />
             </div>
           )}
+
+          {/* View Mode Details */}
           {existingRequest && !isEditing && (
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
@@ -209,41 +300,45 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
                         {formatDate(existingRequest.timestamp || existingRequest.dateSubmitted)}
                     </div>
                 </div>
-                {existingRequest.semester && (
-                   <div className="flex flex-col gap-1 sm:col-span-2 border-t border-gray-200 pt-3 mt-1">
-                      <span className="text-xs font-semibold text-gray-500 uppercase">Effectivity</span>
-                      <p className="text-sm font-medium text-gray-900">
-                         {existingRequest.semester} | {existingRequest.academicYear}
-                      </p>
-                   </div>
-                )}
+                <div className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase">Effectivity</span>
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
+                         {startSemester} | {academicYear}
+                    </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase">Duration</span>
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
+                         <Clock className="h-4 w-4 text-gray-500" />
+                         {duration}
+                    </div>
+                </div>
+                <div className="flex flex-col gap-1 sm:col-span-2 border-t border-gray-200 pt-3 mt-1">
+                    <span className="text-xs font-semibold text-gray-500 uppercase">Reason</span>
+                    <div className="flex items-start gap-2 text-sm font-normal text-gray-700 italic bg-white p-2 rounded border border-gray-100">
+                         <FileText className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
+                         {reasonText || existingRequest.reasonText || existingRequest.reason}
+                    </div>
+                </div>
             </div>
           )}
         </ModalBody>
 
         <ModalFooter>
           {isEditing ? (
-             /* EDIT MODE FOOTER */
              <>
               <ModalClose asChild>
                 <Button variant="outline" disabled={isLoading}>Cancel</Button>
               </ModalClose>
-              <Button 
-                onClick={handleSubmit} 
-                isLoading={isLoading}
-                disabled={isLoading}
-              >
+              <Button onClick={handleSubmit} isLoading={isLoading} disabled={isLoading}>
                 {isResubmit ? 'Submit Corrections' : 'Submit Application'}
               </Button>
              </>
           ) : (
-             /* VIEW MODE FOOTER */
              <>
                <ModalClose asChild>
                  <Button variant="outline">Close</Button>
                </ModalClose>
-               
-               {/* Edit Button for Pending Requests */}
                {status === 'Pending' && (
                  <Button onClick={() => setIsEditing(true)}>
                    <Edit className="h-4 w-4 mr-2" />

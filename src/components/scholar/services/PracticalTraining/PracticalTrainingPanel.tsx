@@ -134,7 +134,7 @@ export function PracticalTrainingPanel() {
                    variant="outline" 
                    size="sm" 
                    asChild
-                   className="w-full bg-white hover:bg-blue-50 text-dost-title border-blue-200 justify-start"
+                   className="w-full bg-white hover:bg-blue-50 text-dost-title border-blue-200"
                  >
                     <a href="/templates/ptp/Forms_126-128_PTP.pdf" download target="_blank" rel="noopener noreferrer">
                       <Download className="h-3 w-3 mr-2" />
@@ -145,7 +145,7 @@ export function PracticalTrainingPanel() {
                    variant="outline" 
                    size="sm" 
                    asChild
-                   className="w-full bg-white hover:bg-blue-50 text-dost-title border-blue-200 justify-start"
+                   className="w-full bg-white hover:bg-blue-50 text-dost-title border-blue-200"
                  >
                     <a href="/templates/ptp/DTR.pdf" download target="_blank" rel="noopener noreferrer">
                       <Download className="h-3 w-3 mr-2" />
@@ -170,7 +170,7 @@ export function PracticalTrainingPanel() {
           </div>
 
           {/* Footer Note */}
-          <div className="text-xs text-gray-700 italic max-w-4xl">
+          <div className="text-xs text-gray-700 italic max-w-3xl">
               <strong>Note:</strong> If your OJT is scheduled during midyear, also submit your <strong>Certified Complete Grades</strong> and <strong>Official Registration Form</strong> through the <strong>Grade Submission</strong> module.
           </div>
         </CardContent>

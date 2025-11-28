@@ -68,8 +68,11 @@ export function ViewScholarModal({
     <Modal open={open} onOpenChange={onClose}>
       <ModalContent size="4xl">
         <ModalHeader>
-          <ModalTitle>Scholar Details: {fullName}</ModalTitle>
-        </ModalHeader>
+             <div className="flex flex-col">
+                <ModalTitle>Scholar Details</ModalTitle>
+                <p className="text-sm text-gray-500 font-normal mt-1">View the Details for {fullName}</p>
+             </div>
+          </ModalHeader>
 
         <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { Edit } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import type { StipendDetails } from './StipendTrackingTable';
 import { formatDate } from '@/lib/utils/date';
@@ -21,55 +21,74 @@ export function StipendTrackingRow({
   isSelected,
   onSelect,
 }: StipendTrackingRowProps) {
-  const { scholarInfo, semesterInfo, stipend: stipendData } = stipend;
+  const { scholarInfo, placementInfo, semesterInfo, stipend: stipendData } = stipend;
 
   return (
-    <tr className="hover:bg-gray-50 transition-colors">
-      <td className="p-4">
+    <tr className={`hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50/50' : ''}`}>
+      <td className="p-4 w-12">
         <Checkbox
           checked={isSelected}
-          onChange={onSelect}
+          onChange={() => onSelect()}
           aria-label={`Select row for ${scholarInfo.name}`}
         />
       </td>
 
       <td className="px-4 py-3 whitespace-nowrap">
-        <div className="text-sm font-medium text-gray-900">
-          {scholarInfo.name}
+        <div className="flex flex-col">
+          <span className="text-sm font-medium text-gray-900">
+            {scholarInfo.name}
+          </span>
+          <span className="text-xs text-gray-500 font-mono">
+            {scholarInfo.scholarId}
+          </span>
         </div>
-        <div className="text-xs text-gray-500">{scholarInfo.scholarId}</div>
       </td>
+
+      <td className="px-4 py-3 whitespace-nowrap">
+        <div className="flex flex-col max-w-[200px]">
+          <span className="text-sm text-gray-800 truncate" title={placementInfo.university}>
+            {placementInfo.university}
+          </span>
+          <span className="text-xs text-gray-500 truncate" title={placementInfo.program}>
+            {placementInfo.program}
+          </span>
+        </div>
+      </td>
+
       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-        <div>
-          {semesterInfo.year}, {semesterInfo.semester}
-        </div>
-        <div className="text-xs text-gray-500">
-          {semesterInfo.academicYear}
+        <div className="flex flex-col">
+          <span className="font-medium">{semesterInfo.semester}</span>
+          <span className="text-xs text-gray-500">{semesterInfo.academicYear}</span>
         </div>
       </td>
+
       <td className="px-4 py-3 whitespace-nowrap">
         <StatusBadge status={stipendData.status} />
       </td>
+
       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-        {stipendData.dateSubmitted
-          ? formatDate(stipendData.dateSubmitted, 'MMM dd, yyyy')
-          : 'N/A'}
+        {stipendData.effectiveDate
+          ? formatDate(stipendData.effectiveDate, 'MMM dd, yyyy')
+          : <span className="text-gray-400 italic">N/A</span>}
       </td>
+
       <td className="px-4 py-3 whitespace-nowrap text-sm text-green-700 font-medium">
         {formatCurrency(stipendData.received)}
       </td>
+
       <td className="px-4 py-3 whitespace-nowrap text-sm text-yellow-800 font-medium">
         {formatCurrency(stipendData.pending)}
       </td>
+
       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-8 h-8 p-0"
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-8 h-8 p-0" 
           onClick={onUpdate}
-          title="Update Stipend"
+          title="Update Stipend Details"
         >
-          <Edit className="h-4 w-4" />
+          <Eye className="h-4 w-4" />
         </Button>
       </td>
     </tr>

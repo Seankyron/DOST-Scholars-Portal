@@ -15,10 +15,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/utils/format';
 import type { StipendDetails } from './StipendTrackingTable';
-import type { Allowance, StipendUpdate } from '@/types';
+import type { Allowance } from '@/types';
+import type { StipendUpdate } from '@/types/admin';
 import { toast } from '@/components/ui/toaster';
 import { StatusDropdown } from './StatusDropdown';
-import { Separator } from '@/components/ui/separator';
+
+function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <p className="text-sm font-semibold text-gray-800 break-words">{value || 'N/A'}</p>
+    </div>
+  );
+}
 
 interface UpdateStipendModalProps {
   isOpen: boolean;
@@ -33,6 +42,8 @@ export function UpdateStipendModal({
   stipendDetails,
   onSave,
 }: UpdateStipendModalProps) {
+  const { scholarInfo, placementInfo, semesterInfo } = stipendDetails;
+  
   const [breakdown, setBreakdown] = useState(stipendDetails.stipend.breakdown);
   const [updates, setUpdates] = useState(stipendDetails.stipend.updates);
   const [customUpdateMsg, setCustomUpdateMsg] = useState('');
@@ -95,93 +106,91 @@ export function UpdateStipendModal({
     <Modal open={isOpen} onOpenChange={onClose}>
       <ModalContent size="4xl">
         <ModalHeader>
-          <ModalTitle>Update Stipend</ModalTitle>
+          <div className="flex items-center justify-between w-full pr-8">
+            <div className="flex flex-col">
+              <ModalTitle>Update Stipend Details</ModalTitle>
+              <p className="text-sm text-gray-500 font-normal mt-1">
+                Manage allowances and status for {semesterInfo.semester}, {semesterInfo.academicYear}
+              </p>
+            </div>
+          </div>
         </ModalHeader>
 
-        <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6">
-          {/* Scholar Info */}
-          <div className="p-4 bg-gray-50 rounded-lg mb-6">
-            <h3 className="text-lg font-bold text-dost-title">
-              {stipendDetails.scholarInfo.name}
-            </h3>
-            <p className="text-sm text-gray-600">
-              {stipendDetails.semesterInfo.year},{' '}
-              {stipendDetails.semesterInfo.semester} (
-              {stipendDetails.semesterInfo.academicYear})
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            {/* --- LEFT COLUMN (Allowances) --- */}
-            <section className="md:col-span-3 space-y-3">
-              <Label className="text-base font-semibold text-gray-800">
-                Allowance Breakdown
-              </Label>
-              <div className="border p-3 rounded-md">
-                {breakdown.map((allowance, index) => (
-                  <div key={index}>
-                    {/* --- 3. ADD the separator --- */}
-                    {index > 0 && <Separator className="my-2" />}
-                    <div className="flex items-center justify-between gap-3 pt-1 pb-1">
-                      <p className="text-sm font-medium">
-                        {allowance.name} ({formatCurrency(allowance.amount)})
-                      </p>
-                      <StatusDropdown
-                        currentStatus={allowance.status}
-                        onChange={(newStatus) =>
-                          handleBreakdownChange(index, newStatus)
-                        }
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* --- RIGHT COLUMN (Actions & Updates) --- */}
-            <section className="md:col-span-2 space-y-4">
-              <div className="space-y-2">
-                <Label className="text-base font-semibold text-gray-800">
-                  Add Custom Update
-                </Label>
-                <Textarea
-                  placeholder="e.g., 'On hold pending Form 5 submission...'"
-                  value={customUpdateMsg}
-                  onChange={(e) => setCustomUpdateMsg(e.target.value)}
-                  className="min-h-[70px]"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddCustomUpdate}
-                >
-                  Add Update Message
-                </Button>
-              </div>
-
-              <div className="space-y-1 pt-2">
-                <Label className="text-base font-semibold text-gray-800">
-                  Update History
-                </Label>
-                <div className="max-h-40 overflow-y-auto scrollbar-thin border p-3 rounded-md space-y-2">
-                  {updates.length > 0 ? (
-                    updates.map((update, index) => (
-                      <p
-                        key={index}
-                        className="text-sm text-gray-700 border-b pb-2 last:border-b-0"
-                      >
-                        {update.message}
-                      </p>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500 italic">
-                      No custom updates posted.
-                    </p>
-                  )}
+        <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
+          
+          {/* --- TOP SECTION: Info Grid --- */}
+          {/* CHANGED: Used lg:grid-cols-2 instead of md:grid-cols-2 to prevent overlap on tablets */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Scholar Information Column */}
+            <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 h-full">
+                <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
+                    Scholar Information
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <InfoItem label="Name" value={scholarInfo.name} />
+                  <InfoItem label="SPAS ID" value={scholarInfo.scholarId} />
+                  <InfoItem label="Email" value={scholarInfo.email} />
+                  <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
                 </div>
-              </div>
+            </section>
+
+            {/* Placement Information Column */}
+            <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 h-full">
+                <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
+                    Placement Information
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <InfoItem label="Scholarship Type" value={scholarInfo.scholarshipType} />
+                  <InfoItem label="Batch / Year Awarded" value={scholarInfo.batch} />
+                  <InfoItem label="School / University" value={placementInfo.university} />
+                  <InfoItem label="Program / Course" value={placementInfo.program} />
+                </div>
             </section>
           </div>
+
+          {/* --- MIDDLE SECTION: Allowance Breakdown --- */}
+          <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
+            <Label className="text-base font-semibold text-gray-800 border-b pb-2 block">
+              Allowance Breakdown
+            </Label>
+            {/* CHANGED: Used grid-cols-1 on mobile, md:grid-cols-2 on tablets+ */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {breakdown.map((allowance, index) => (
+                <div 
+                  key={index} 
+                  className="flex items-center justify-between p-3 border rounded-md bg-gray-50/50 hover:bg-white hover:shadow-sm transition-all"
+                >
+                  <div className="flex flex-col">
+                    <p className="text-sm font-medium text-gray-900">{allowance.name}</p>
+                    <p className="text-xs text-gray-500 font-medium">{formatCurrency(allowance.amount)}</p>
+                  </div>
+                  <StatusDropdown
+                    currentStatus={allowance.status}
+                    onChange={(newStatus) =>
+                      handleBreakdownChange(index, newStatus)
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* --- BOTTOM SECTION: Admin Custom Update --- */}
+          <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
+            <Label className="text-base font-semibold text-gray-800 border-b pb-2 block">
+              Add Custom Update
+            </Label>
+            <div className="space-y-3">
+              <Textarea
+                placeholder="e.g., 'On hold pending Form 5 submission...'"
+                value={customUpdateMsg}
+                onChange={(e) => setCustomUpdateMsg(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+          </section>
+
         </ModalBody>
 
         <ModalFooter>

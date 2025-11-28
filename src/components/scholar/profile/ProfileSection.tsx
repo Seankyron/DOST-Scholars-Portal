@@ -1,6 +1,6 @@
 'use client';
 
-import type { SyntheticEvent } from 'react';
+import { useState, useRef, type SyntheticEvent } from 'react';
 import {
   BadgeCheck,
   QrCode,
@@ -9,32 +9,23 @@ import {
   Hash,
   Award,
   Calendar,
+  Camera,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { InfoTooltip } from '@/components/shared/InfoToolTip';
-import { toast } from '@/components/ui/toaster';
+import { toast } from 'sonner'; // Ensure importing from sonner or your toaster re-export
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { ScholarStatus } from '@/types';
+import { ScholarStatus, SubmissionStatus } from '@/types';
+import { QRCodeModal } from './QRCodeModal';
+import { useFetchScholar } from "@/hooks/scholars/useFetchScholar";
+import { useEffect } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { useCurrentScholar } from "@/hooks/scholar/useCurrentScholar";
-import { useEffect } from 'react';
 
 
-// Mock data
-const mockScholar = {
-  firstName: 'Joshua',
-  surname: 'De Larosa',
-  scholarId: '2021-00123',
-  scholarshipProgram: 'Merit',
-  batch: 2021,
-  course: 'BS Electronics and Communications Engineering',
-  school: 'Laguna State Polytechnic University - San Pablo',
-  status: 'Active' as const satisfies ScholarStatus,
-  profileImage: '/images/placeholders/avatar-placeholder.png',
-};
-
-// A new helper component just for this file to make the list cleaner
+// Helper component for clean list items
 function InfoItem({
   icon: Icon,
   label,
@@ -59,48 +50,121 @@ function InfoItem({
 }
 
 export function ProfileSection() {
-  const { user, loading } = useCurrentScholar();
+  const { user: scholar } = useFetchScholar();
+  
+  const [isQROpen, setIsQROpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Share variables to other pages. 
   useEffect(() => {
-    if (user) {
-      sessionStorage.setItem("user", JSON.stringify({
-        spas_id: user.spas_id,
-        batch: user.year_awarded,
-        scholarship_type: user.scholarship_type,
-        course_duration: user.course_duration,
-        midyear_classes: user.midyear_classes,
-        first_name: user.first_name,
-        last_name: user.last_name,
-      }));
+    if (scholar) {
+      sessionStorage.setItem("scholar", JSON.stringify(scholar));
     }
-  }, [user]);
+  }, [scholar]);
+
+  const handleEditClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        // FIXED: Correct Sonner syntax
+        toast.error("Error", { description: "Please upload an image file." });
+        return;
+    }
+
+    setIsUploading(true);
+
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('bucket', 'profile-pictures');
+
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.error || 'Upload failed');
+
+        // FIXED: Correct Sonner syntax
+        toast.success("Success", { description: "Profile picture uploaded successfully!" });
+        
+        window.location.reload(); 
+
+    } catch (error: any) {
+        console.error(error);
+        // FIXED: Correct Sonner syntax
+        toast.error("Error", { description: "Failed to upload image." });
+    } finally {
+        setIsUploading(false);
+    }
+  };
+
+  // FIXED: Handle profile_image (snake_case) vs profileImage (camelCase) mismatch
+  // We check for both to be safe, or default to placeholder
+  const profileImage = (scholar as any)?.profile_image || (scholar as any)?.profileImage || '/images/placeholders/avatar-placeholder.png';
+  
+  const scholarName = `${scholar?.first_name || ''} ${scholar?.last_name || ''}`;
+  const spasId = scholar?.spas_id || 'N/A';
 
   return (
-    // SIMPLIFIED CONTAINER: Removed the outer gradient <div>
     <Card className="shadow-md bg-white">
       <CardContent className="relative p-6">
-        {/* NEW LAYOUT: Grid for better responsive control */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          
           {/* === AVATAR COLUMN === */}
           <div className="flex flex-col items-center justify-start space-y-4 md:col-span-1 md:border-r md:pr-6">
-            <img
-              src={mockScholar.profileImage}
-              alt="Profile Picture"
-              width={128} // Slightly larger
-              height={128} // Slightly larger
-              className="rounded-full border-4 border-white shadow-lg h-32 w-32 object-cover"
-              onError={(e: SyntheticEvent<HTMLImageElement>) => {
-                (e.currentTarget as HTMLImageElement).src =
-                  '/images/placeholders/avatar-placeholder.png';
-              }}
-            />
-            {/* MOVED QR BUTTON: Grouped with the avatar */}
+            
+            <div className="relative group">
+                <div className="relative h-32 w-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                    {isUploading && (
+                        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50">
+                            <Loader2 className="h-8 w-8 text-white animate-spin" />
+                        </div>
+                    )}
+                    <img
+                        src={profileImage}
+                        alt="Profile Picture"
+                        className={cn(
+                            "h-full w-full object-cover transition-opacity",
+                            isUploading && "opacity-50"
+                        )}
+                        onError={(e: SyntheticEvent<HTMLImageElement>) => {
+                            (e.currentTarget as HTMLImageElement).src =
+                            '/images/placeholders/avatar-placeholder.png';
+                        }}
+                    />
+                </div>
+                
+                <button
+                    onClick={handleEditClick}
+                    disabled={isUploading}
+                    className="absolute bottom-0 right-0 p-2 bg-dost-blue text-white rounded-full shadow-md hover:bg-blue-700 transition-colors z-10 border-2 border-white"
+                    title="Change Profile Photo"
+                >
+                    <Camera className="h-4 w-4" />
+                </button>
+
+                <input 
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/png, image/jpeg, image/jpg"
+                    onChange={handleFileChange}
+                />
+            </div>
+
             <Button
               variant="outline"
               size="sm"
-              className="w-full" // Full-width in its column
-              onClick={() => toast.info('QR Code modal is not yet built!')}
+              className="w-full"
+              onClick={() => setIsQROpen(true)}
             >
               <QrCode className="h-4 w-4 mr-2" />
               Show QR Code
@@ -109,65 +173,27 @@ export function ProfileSection() {
 
           {/* === INFO COLUMN === */}
           <div className="flex flex-col space-y-4 md:col-span-3">
-            {/* Name and Status */}
             <div className="space-y-2 text-center md:text-left">
               <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
                 <h2 className="text-2xl font-bold text-dost-title">
-                  {user?.first_name } {user?.last_name}
+                  {scholarName}
                 </h2>
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={user?.scholarship_status as ScholarStatus}>
+                  <StatusBadge status={scholar?.scholarship_status as SubmissionStatus}>
                     <BadgeCheck className="h-3.5 w-3.5" />
-                    {user?.scholarship_status} Scholar
+                    {scholar?.scholarship_status} Scholar
                   </StatusBadge>
                   <InfoTooltip>
                     <div className="space-y-2">
-                      <h4 className="font-semibold text-center mb-2">
-                        Status Legend
-                      </h4>
+                      <h4 className="font-semibold text-center mb-2">Status Legend</h4>
                       <ul className="space-y-1.5 text-sm">
-                        <li>
-                          <span className="font-medium text-green-300">
-                            Active:
-                          </span>{' '}
-                          In good standing.
-                        </li>
-                        <li>
-                          <span className="font-medium text-yellow-300">
-                            Warning:
-                          </span>{' '}
-                          Has academic deficiencies.
-                        </li>
-                        <li>
-                          <span className="font-medium text-orange-300">
-                            2nd Warning:
-                          </span>{' '}
-                          Has repeated deficiencies.
-                        </li>
-                        <li>
-                          <span className="font-medium text-red-300">
-                            Suspended:
-                          </span>{' '}
-                          Scholarship is suspended.
-                        </li>
-                        <li>
-                          <span className="font-medium text-purple-300">
-                            On hold:
-                          </span>{' '}
-                          Stipend held pending requirements.
-                        </li>
-                        <li>
-                          <span className="font-medium text-blue-300">
-                            Graduated:
-                          </span>{' '}
-                          Program completed.
-                        </li>
-                        <li>
-                          <span className="font-medium text-gray-400">
-                            Terminated:
-                          </span>{' '}
-                          Scholarship terminated.
-                        </li>
+                        <li><span className="font-medium text-green-300">Active:</span> In good standing.</li>
+                        <li><span className="font-medium text-yellow-300">Warning:</span> Has academic deficiencies.</li>
+                        <li><span className="font-medium text-orange-300">2nd Warning:</span> Has repeated deficiencies.</li>
+                        <li><span className="font-medium text-red-300">Suspended:</span> Scholarship is suspended.</li>
+                        <li><span className="font-medium text-purple-300">On hold:</span> Stipend held pending requirements.</li>
+                        <li><span className="font-medium text-blue-300">Graduated:</span> Program completed.</li>
+                        <li><span className="font-medium text-gray-400">Terminated:</span> Scholarship terminated.</li>
                       </ul>
                     </div>
                   </InfoTooltip>
@@ -175,36 +201,43 @@ export function ProfileSection() {
               </div>
             </div>
 
-            {/* NEW INFO GRID: Cleaner, icon-based */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 pt-2">
               <InfoItem
                 icon={GraduationCap}
                 label="School"
-                value={user?.university ?? ''}
+                value={scholar?.university ?? 'N/A'}
               />
               <InfoItem
                 icon={BookOpen}
                 label="Program"
-                value={user?.program_course ?? ''}
+                value={scholar?.program_course ?? 'N/A'}
               />
               <InfoItem
                 icon={Hash}
                 label="Scholar ID"
-                value={user?.spas_id ?? ''}
+                value={spasId}
               />
               <InfoItem
                 icon={Award}
                 label="Scholarship Type"
-                value={user?.scholarship_type ?? ''}
+                value={scholar?.scholarship_type ?? 'N/A'}
               />
               <InfoItem
                 icon={Calendar}
                 label="Batch"
-                value={user?.year_awarded ?? ''}
+                value={scholar?.year_awarded ?? 'N/A'}
               />
             </div>
           </div>
         </div>
+        
+        <QRCodeModal
+          isOpen={isQROpen}
+          onClose={() => setIsQROpen(false)}
+          scholarId={spasId}
+          scholarName={scholarName}
+        />
+
       </CardContent>
     </Card>
   );

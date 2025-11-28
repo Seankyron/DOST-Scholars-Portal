@@ -20,6 +20,16 @@ export function ServiceTilesGrid() {
       openPanel('practical-training');
     } else if (serviceId === 'thesis-allowance') {
       openPanel('thesis-allowance');
+    } else if (serviceId === 'travel-clearance') {
+      openPanel('travel-clearance');
+    } else if (serviceId === 'shifting-transferring') {
+      openPanel('shifting-transferring');
+    } else if (serviceId === 'request-forms') {
+      openPanel('request-forms');
+    } else if (serviceId === 'reimbursement') {
+      openPanel('reimbursement');
+    } else if (serviceId === 'support-feedback') {
+      openPanel('support-feedback');
     } else {
       toast.info(`${serviceTitle} service is not yet built!`);
     }

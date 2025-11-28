@@ -4,11 +4,9 @@ import { useState } from 'react';
 import { GradeSubmissionsTable } from '@/components/admin/tables/GradeSubmissions/GradeSubmissionsTable';
 import { GradeSubmissionFilters } from '@/components/admin/tables/GradeSubmissions/GradeSubmissionFilters';
 import { SearchInput } from '@/components/shared/SearchInput';
-// --- MODIFICATION: Removed Button and Download imports ---
 
 export default function AdminGradeSubmissionsPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  // Add other filter states here later
 
   return (
     <div className="space-y-6">
@@ -30,7 +28,6 @@ export default function AdminGradeSubmissionsPage() {
             onSearch={setSearchTerm}
             className="w-full sm:max-w-xs"
           />
-          {/* --- MODIFICATION: Export Button removed --- */}
         </div>
         <GradeSubmissionsTable searchTerm={searchTerm} />
       </div>

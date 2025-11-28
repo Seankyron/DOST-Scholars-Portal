@@ -21,6 +21,8 @@ import { CompletionSubmissionForm } from './CompletionSubmissionForm';
 import { AdminCommentAlert } from '@/components/shared/AdminCommenAlert';
 import { toast } from '@/components/ui/toaster';
 import { PTPTransactionType } from './PracticalTrainingPanel';
+import { useSubmitPraticalTraining, SubmissionData } from '@/hooks/scholars/useSubmitPracticalTraining';
+import { useUploadDocument } from '@/hooks/scholars/useUploadDocument';
 
 // 1. Import Hooks
 import { useCloudinaryUpload } from '@/hooks/scholar/useDocumentUpload';

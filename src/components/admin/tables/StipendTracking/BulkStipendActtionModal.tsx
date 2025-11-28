@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils/cn';
 import { Separator } from '@/components/ui/separator';
 
 export type BulkAction = 'Release' | 'On Hold';
+
 export interface BulkActionPayload {
   allowancesToRelease?: string[];
   adminNote?: string;
@@ -46,12 +47,18 @@ export function BulkStipendActionModal({
   const [adminNote, setAdminNote] = useState('');
   const [selectedAllowances, setSelectedAllowances] = useState<string[]>([]);
 
+  // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       setAdminNote('');
-      setSelectedAllowances([]);
+      // Pre-select all pending allowances for convenience if action is Release
+      if (action === 'Release') {
+        setSelectedAllowances(pendingAllowances);
+      } else {
+        setSelectedAllowances([]);
+      }
     }
-  }, [isOpen, action]);
+  }, [isOpen, action, pendingAllowances]);
 
   const handleToggle = (allowanceName: string) => {
     setSelectedAllowances((prev) =>
@@ -61,11 +68,11 @@ export function BulkStipendActionModal({
     );
   };
 
-  const handleSelectAll = () => {
-    if (selectedAllowances.length === pendingAllowances.length) {
-      setSelectedAllowances([]);
-    } else {
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
       setSelectedAllowances(pendingAllowances);
+    } else {
+      setSelectedAllowances([]);
     }
   };
 
@@ -91,39 +98,26 @@ export function BulkStipendActionModal({
     <Modal open={isOpen} onOpenChange={onClose}>
       <ModalContent size="lg">
         <ModalHeader>
-          <ModalTitle>
-            Bulk Stipend Action: {action}
+          <ModalTitle className={cn(isDanger ? 'text-red-600' : 'text-green-600')}>
+            Bulk Action: {action}
           </ModalTitle>
         </ModalHeader>
 
-        <ModalBody className="space-y-4">
-          <p>
-            You are about to{' '}
-            <strong
-              className={cn(
-                isDanger ? 'text-red-600' : 'text-green-600'
-              )}
-            >
-              {action}
-            </strong>{' '}
-            allowances for{' '}
-            <strong className="font-bold">{selectedCount}</strong>{' '}
-            selected scholar(s).
-          </p>
-
+        <ModalBody className="space-y-4 py-4">
+          <div className="bg-gray-50 p-4 rounded-md text-sm text-gray-700">
+            You are about to apply the <strong>{action}</strong> status to{' '}
+            <strong className="text-gray-900">{selectedCount}</strong> selected scholar(s).
+          </div>
 
           {action === 'Release' ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label className="text-base font-semibold text-gray-800">
-                Allowances to Release
+                Select Allowances to Release
               </Label>
-              <div className="max-h-60 overflow-y-auto scrollbar-thin border p-3 rounded-md">
-                <div className="flex items-center justify-between py-2">
-                  <Label
-                    htmlFor="select-all-allowances"
-                    className="font-semibold"
-                  >
-                    Select All
+              <div className="border rounded-md divide-y max-h-60 overflow-y-auto">
+                <div className="flex items-center justify-between p-3 bg-gray-50">
+                  <Label htmlFor="select-all-allowances" className="font-semibold cursor-pointer">
+                    Select All Available
                   </Label>
                   <Checkbox
                     id="select-all-allowances"
@@ -131,49 +125,44 @@ export function BulkStipendActionModal({
                       pendingAllowances.length > 0 &&
                       selectedAllowances.length === pendingAllowances.length
                     }
-                    onChange={handleSelectAll}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
                   />
                 </div>
-                <Separator className="my-2" />
-                <div className="space-y-2">
-                  {pendingAllowances.length > 0 ? (
-                    pendingAllowances.map((allowanceName) => (
-                      <div
-                        key={allowanceName}
-                        className="flex items-center justify-between py-1"
-                      >
-                        <Label htmlFor={allowanceName}>{allowanceName}</Label>
-                        <Checkbox
-                          id={allowanceName}
-                          checked={selectedAllowances.includes(allowanceName)}
-                          // --- THIS IS THE FIX ---
-                          onChange={() => handleToggle(allowanceName)}
-                        />
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500 italic text-center py-2">
-                      No pending allowances found for selected scholars.
-                    </p>
-                  )}
-                </div>
+                
+                {pendingAllowances.length > 0 ? (
+                  pendingAllowances.map((allowanceName) => (
+                    <div key={allowanceName} className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors">
+                      <Label htmlFor={allowanceName} className="cursor-pointer font-normal">
+                        {allowanceName}
+                      </Label>
+                      <Checkbox
+                        id={allowanceName}
+                        checked={selectedAllowances.includes(allowanceName)}
+                        onChange={() => handleToggle(allowanceName)}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-sm text-gray-500 italic">
+                    No pending allowances found across the selected scholars.
+                  </div>
+                )}
               </div>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="bulk-admin-note" className="text-base font-semibold">
-                Admin Note (Required)
+                Reason for Hold (Required)
               </Label>
               <Textarea
                 id="bulk-admin-note"
-                placeholder="e.g., 'Placed on hold pending mid-year processing...'"
+                placeholder="e.g., 'Pending submission of Form 5 for the current semester...'"
                 value={adminNote}
                 onChange={(e) => setAdminNote(e.target.value)}
-                className="min-h-[80px]"
+                className="min-h-[100px] resize-none"
               />
               <p className="text-xs text-gray-500">
-                This note will be added to the "Updates" section for all
-                selected scholars.
+                This note will be visible to the scholars in their portal.
               </p>
             </div>
           )}
@@ -196,7 +185,7 @@ export function BulkStipendActionModal({
                 : 'bg-green-600 hover:bg-green-700'
             )}
           >
-            {action === 'Release' ? 'Confirm Release' : 'Confirm On Hold'}
+            Proceed to Confirmation
           </Button>
         </ModalFooter>
       </ModalContent>
