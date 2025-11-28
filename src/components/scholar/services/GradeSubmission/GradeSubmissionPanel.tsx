@@ -103,7 +103,7 @@ export function GradeSubmissionPanel() {
 
   // 2. Generate Options
   const acadYearOptions = GetAcademicYearOptions(
-    Number(user.batch), // Ensure this matches DB column name
+    Number(user.year_awarded), // Ensure this matches DB column name
     user.scholarship_type,
     user.course_duration
   );
