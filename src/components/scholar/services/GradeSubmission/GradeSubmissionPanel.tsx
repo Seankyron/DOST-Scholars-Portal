@@ -7,74 +7,33 @@ import { SemesterGrid } from './SemesterGrid';
 import { RecentSubmissions } from './RecentSubmissions';
 import { GradeSubmissionModal } from './GradeSubmissionModal';
 import { toast } from '@/components/ui/toaster';
-import { Select, SelectContent, SelectTrigger, SelectItem, SelectValue } from '@/components/ui/select'; 
-import { iGradeSubmissions, useFetchGrades } from '@/hooks/scholars/Get/useFetchGrade';
+import { Select } from '@/components/ui/select';
+import { useCurrentScholarGrade, type iGradeSubmissions } from '@/hooks/scholar/Grade Submission/useCurrentScholarGrade';
+import type { SemesterAvailability, SubmissionStatus, Semester } from '@/types';
 
+// 1. Constants
+const jlssScholarships = ["JLSS, RA 7687", "JLSS, Merit", "JLSS, RA 10612"];
 
-type OjtData = {
-  year: number;
-  semester?: Semester;
-};
+// 2. Helper: Generate Academic Year Options
+function GetAcademicYearOptions(batch: number, scholarshipType: string, courseDuration: number) {
+  // Logic: If JLSS, duration is usually shorter (2 or 3 years), else use full course duration
+  // Adjust this logic based on your exact business rules for JLSS vs Merit/RA7687
+  const scholarshipDuration = jlssScholarships.includes(scholarshipType)
+    ? (courseDuration === 4 ? 2 : 3)
+    : courseDuration;
 
-// const mockCurriculum: CurriculumConfig = {
-//   midyearYears: [1, 3], 
-//   thesisYear: 4,
-//   ojtYear: 3,
-//   ojtSemester: 'Midyear',
-//   duration: 4, 
-// };
+  // Generate array of years
+  const options = Array.from({ length: scholarshipDuration }, (_, i) => {
+    // Example: Batch 2021, Duration 4
+    // i=0: 2021 + 0 = 2021 -> AY 2021-2022 (Year 1)
+    // i=3: 2021 + 3 = 2024 -> AY 2024-2025 (Year 4)
+    const startYear = batch + i;
+    const label = `AY ${startYear}-${startYear + 1}`;
+    return { value: label, label, year: i + 1 }; // year is 1-based index
+  });
 
-
-const jlssScholarships = ["JLSS, RA 7687", "JLSS, Merit", "JLSS, RA 10612",];
-
-// ... (SubmissionStatuses and AcademicYearMapping logic remains the same) ...
-// const submissionStatuses: Record<string, SubmissionStatus> = {
-//   '1-1st Semester': 'Approved',
-//   '1-2nd Semester': 'Approved',
-//   '1-Midyear': 'Approved', 
-//   '2-1st Semester': 'Approved',
-//   '2-2nd Semester': 'Pending', 
-//   '3-1st Semester': 'Approved',
-//   '3-2nd Semester': 'Resubmit', 
-//   '3-Midyear': 'Open', 
-//   '4-1st Semester': 'Not Available',
-//   '4-2nd Semester': 'Not Available',
-// };
-
-// const academicYearMapping: Record<number, string> = {
-//   1: 'AY 2023-2024',
-//   2: 'AY 2024-2025',
-//   3: 'AY 2025-2026',
-//   4: 'AY 2026-2027',
-//   5: 'AY 2027-2028',
-// };
-
-function GetSubmissionStatus(scholarshipType: string, duration: number, grades: iGradeSubmissions[], batch: number)
-{
-  const submissionStatus: Record<string, SubmissionStatus> = {};
-  const currentYear = new Date().getFullYear();
-
-  // Determine year range
-  const yearStart = jlssScholarships.includes(scholarshipType) ? 3 : 1;
-  const yearEnd = duration;
-
-  const semesters = ["1st Semester", "2nd Semester", "Midyear"];
-
-  for (let year = yearStart; year <= yearEnd; year++) {
-    for (const semester of semesters) {
-      const grade = grades.find(
-        (g) => g.year_level === year && g.semester === semester
-      );
-      
-      submissionStatus[`${year}-${semester}`] = grade
-      ? (grade.status as SubmissionStatus)
-      : batch <= currentYear
-      ? "Resubmit"
-      : "Not Available";
-    }
-    batch++;
-  }
-  return submissionStatus;
+  // Return reversed so latest year is first
+  return options.reverse();
 }
 
 // 3. Helper: Transform DB Data into UI Semesters
@@ -144,7 +103,7 @@ export function GradeSubmissionPanel() {
 
   // 2. Generate Options
   const acadYearOptions = GetAcademicYearOptions(
-    Number(user.year_awarded), // Ensure this matches DB column name
+    Number(user.batch), // Ensure this matches DB column name
     user.scholarship_type,
     user.course_duration
   );

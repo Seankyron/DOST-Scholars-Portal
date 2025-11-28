@@ -20,13 +20,10 @@ import { formatDate } from '@/lib/utils/date';
 import type { SemesterAvailability, YearLevel } from '@/types'; 
 import type { GradeSubmission, SubmissionStatus } from '@/types/services'; 
 import { toast } from '@/components/ui/toaster';
-import { useFetchGrades } from '@/hooks/scholars/Get/useFetchGrade';
-import { grep } from 'jquery';
-import { useEffect } from 'react';
-import { useUploadDocument } from '@/hooks/scholars/Post/useUploadDocument';
-import { useSubmitGrade, SubmissionData } from '@/hooks/scholars/Post/useSubmitGrade';
-import { useUpdateGrade } from '@/hooks/scholars/Post/useUpdateGrade';
-import { iGradeSubmissions } from '@/hooks/scholars/Get/useFetchGrade';
+import { type iGradeSubmissions, useCurrentScholarGrade } from '@/hooks/scholar/Grade Submission/useCurrentScholarGrade';
+import { useCloudinaryUpload } from '@/hooks/scholar/useDocumentUpload';
+import { useSubmitGrade } from '@/hooks/scholar/Grade Submission/useSubmitGrade';
+import { useUpdateGrade } from '@/hooks/scholar/Grade Submission/useUpdateGrade';
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;
@@ -183,14 +180,11 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
         grade_file_key: gradesKey,
       };
 
-      let currentStatus = 'Pending';
-
       if (hasSubmission) {
-        if (currentGradeRecord?.status === 'Resubmit') currentStatus = 'Resubmit-Pending'
         await updateGrade({
           id: currentGradeRecord.id,
           ...payload,
-          status: currentStatus
+          status: 'Pending' 
         });
       } else {
         await submitGrade(payload);
