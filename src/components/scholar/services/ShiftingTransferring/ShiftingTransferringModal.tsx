@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   ModalContent,
@@ -38,7 +38,7 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
   const isResubmit = status === 'Resubmit';
   
   const { submitShifting, error:submitError } = useSubmitShifting();
-  const { uploadDocument } = useUploadDocument();
+  const { uploadDocument, error:uploadError } = useUploadDocument();
   const storedScholar = sessionStorage.getItem('scholar');
   const scholar = storedScholar ? JSON.parse(storedScholar) : null;
   const [isEditing, setIsEditing] = useState(!existingRequest || isResubmit || status === 'Pending');
@@ -76,7 +76,7 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
         return;
       }
     
-    if (!appForm || !certAdmission || !certGrades || !certSubjects || !certYearLevel || !programOfStudy) {
+    if ((!appForm || !certAdmission || !certGrades || !certSubjects || !certYearLevel || !programOfStudy) && !existingRequest) {
       toast.error ('Please upload all documents.');
       return;
     }
@@ -91,13 +91,36 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
     const ojtData = { year: ojtYear, semester: ojtSemester };
 
     try {
-      const { url:appFormUrl } = await uploadDocument(appForm!, `DOST/${scholar?.spas_id}/shifting/app-form`);
-      const { url:certAdmissionUrl } = await uploadDocument(certAdmission!, `DOST/${scholar?.spas_id}/shifting/cert-admission`);
-      const { url:certSubjectsUrl } = await uploadDocument(certSubjects!, `DOST/${scholar?.spas_id}/shifting/cert-subjects`);
-      const { url:certYearLevelUrl } = await uploadDocument(certYearLevel!, `DOST/${scholar?.spas_id}/shifting/cert-year-level`);
-      const { url:certGradesUrl } = await uploadDocument(certGrades!, `DOST/${scholar?.spas_id}/shifting/cert-grades`);
-      const { url:programOfStudyUrl } = await uploadDocument(programOfStudy!, `DOST/${scholar?.spas_id}/shifting/program-study`);
-      
+      if (!existingRequest) {
+        const { url:appFormUrl } = await uploadDocument(appForm!, `DOST/${scholar?.spas_id}/shifting/app-form`);
+        const { url:certAdmissionUrl } = await uploadDocument(certAdmission!, `DOST/${scholar?.spas_id}/shifting/cert-admission`);
+        const { url:certSubjectsUrl } = await uploadDocument(certSubjects!, `DOST/${scholar?.spas_id}/shifting/cert-subjects`);
+        const { url:certYearLevelUrl } = await uploadDocument(certYearLevel!, `DOST/${scholar?.spas_id}/shifting/cert-year-level`);
+        const { url:certGradesUrl } = await uploadDocument(certGrades!, `DOST/${scholar?.spas_id}/shifting/cert-grades`);
+        const { url:programOfStudyUrl } = await uploadDocument(programOfStudy!, `DOST/${scholar?.spas_id}/shifting/program-study`);
+
+        const data: SubmissionData = {
+          spas_id: scholar?.spas_id,
+          new_course: newCourse,
+          new_school: newSchool,
+          effectivity_of_shifting: effectivity,
+          ojt: ojtData,
+          reason: reason,
+          application_form_file_key: appFormUrl,
+          admission_cert_file_key: certAdmissionUrl, 
+          accredited_sub_file_key: certSubjectsUrl, 
+          new_year_level_file_key: certYearLevelUrl,
+          all_grades_file_key: certGradesUrl, 
+          approved_pos_file_key: programOfStudyUrl, 
+          type: type,
+        };
+
+        await submitShifting(data, null);
+      }
+      else {
+        const id = existingRequest.id;
+        if(!id) { throw new Error(`Failed to update ${type} request.`); }
+
       const data: SubmissionData = {
         spas_id: scholar?.spas_id,
         new_course: newCourse,
@@ -105,20 +128,14 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
         effectivity_of_shifting: effectivity,
         ojt: ojtData,
         reason: reason,
-        application_form_file_key: appFormUrl,
-        admission_cert_file_key: certAdmissionUrl, 
-        accredited_sub_file_key: certSubjectsUrl, 
-        new_year_level_file_key: certYearLevelUrl,
-        all_grades_file_key: certGradesUrl, 
-        approved_pos_file_key: programOfStudyUrl, 
+        application_form_file_key: existingRequest.application_form_file_key,
+        admission_cert_file_key: existingRequest.admission_cert_file_key, 
+        accredited_sub_file_key: existingRequest.accredited_sub_file_key, 
+        new_year_level_file_key: existingRequest.new_year_level_file_key,
+        all_grades_file_key: existingRequest.all_grades_file_key, 
+        approved_pos_file_key: existingRequest.approved_pos_file_key, 
+        type: type,
       };
-
-      if (!existingRequest) {
-        await submitShifting(data, null);
-      }
-      else {
-        const id = existingRequest.id;
-        if(!id) { throw new Error(`Failed to update ${type} request.`); }
 
         await submitShifting(data, id);
       }
@@ -127,7 +144,7 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
       onClose();
     }
     catch (error: any) {
-      toast.error(error.message);
+      toast.error('An error occurred. Failed to upload data.');
     }
     finally {
       toast.dismiss(loadingId);
@@ -136,6 +153,20 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
   };
 
   const showAdminAlert = existingRequest && (status === 'Resubmit' || status === 'Approved');
+
+  useEffect(() => {
+    if (!existingRequest) return;
+
+    setNewSchool(existingRequest.new_school);
+    setNewCourse(existingRequest.new_course);
+    setEffectivity(existingRequest.effectivity_of_shifting);
+    setReason(existingRequest.reason);
+    setCourseDuration(existingRequest.course_duration);
+    setOjtYear(existingRequest.ojt.year);
+    setOjtSemester(existingRequest.ojt.semester);
+
+  }, [existingRequest]);
+
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
@@ -192,6 +223,8 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
             setCertGrades={setCertGrades}
             programOfStudy={programOfStudy}
             setProgramOfStudy={setProgramOfStudy}
+
+            existingRequest={existingRequest}
           />
 
           {isEditing && (

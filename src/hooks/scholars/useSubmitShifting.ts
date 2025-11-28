@@ -17,6 +17,7 @@ export interface SubmissionData {
   new_year_level_file_key?: string | null;
   all_grades_file_key?: string | null;
   approved_pos_file_key?: string | null;
+  type?: string | null;
 }
 
 export const useSubmitShifting = () => {
@@ -45,7 +46,8 @@ export const useSubmitShifting = () => {
             accredited_sub_file_key: data.accredited_sub_file_key,
             new_year_level_file_key: data.new_year_level_file_key,
             all_grades_file_key: data.all_grades_file_key,
-            approved_pos_file_key: data.approved_pos_file_key
+            approved_pos_file_key: data.approved_pos_file_key,
+            type: data.type
           })
           .select()
           .single();
