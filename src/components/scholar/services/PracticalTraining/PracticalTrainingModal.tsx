@@ -36,14 +36,16 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
 
   // Derived State
   const status = existingRequest?.status;
-  const adminComment = existingRequest?.adminComment;
+  const adminComment = existingRequest?.comment;
   const isResubmit = status === 'Resubmit';
+
+  console.log('PTP:', existingRequest);
   
   // Determine initial editing state
   const [isEditing, setIsEditing] = useState(!existingRequest || isResubmit || status === 'Pending');
 
   // Form States (Referral)
-  const [plan, setPlan] = useState<string>(existingRequest?.ptpPlan || '');
+  const [plan, setPlan] = useState<string>(existingRequest?.plan || '');
   const [grades, setGrades] = useState<File | null>(null);
   const [replySlip, setReplySlip] = useState<File | null>(null);
 
