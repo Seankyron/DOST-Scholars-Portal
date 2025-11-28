@@ -29,7 +29,6 @@ interface GradeSubmissionModalProps {
   isOpen: boolean;
   onClose: () => void;
   semester: SemesterAvailability;
-  spasID: string;
 }
 
 const yearLabels: { [key: number]: YearLevel } = {
@@ -140,7 +139,6 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
 
     const toastId = toast.loading('Submitting documents...');
 
-    const loadingID = toast.loading('Uploading documents...')
     try {
       let regFormKey = currentGradeRecord?.cor_file_key || '';
       let gradesKey = currentGradeRecord?.grade_file_key || '';
@@ -182,11 +180,14 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
         grade_file_key: gradesKey,
       };
 
+      let currentStatus = 'Pending';
+
       if (hasSubmission) {
+        if (currentGradeRecord?.status === 'Resubmit') currentStatus = 'Resubmit-Pending'
         await updateGrade({
           id: currentGradeRecord.id,
           ...payload,
-          status: 'Pending' 
+          status: currentStatus
         });
       } else {
         await submitGrade(payload);
@@ -211,7 +212,8 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
       <ModalContent size="2xl">
         <ModalHeader>
           <ModalTitle>
-            Grade Submission: {yearLabels[semester.year] || `${semester.year}th Year`}, {semester.semester}
+            Grade Submission: {yearLabels[semester.year] || `${semester.year}th Year`}
+            , {semester.semester}
           </ModalTitle>
           <p className="text-sm text-gray-500 font-normal mt-1">
              Academic Year: <span className="font-semibold text-dost-title">{semester.academicYear || 'N/A'}</span>

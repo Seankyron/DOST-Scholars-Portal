@@ -6,12 +6,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { AlertOctagon, Info, CheckCircle, AlertCircle } from 'lucide-react';
+import { AlertOctagon, Info, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 export type StipendUpdate = {
   message: string;
-  type: 'info' | 'warning' | 'success' | 'error';
+  date?: string; // <-- ADDED: Date field to match the data passed
+  type: 'info' | 'warning' | 'success';
 };
 
 interface StipendUpdatesProps {
@@ -35,8 +36,7 @@ export function StipendUpdates({ updates }: StipendUpdatesProps) {
                 'flex items-start gap-3 pt-3 first:pt-0',
                 update.type === 'warning' && 'text-orange-800',
                 update.type === 'info' && 'text-gray-700',
-                update.type === 'success' && 'text-green-800',
-                update.type === 'error' && 'text-red-800'
+                update.type === 'success' && 'text-green-800'
               )}
             >
               {/* Icon Selection */}
@@ -44,8 +44,6 @@ export function StipendUpdates({ updates }: StipendUpdatesProps) {
                 <AlertOctagon className="h-5 w-5 flex-shrink-0 mt-0.5 text-orange-600" />
               ) : update.type === 'success' ? (
                 <CheckCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-green-600" />
-              ) : update.type === 'error' ? (
-                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5 text-red-600" />
               ) : (
                 <Info className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
               )}

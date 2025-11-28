@@ -28,12 +28,6 @@ export interface StipendSemesterAvailability {
   isGradeApproved: boolean; 
 }
 
-export interface StipendUpdate {
-  message: string;
-  type: 'info' | 'warning' | 'success' | 'error';
-  date?: string;
-}
-
 export interface BaseSubmission {
   id: string;
   scholarId: string;

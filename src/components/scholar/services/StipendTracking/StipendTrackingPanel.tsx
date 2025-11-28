@@ -76,7 +76,7 @@ export function StipendTrackingPanel() {
   // We generate the Academic Year options *before* state so we can set a default.
   const academicYearOptions = useMemo(() => {
     if (!user) return [];
-    const startYear = Number(user.batch);
+    const startYear = Number(user.year_awarded);
     const duration = Number(user.course_duration) || 4;
     
     // Generate list of AY strings
@@ -98,6 +98,7 @@ export function StipendTrackingPanel() {
 
   // Ensure state updates if user data loads late
   useEffect(() => {
+    console.log(academicYearOptions)
     if (academicYearOptions.length > 0 && !filterAcademicYear) {
       setFilterAcademicYear(academicYearOptions[0]);
     }
@@ -110,7 +111,7 @@ export function StipendTrackingPanel() {
 
     // Generate the skeleton structure based on user's course duration
     const skeleton = getExpectedSemesters(
-      Number(user.batch), // Ensure this matches your DB column for Batch/Year Awarded
+      Number(user.year_awarded), // Ensure this matches your DB column for Batch/Year Awarded
       Number(user.course_duration) || 4, // Fallback to 4 if missing
       user.midyear_classes || []
     );

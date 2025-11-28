@@ -91,28 +91,6 @@ function GetGradeRecordBySemester(
 }
 
 export function GradeSubmissionPanel() {
-  const storedScholar = sessionStorage.getItem('scholar');
-  const scholar = storedScholar ? JSON.parse(storedScholar) : null;
-  const ojt = scholar?.ojt as OjtData | null;
-  const duration: 4 | 5 = (scholar?.course_duration as 4 | 5) ?? 4;
-  const { grade } = useFetchGrades(scholar.spas_id);
-
-  const curriculum: CurriculumConfig = {
-    midyearYears: scholar?.midyear_classes ?? [], 
-    thesisYear: scholar?.thesis_year ?? 4,
-    ojtYear: ojt?.year ?? 3,
-    ojtSemester: ojt?.semester ?? 'Midyear',
-    duration: duration, 
-  }
-
-  const academicYearMapping = GetAcademicYearMapping(scholar?.scholarship_type, duration, scholar?.year_awarded);
-  const submissionStatus = GetSubmissionStatus(scholar.scholarship_type, duration, grade, scholar.year_awarded);
-  const generatedSemesters = GenerateSemester(curriculum, academicYearMapping, submissionStatus);
-
-  const academicYearOptions = Object.values(academicYearMapping)
-    .map(ay => ({ value: ay, label: ay }))
-    .reverse();
-
   const [selectedSemester, setSelectedSemester] = useState<SemesterAvailability | null>(null);
   const [isClosing, setIsClosing] = useState(false);
 
@@ -125,7 +103,7 @@ export function GradeSubmissionPanel() {
 
   // 2. Generate Options
   const acadYearOptions = GetAcademicYearOptions(
-    Number(user.batch), // Ensure this matches DB column name
+    Number(user.year_awarded), // Ensure this matches DB column name
     user.scholarship_type,
     user.course_duration
   );
@@ -227,7 +205,6 @@ export function GradeSubmissionPanel() {
           isOpen={!!selectedSemester && !isClosing}
           onClose={handleCloseModal}
           semester={selectedSemester!}
-          spasID={scholar?.spas_id}
         />
       )}
     </div>

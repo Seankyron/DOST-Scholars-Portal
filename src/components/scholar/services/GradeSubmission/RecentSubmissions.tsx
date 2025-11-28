@@ -51,6 +51,7 @@ export function RecentSubmissions({ onSelectSubmission }: RecentSubmissionsProps
       gradeFileKey: activity.grade_file_key,
       corFileKey: activity.cor_file_key,
     };
+    console.log("Activity: ", activity)
     onSelectSubmission(semesterData);
   };
 
