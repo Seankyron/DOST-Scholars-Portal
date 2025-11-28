@@ -11,7 +11,7 @@ import type { SubmissionStatus, CurriculumConfig, Semester } from '@/types';
 import { hasMidyear } from '@/lib/utils/curriculum'; 
 import { toast } from '@/components/ui/toaster';
 import { Select, SelectContent, SelectTrigger, SelectItem, SelectValue } from '@/components/ui/select'; 
-import { iGradeSubmissions, useFetchGrades } from '@/hooks/scholars/useFetchGrade';
+import { iGradeSubmissions, useFetchGrades } from '@/hooks/scholars/Get/useFetchGrade';
 
 
 type OjtData = {

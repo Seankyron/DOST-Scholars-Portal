@@ -20,13 +20,13 @@ import { formatDate } from '@/lib/utils/date';
 import type { SemesterAvailability, GradeSubmission, YearLevel } from '@/types'; 
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { toast } from '@/components/ui/toaster';
-import { useFetchGrades } from '@/hooks/scholars/useFetchGrade';
+import { useFetchGrades } from '@/hooks/scholars/Get/useFetchGrade';
 import { grep } from 'jquery';
 import { useEffect } from 'react';
-import { useUploadDocument } from '@/hooks/scholars/useUploadDocument';
-import { useSubmitGrade, SubmissionData } from '@/hooks/scholars/useSubmitGrade';
-import { useUpdateGrade } from '@/hooks/scholars/useUpdateGrade';
-import { iGradeSubmissions } from '@/hooks/scholars/useFetchGrade';
+import { useUploadDocument } from '@/hooks/scholars/Post/useUploadDocument';
+import { useSubmitGrade, SubmissionData } from '@/hooks/scholars/Post/useSubmitGrade';
+import { useUpdateGrade } from '@/hooks/scholars/Post/useUpdateGrade';
+import { iGradeSubmissions } from '@/hooks/scholars/Get/useFetchGrade';
 
 interface GradeSubmissionModalProps {
   isOpen: boolean;

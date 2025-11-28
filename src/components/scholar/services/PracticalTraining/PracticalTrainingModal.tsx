@@ -20,8 +20,8 @@ import { CompletionSubmissionForm } from './CompletionSubmissionForm';
 import { AdminCommentAlert } from '@/components/shared/AdminCommenAlert';
 import { toast } from '@/components/ui/toaster';
 import { PTPTransactionType } from './PracticalTrainingPanel';
-import { useSubmitPraticalTraining, SubmissionData } from '@/hooks/scholars/useSubmitPracticalTraining';
-import { useUploadDocument } from '@/hooks/scholars/useUploadDocument';
+import { useSubmitPraticalTraining, SubmissionData } from '@/hooks/scholars/Post/useSubmitPracticalTraining';
+import { useUploadDocument } from '@/hooks/scholars/Post/useUploadDocument';
 
 interface PracticalTrainingModalProps {
   isOpen: boolean;

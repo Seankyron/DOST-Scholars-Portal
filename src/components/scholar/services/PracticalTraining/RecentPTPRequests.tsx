@@ -6,7 +6,7 @@ import { formatRelativeTime } from '@/lib/utils/date';
 import type { SubmissionStatus } from '@/types';
 import { Button } from '@/components/ui/button';
 import { PTPTransactionType } from './PracticalTrainingPanel';
-import { useFetchPracticalTraining } from '@/hooks/scholars/useFetchPraticalTraining';
+import { useFetchPracticalTraining } from '@/hooks/scholars/Get/useFetchPraticalTraining';
 
 // Mock Data for PTP
 const mockRequests = [
