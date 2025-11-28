@@ -23,7 +23,6 @@ export function AdminHeader({ onMenuOpen }: AdminHeaderProps) {
   const { signOut, user } = useAuth();
 
   const handleLogout = async () => {
-    toast.loading('Logging out...');
     await signOut();
     toast.success('You have been logged out.');
     router.push('/login');

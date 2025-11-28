@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FullPageLoader } from '@/components/shared/FullPageLoader';
+import { GlobalLoader } from '@/components/shared/GlobalLoader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SelectInput as Select } from '@/components/ui/select';
@@ -309,7 +309,7 @@ export default function SignupPage() {
   return (
     <>
       {/* 2. ADD THE LOADER HERE */}
-      <FullPageLoader isLoading={isLoading} message="Creating your account..." />
+      <GlobalLoader isLoading={isLoading} message="Creating your account" />
 
       <div className="bg-white rounded-2xl shadow-xl p-8">
         <div className="mb-8">

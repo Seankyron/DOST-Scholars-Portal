@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FullPageLoader } from '@/components/shared/FullPageLoader';
+import { GlobalLoader } from '@/components/shared/GlobalLoader';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -56,7 +56,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   return (
     <>
-    <FullPageLoader isLoading={isLoading} message="Authenticating..." />
+    <GlobalLoader isLoading={isLoading} message="Authenticating" />
     <div className="bg-white rounded-2xl shadow-xl p-8">
       <div className="mb-6">
         <h2 className="text-3xl font-bold text-dost-title mb-2">Sign In</h2>
@@ -111,7 +111,6 @@ const handleSubmit = async (e: React.FormEvent) => {
           type="submit"
           className="w-full"
           size="lg"
-          isLoading={isLoading}
         >
           SIGN IN
         </Button>
