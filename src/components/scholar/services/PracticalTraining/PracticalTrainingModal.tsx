@@ -27,7 +27,6 @@ import { useCloudinaryUpload } from '@/hooks/scholar/useDocumentUpload';
 import { useSubmitPTP } from '@/hooks/scholar/PTP Submission/usePTPUpload'; 
 import { useUpdatePTP } from '@/hooks/scholar/PTP Submission/usePTPUpdate';
 import { useRecentGrade } from '@/hooks/scholar/PTP Submission/useRecentGrade';
-import { usePTPSubmission } from '@/hooks/scholar/PTP Submission/usePTPCheckReferral'; 
 import { 
   useCurrentScholarPTP, 
   type PTPReferralData, 
@@ -56,7 +55,6 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
   const { submitGrade, loading: submitLoading, error: submitError, success } = useSubmitPTP();
   const { updatePTP, loading: updateLoading} = useUpdatePTP();
   const { recentGradeKey } = useRecentGrade(user?.spas_id);
-  const { hasReferral } = usePTPSubmission(user?.spas_id);
 
   const { data: fetchedData, loading: dataLoading } = useCurrentScholarPTP(type);
 
@@ -170,14 +168,6 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
     }
   }, [isOpen, activeRequest, dataLoading, type]); 
 
-  // Close on success
-  useEffect(() => {
-    if (success) {
-      toast.success('Documents submitted successfully!');
-      onClose();
-    }
-  }, [success, onClose]);
-
   useEffect(() => {
     if (submitError) toast.error(submitError);
   }, [submitError]);
@@ -200,7 +190,6 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
     }
 
     const toastId = toast.loading('Processing documents...');
-    console.log("dbCert: ", (submissionData as PracticalTrainingCompletion));
 
     try {
       const submissionType = type === 'Referral Letter' ? 'Referral' : 'Completion';
@@ -214,14 +203,14 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
          // Cast to interface for clean access
          const currentData = submissionData as PracticalTrainingReferral | null;
          
-         if (!plan && !currentData) throw new Error('Please select your Practical Training Plan.');
+         if (!plan && !currentData) toast.error('Please select your Practical Training Plan.');
          
          if (!grades && !currentData?.curriculum && !recentGradeKey) {
-           throw new Error('Please upload your Certified Grades.');
+           toast.error('Please upload your Certified Grades.');
          }
          
          if (!replySlip && !currentData?.replySlip && plan !== 'cannot_participate') {
-           throw new Error('Please upload your Reply Slip.');
+           toast.error('Please upload your Reply Slip.');
          }
 
          let gradesKey = currentData?.curriculum; 

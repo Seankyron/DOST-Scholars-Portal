@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Modal,
   ModalContent,
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, Calendar } from 'lucide-react';
+import { Edit, Calendar, FileText } from 'lucide-react';
 import { AdminCommentAlert } from '@/components/shared/AdminCommenAlert';
 import { StatusBadge } from '@/components/shared/StatusBadge'; 
 import { formatDate } from '@/lib/utils/date'; 
@@ -26,6 +26,7 @@ import { useThesisUpload } from '@/hooks/scholar/Thesis Allowance/useThesisUploa
 import { useUpdateThesis } from '@/hooks/scholar/Thesis Allowance/useThesisUpdate';
 import { useCloudinaryUpload } from '@/hooks/scholar/useDocumentUpload';
 import type { ThesisPercentage } from './ThesisAllowancePanel';
+import { useCurrentThesis } from '@/hooks/scholar/Thesis Allowance/useCurrentThesis';
 
 interface ThesisAllowanceModalProps {
   isOpen: boolean;
@@ -35,45 +36,60 @@ interface ThesisAllowanceModalProps {
 }
 
 export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequest }: ThesisAllowanceModalProps) {
+  const userStr = typeof window !== 'undefined' ? sessionStorage.getItem('user') : null;
+  const user = userStr ? JSON.parse(userStr) : null;
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+
   const [isConfirmed, setIsConfirmed] = useState(false);
   
-  // Hooks for DB actions
-  const { submitThesis, loading: isSubmitting } = useThesisUpload();
+  // Hooks
+  const { submitThesis, loading: isSubmitting, error: submitError, success } = useThesisUpload();
   const { updateThesis, loading: isUpdating } = useUpdateThesis();
+  const { uploadDocument } = useCloudinaryUpload(); 
   
   const status = existingRequest?.status;
   const adminComment = existingRequest?.comment;
   const isResubmit = status === 'Resubmit';
+  
+  const { data: fetchedData, loading: dataLoading } = useCurrentThesis(percentage);
 
-  // Determine initial editing state:
-  const [isEditing, setIsEditing] = useState(!existingRequest || isResubmit || status === 'Pending');
+  // State
+  const [isEditing, setIsEditing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // File States
   const [abstract, setAbstract] = useState<File | null>(null);
   const [approvalSheet, setApprovalSheet] = useState<File | null>(null);
   const [manuscript, setManuscript] = useState<File | null>(null);
 
-  // Hook for file storage
-  // Note: useCloudinaryUpload only returns uploadDocument, so we manage isUploading locally
-  const { uploadDocument } = useCloudinaryUpload(); 
-  const [isUploading, setIsUploading] = useState(false);
-
+  // Initialize State on Open
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      // Logic: If there is no request, OR it is a Resubmit, we enter Edit Mode immediately.
+      // If there is a Pending/Approved request, we start in View Mode (isEditing = false).
+      const shouldEdit = !existingRequest || isResubmit;
+      setIsEditing(shouldEdit);
+    } else {
+      // Reset on close
       setAbstract(null);
       setApprovalSheet(null);
       setManuscript(null);
       setIsConfirmed(false);
-      setIsEditing(!existingRequest || isResubmit || status === 'Pending');
+      setIsEditing(false);
     }
-  }, [isOpen, existingRequest, isResubmit, status]);
+  }, [isOpen, fetchedData, isResubmit]);
 
-  // Fix: Check against numbers (90, 100) instead of strings ('90%') to match Type definition
+  useEffect(() => {
+    if (submitError) toast.error(submitError);
+  }, [submitError]);
+
+  // Logic: 90% and 100% need partial docs; 10% and 100% need final docs.
   const requiresPartialDocs = percentage === '90%' || percentage === '100%';
   const requiresFinalDocs = percentage === '10%' || percentage === '100%';
   
   const isLoading = isSubmitting || isUpdating || isUploading;
 
+  // --- SUBMISSION HANDLER ---
   const handleSubmit = async () => {
     if (!isConfirmed) {
       toast.error('Please confirm that your documents are correct.');
@@ -90,7 +106,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
 
     const thesisURL = `dost-portal/${user.spas_id}/thesis-allowance`;
 
-    // Validation
+    // Validation checks
     if (requiresPartialDocs && !abstract && !existingRequest?.abstract_thesis_file_key) {
         toast.error('Please upload your Thesis Abstract.');
         return;
@@ -107,36 +123,27 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
     try {
       setIsUploading(true);
 
-      // 1. Upload new files to Storage bucket
+      // 1. Setup keys (Default to keeping existing files)
       let abstractKey = existingRequest?.abstract_thesis_file_key;
       let approvalKey = existingRequest?.approval_file_key;
       let manuscriptKey = existingRequest?.final_thesis_file_key;
 
-      // Helper to handle upload and extract URL
+      // 2. Helper to Upload
       const handleFileUpload = async (file: File, context: string): Promise<string> => {
         const result = await uploadDocument(file, context);
         if (!result?.key) throw new Error(`Failed to upload ${file.name}`);
         return result.key;
       };
 
-      if (abstract) {
-         const url = await handleFileUpload(abstract, thesisURL);
-         if (url) abstractKey = url;
-      }
-      if (approvalSheet) {
-         const url = await handleFileUpload(approvalSheet, thesisURL);
-         if (url) approvalKey = url;
-      }
-      if (manuscript) {
-         const url = await handleFileUpload(manuscript, thesisURL);
-         if (url) manuscriptKey = url;
-      }
+      // 3. Upload ONLY if a new file was selected in the state
+      if (abstract) abstractKey = await handleFileUpload(abstract, thesisURL);
+      if (approvalSheet) approvalKey = await handleFileUpload(approvalSheet, thesisURL);
+      if (manuscript) manuscriptKey = await handleFileUpload(manuscript, thesisURL);
 
-      setIsUploading(false); // Done uploading
+      setIsUploading(false); 
 
-      // 2. Submit to Database
+      // 4. Submit to DB
       if (existingRequest && existingRequest.id) {
-          // UPDATE Existing
           await updateThesis({
               id: existingRequest.id,
               type: `${percentage}`, 
@@ -145,7 +152,6 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
               final_thesis_file_key: manuscriptKey,
           });
       } else {
-          // CREATE New
           await submitThesis({
               spas_id: user.spas_id,
               type: `${percentage}`,
@@ -154,9 +160,9 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
               final_thesis_file_key: manuscriptKey,
           });
       }
-
       toast.success(isResubmit ? 'Resubmission successful!' : 'Application submitted successfully!');
       onClose();
+
     } catch (error: any) {
       console.error(error);
       setIsUploading(false);
@@ -165,47 +171,46 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
   };
 
   const showAdminAlert = existingRequest && (status === 'Resubmit' || status === 'Approved');
-
-  // Helper to render file input OR read-only display
+  console.log("existingRequest: ", existingRequest)
+  // --- FIXED RENDER LOGIC ---
   const renderFileField = (
-    label: string, 
+    label: string,
     description: string, 
     fileState: File | null, 
     setFileState: (f: File | null) => void,
     dbKey: string 
   ) => {
-    const existingPath = existingRequest?.[dbKey];
-    
+    const existingFKUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${existingRequest?.[dbKey]}.pdf`;
+
+    // CASE 1: READ-ONLY MODE
+    // If we are NOT editing, we ONLY show the read-only display.
     if (!isEditing && existingRequest) {
-       return (
-         <div className="space-y-2">
+      return (
+        <div className="space-y-2">
             <FileDisplayReadOnly 
               label={label}
-              fileName={existingPath ? "View Uploaded File" : "No file"} 
-              fileUrl={existingPath} 
+              fileName={`${user.spas_id} – ${label}.pdf`} 
+              fileUrl={existingFKUrl || "#"} 
             />
-         </div>
-       );
+        </div>
+      );
     }
 
+    // CASE 2: EDIT MODE (Or New Application)
+    // We ALWAYS show the FileUpload here.
     return (
       <div className="space-y-2">
         <Label className="text-base font-semibold text-gray-800">
             {label} <span className="text-red-500">*</span>
         </Label>
-        <p className="text-sm text-gray-500 mb-2">{description}</p>
-        
-        {isEditing && existingPath && !fileState && (
-            <div className="mb-2 p-2 bg-blue-50 text-xs text-blue-700 rounded border border-blue-200">
-                Current file: <a href={existingPath} target="_blank" className="underline">View Current</a> (Upload below to replace)
-            </div>
-        )}
 
+        {/* The Uploader is always visible in edit mode */}
         <FileUpload 
             value={fileState}
             onChange={setFileState}
             accept=".pdf"
-            disabled={!isEditing || isLoading}
+            helperText={description} // Using helperText as per your reference
+            disabled={isLoading}
         />
       </div>
     );
@@ -219,7 +224,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
             {existingRequest ? (isEditing ? 'Update Request' : 'View Request') : 'Apply for Thesis Allowance'}
           </ModalTitle>
           <p className="text-sm text-gray-500 font-normal mt-1">
-            Type: <span className="font-semibold text-dost-title">{percentage}% Release</span>
+            Type: <span className="font-semibold text-dost-title">{percentage} Release</span>
           </p>
         </ModalHeader>
 
@@ -228,7 +233,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
           {showAdminAlert && (
             <AdminCommentAlert 
               status={status}
-              comment={adminComment || 'No comment provided.'}
+              comment={adminComment}
             />
           )}
 
@@ -236,7 +241,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
             {requiresPartialDocs && (
                 <>
                     {renderFileField(
-                        "One-Page Abstract of Thesis Proposal",
+                        "Thesis Proposal Abstract",
                         "Must include Title, Rationale, Objectives, and Methodology.",
                         abstract,
                         setAbstract,
@@ -309,7 +314,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
                <ModalClose asChild>
                  <Button variant="outline">Close</Button>
                </ModalClose>
-               {status === 'Pending' && (
+               {(status === 'Pending' || status === 'Resubmit') && (
                  <Button onClick={() => setIsEditing(true)}>
                    <Edit className="h-4 w-4 mr-2" />
                    Edit Response

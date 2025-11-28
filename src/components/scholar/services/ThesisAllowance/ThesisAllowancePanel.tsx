@@ -26,6 +26,8 @@ export function ThesisAllowancePanel() {
   const { data: data10, loading: l10 } = useCurrentThesis('10%');
   const { data: data100, loading: l100 } = useCurrentThesis('100%');
 
+  console.log("Hello")
+
   // 2. Logic: Define Locks based on Data Existence
   const is100Submitted = !!data100;
   const is90Submitted = !!data90;
@@ -43,31 +45,38 @@ export function ThesisAllowancePanel() {
   const handleSelectOption = (percentage: ThesisPercentage) => {
     // --- 10% RESTRICTION LOGIC ---
     if (percentage === '10%') {
-      if (!data90) {
-        toast.error("You must submit the 90% Partial Release requirements first.");
-        return;
-      }
-      if (data90.status !== 'Approved') {
-        console.log(data90)
-        toast.error("Your 90% application must be APPROVED before applying for the final 10%.");
-        return;
-      }
       // If 100% was somehow submitted (edge case), block it
       if (data100) {
         toast.error("You have already applied for the 100% Full Release.");
         return;
       }
+      if (!data90) {
+        toast.error("You must submit the 90% Partial Release requirements first.");
+        return;
+      }
+      if (data90.status !== 'Approved') {
+        toast.error("Your 90% application must be Approved before applying for the final 10%.");
+        return;
+      }
     }
 
     // --- 90% & 100% RESTRICTION LOGIC (Redundant safety check) ---
-    if (percentage === '90%' && is90Disabled) return;
-    if (percentage === '100%' && is100Disabled) return;
+    if (percentage === '90%' && is90Disabled) {
+      toast.error("You have already applied for the 100% Full Release.");
+      return;
+    };
+    if (percentage === '100%' && is100Disabled) {
+     toast.error("You have already applied for the Partial Release.");
+     return; 
+    };
 
     // Determine if we are editing an existing request
     let existing = null;
     if (percentage === '90%') existing = data90;
     if (percentage === '10%') existing = data10;
     if (percentage === '100%') existing = data100;
+
+    console.log("Existing: ", existing)
     
     setSelectedPercentage(percentage);
     setSelectedRequest(existing); 
@@ -78,9 +87,9 @@ export function ThesisAllowancePanel() {
     // Helper to open modal from the Recent Submissions list
     // You might need to map your DB request object to the percentage type here
     const pctStr = request.type; // "90%" -> "90"
-    const pct = pctStr as ThesisPercentage;
     
-    setSelectedPercentage(pct);
+    console.log("Selected type: ", request.type);
+    setSelectedPercentage(pctStr);
     setSelectedRequest(request);
     setIsModalOpen(true);
   };
@@ -95,7 +104,7 @@ export function ThesisAllowancePanel() {
 
   // Consolidate history for the Recent List
   // Filtering out nulls
-const history = useMemo(() => {
+  const history = useMemo(() => {
     const formatted: ThesisRequest[] = [];
 
     // Helper to map DB data to UI Request type
@@ -234,8 +243,7 @@ const history = useMemo(() => {
 
       <div className="mt-8">
          <RecentThesisSubmissions 
-            onViewDetails={handleViewRequest} 
-            requests={history} // Passing real data now
+            onViewDetails={handleViewRequest} // Passing real data now
          />
       </div>
 
