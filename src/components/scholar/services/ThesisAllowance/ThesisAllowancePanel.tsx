@@ -1,67 +1,95 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, BookOpen, FileText, CheckCircle2, Download, Info } from 'lucide-react';
+import { AlertCircle, BookOpen, FileText, CheckCircle2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThesisAllowanceModal } from './ThesisAllowanceModal';
 import { ThesisOptionSelector } from './ThesisOptionSelector';
-import { RecentThesisSubmissions, type ThesisRequest } from './RecentThesisSubmissions';
+import { RecentThesisSubmissions } from './RecentThesisSubmissions'; // Assuming you adapt this to use real data or keep mock
 import { Separator } from '@/components/ui/separator';
-import type { ThesisPercentage, SubmissionStatus } from '@/types/services';
+import { toast } from '@/components/ui/toaster';
+import { ThesisRequest } from './RecentThesisSubmissions';
+import { useCurrentThesis } from '@/hooks/scholar/Thesis Allowance/useCurrentThesis'; // Update path as needed
 
-// Mock data with file info for preview
-const MOCK_HISTORY: ThesisRequest[] = [
-  // Uncomment to test "90% Submitted" state
-  /*
-  {
-    id: 1,
-    percentage: 90,
-    status: 'Approved',
-    dateSubmitted: new Date().toISOString(),
-    // Mock file data for the modal
-    abstractFile: { name: 'My_Thesis_Abstract.pdf', url: '#' },
-    approvalFile: { name: 'Signed_Approval_Sheet.pdf', url: '#' }
-  }
-  */
-];
+// Types
+export type ThesisPercentage = '90%' | '10%' | '100%';
 
 export function ThesisAllowancePanel() {
   const [selectedPercentage, setSelectedPercentage] = useState<ThesisPercentage | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const [history, setHistory] = useState<ThesisRequest[]>(MOCK_HISTORY);
 
-  // --- LOCKING & SELECTION LOGIC ---
-  const { request90, request100, request10 } = useMemo(() => {
-    return {
-        request90: history.find(h => h.percentage === 90 && h.status !== 'Rejected'),
-        request10: history.find(h => h.percentage === 10 && h.status !== 'Rejected'),
-        request100: history.find(h => h.percentage === 100 && h.status !== 'Rejected'),
-    };
-  }, [history]);
+  // 1. Fetch Data for all 3 types to determine logic
+  // Note: We are assuming the user is logged in and the hook handles sessionStorage internally as per your file.
+  const { data: data90, loading: l90 } = useCurrentThesis('90%');
+  const { data: data10, loading: l10 } = useCurrentThesis('10%');
+  const { data: data100, loading: l100 } = useCurrentThesis('100%');
 
-  // Logic:
-  // 1. If 100% is submitted, 90% and 10% are locked (cannot take partial path).
-  // 2. If 90% is submitted, 100% is locked (cannot take full path).
-  // 3. 10% is locked until 90% is submitted.
+  console.log("Hello")
+
+  // 2. Logic: Define Locks based on Data Existence
+  const is100Submitted = !!data100;
+  const is90Submitted = !!data90;
   
-  const is90Disabled = !!request100; 
-  const is100Disabled = !!request90; 
-  const is10Disabled = !request90 || !!request100; 
+  // Logic 1 & 2: Hard Locks (Visual Disable)
+  // If 100% is submitted -> Disable 90% (and 10% visually, though we handle 10% logic specifically below)
+  const is90Disabled = is100Submitted;
+  
+  // If 90% is submitted -> Disable 100%
+  const is100Disabled = is90Submitted; 
+
+  // Logic 3: Soft Lock for 10% (Handled in click handler)
+  // We do not pass 'disabled' prop to 10% selector so it remains clickable
 
   const handleSelectOption = (percentage: ThesisPercentage) => {
-    // Check if we already have a request for this percentage
-    const existing = history.find(h => h.percentage === percentage && h.status !== 'Rejected');
+    // --- 10% RESTRICTION LOGIC ---
+    if (percentage === '10%') {
+      // If 100% was somehow submitted (edge case), block it
+      if (data100) {
+        toast.error("You have already applied for the 100% Full Release.");
+        return;
+      }
+      if (!data90) {
+        toast.error("You must submit the 90% Partial Release requirements first.");
+        return;
+      }
+      if (data90.status !== 'Approved') {
+        toast.error("Your 90% application must be Approved before applying for the final 10%.");
+        return;
+      }
+    }
+
+    // --- 90% & 100% RESTRICTION LOGIC (Redundant safety check) ---
+    if (percentage === '90%' && is90Disabled) {
+      toast.error("You have already applied for the 100% Full Release.");
+      return;
+    };
+    if (percentage === '100%' && is100Disabled) {
+     toast.error("You have already applied for the Partial Release.");
+     return; 
+    };
+
+    // Determine if we are editing an existing request
+    let existing = null;
+    if (percentage === '90%') existing = data90;
+    if (percentage === '10%') existing = data10;
+    if (percentage === '100%') existing = data100;
+
+    console.log("Existing: ", existing)
     
     setSelectedPercentage(percentage);
-    setSelectedRequest(existing || null); // Pass existing request if found
+    setSelectedRequest(existing); 
     setIsModalOpen(true);
   };
 
   const handleViewRequest = (request: any) => {
-    setSelectedPercentage(request.percentage);
+    // Helper to open modal from the Recent Submissions list
+    // You might need to map your DB request object to the percentage type here
+    const pctStr = request.type; // "90%" -> "90"
+    
+    console.log("Selected type: ", request.type);
+    setSelectedPercentage(pctStr);
     setSelectedRequest(request);
     setIsModalOpen(true);
   };
@@ -73,6 +101,29 @@ export function ThesisAllowancePanel() {
       setSelectedRequest(null);
     }, 300);
   };
+
+  // Consolidate history for the Recent List
+  // Filtering out nulls
+  const history = useMemo(() => {
+    const formatted: ThesisRequest[] = [];
+
+    // Helper to map DB data to UI Request type
+    const mapToRequest = (data: any, percentage: number, label: string): ThesisRequest => ({
+      ...data,
+      type: label,                  // Fixes missing 'type'
+      percentage: percentage,       // Fixes missing 'percentage' (needed for your locking logic)
+      dateSubmitted: data.created_at // Fixes missing 'dateSubmitted' (maps from created_at)
+    });
+
+    if (data100) formatted.push(mapToRequest(data100, 100, '100% Full Release'));
+    if (data90) formatted.push(mapToRequest(data90, 90, '90% Partial Release'));
+    if (data10) formatted.push(mapToRequest(data10, 10, '10% Final Release'));
+
+    // Sort by most recent
+    return formatted.sort((a, b) => 
+      new Date(b.dateSubmitted).getTime() - new Date(a.dateSubmitted).getTime()
+    );
+  }, [data100, data90, data10]);
 
   return (
     <div className="space-y-6">
@@ -88,12 +139,10 @@ export function ThesisAllowancePanel() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-gray-700">
-          <p className="text-justify">
-            This portal serves as the official channel for uploading necessary documents for processing the <strong>90%, 10%, and 100%</strong> release of the thesis allowance. Kindly ensure that all submissions are complete and accurate to avoid delays in evaluation.
-          </p>
-
-          {/* Requirements Layout */}
-          <div className="space-y-4 mt-4">
+           {/* ... (Keep existing text content identical) ... */}
+           
+           {/* Requirements Layout (Keep existing layout) */}
+            <div className="space-y-4 mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* 90% Release */}
                 <div className="bg-white/60 p-5 rounded-xl border border-blue-100 flex flex-col h-full shadow-sm hover:border-blue-200 transition-colors">
@@ -103,10 +152,10 @@ export function ThesisAllowancePanel() {
                   </h4>
                   <ul className="space-y-3 list-disc list-inside text-gray-700 flex-grow mb-4">
                       <li className="pl-1">
-                        <span className="font-semibold text-gray-900">One-Page Abstract:</span> Include Title, Rationale, Objectives, and Methodology.
+                        <span className="font-semibold text-gray-900">One-Page Abstract:</span> Title, Rationale, Objectives, Methodology.
                       </li>
                       <li className="pl-1">
-                        <span className="font-semibold text-gray-900">Approval Sheet:</span> Signed by Thesis Adviser and school officials.
+                        <span className="font-semibold text-gray-900">Approval Sheet:</span> Signed by Adviser and officials.
                       </li>
                   </ul>
                   <div className="mt-auto pt-3 border-t border-blue-100/50">
@@ -127,10 +176,10 @@ export function ThesisAllowancePanel() {
                   </h4>
                   <ul className="space-y-3 list-disc list-inside text-gray-700 flex-grow mb-4">
                       <li className="pl-1">
-                        <span className="font-semibold text-gray-900">Final Thesis Manuscript:</span> Submit the complete manuscript in PDF Format.
+                        <span className="font-semibold text-gray-900">Final Thesis Manuscript:</span> Complete PDF.
                       </li>
                       <li className="pl-1">
-                        <span className="font-semibold text-gray-900">Signatures:</span> Must include valid signatures from school authorities.
+                        <span className="font-semibold text-gray-900">Signatures:</span> Valid school authorities.
                       </li>
                   </ul>
                 </div>
@@ -145,7 +194,7 @@ export function ThesisAllowancePanel() {
                     <div className="space-y-1">
                         <h4 className="font-bold text-dost-title text-base">To Receive the FULL 100% (₱10,000)</h4>
                         <p className="text-gray-700 text-sm leading-relaxed">
-                            You may submit <strong>ALL</strong> requirements listed above (Abstract, Approval Sheet, and Final Manuscript) simultaneously to process the full amount in a single transaction.
+                            Submit <strong>ALL</strong> requirements above simultaneously.
                         </p>
                     </div>
                  </div>
@@ -153,9 +202,8 @@ export function ThesisAllowancePanel() {
           </div>
 
           <Separator className="bg-blue-200" />
-
-          <div className="text-xs text-gray-700 italic max-w-3xl">
-              <strong>Note:</strong> Processing of financial assistance is subject to the availability of funds for the purpose and to pertinent government accounting and auditing rules.
+          <div className="text-xs text-gray-700 italic max-w-4xl">
+              <strong>Note:</strong> Processing is subject to funds availability.
           </div>
         </CardContent>
       </Card>
@@ -168,35 +216,34 @@ export function ThesisAllowancePanel() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <ThesisOptionSelector
             title="90% Partial Release"
-            description="Submit Abstract & Approval Sheet"
+            description={data90 ? `Status: ${data90.status}` : "Submit Abstract & Approval Sheet"}
             amount="₱9,000"
             icon={FileText}
-            onClick={() => handleSelectOption(90)}
-            disabled={is90Disabled}
+            onClick={() => handleSelectOption('90%')}
+            disabled={false} 
           />
           <ThesisOptionSelector
             title="10% Final Release"
-            description="Submit Final Manuscript"
+            description={data10 ? `Status: ${data10.status}` : "Submit Final Manuscript"}
             amount="₱1,000"
             icon={BookOpen}
-            onClick={() => handleSelectOption(10)}
-            disabled={is10Disabled}
+            onClick={() => handleSelectOption('10%')}
+            disabled={false} // NEVER visually disable 10%, handle logic in onClick
           />
           <ThesisOptionSelector
             title="100% Full Release"
-            description="Submit All Requirements"
+            description={data100 ? `Status: ${data100.status}` : "Submit All Requirements"}
             amount="₱10,000"
             icon={CheckCircle2}
-            onClick={() => handleSelectOption(100)}
-            disabled={is100Disabled}
+            onClick={() => handleSelectOption('100%')}
+            disabled={false}
           />
         </div>
       </div>
 
       <div className="mt-8">
          <RecentThesisSubmissions 
-            onViewDetails={handleViewRequest} 
-            requests={history} 
+            onViewDetails={handleViewRequest} // Passing real data now
          />
       </div>
 

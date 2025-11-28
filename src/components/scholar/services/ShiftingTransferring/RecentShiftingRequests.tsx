@@ -5,7 +5,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatRelativeTime } from '@/lib/utils/date';
 import type { SubmissionStatus, ShiftingType } from '@/types';
 import { Button } from '@/components/ui/button';
-import { useFetchShifting } from '@/hooks/scholars/useFetchShifting';
+import { useFetchShifting } from '@/hooks/scholars/Get/useFetchShifting';
 
 // Mock Data
 const mockRequests = [

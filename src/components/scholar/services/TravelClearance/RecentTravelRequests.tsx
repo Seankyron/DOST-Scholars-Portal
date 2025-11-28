@@ -5,7 +5,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { formatRelativeTime } from '@/lib/utils/date';
 import { Button } from '@/components/ui/button';
 import type { SubmissionStatus, TravelPurpose } from '@/types/services';
-import { useFetchTravelClearance } from '@/hooks/scholars/useFetchTravelClearance';
+import { useFetchTravelClearance } from '@/hooks/scholars/Get/useFetchTravelClearance';
 
 // Mock data
 const mockRequests = [

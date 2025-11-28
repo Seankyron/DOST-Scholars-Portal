@@ -2,12 +2,14 @@ import type { Semester } from './scholar';
 import type { SubmissionStatus } from './services';
 
 export interface SemesterAvailability {
-  year: number;
-  semester: Semester;
+  academicYear: string;
   isAvailable: boolean;
   isCurrent: boolean;
-  isPast: boolean;
   isFuture: boolean;
+  isPast: boolean;
+  semester: Semester;
   status: SubmissionStatus;
-  academicYear?: string;
+  year: number;
+  gradeFileKey: string | null;
+  corFileKey: string | null;
 }

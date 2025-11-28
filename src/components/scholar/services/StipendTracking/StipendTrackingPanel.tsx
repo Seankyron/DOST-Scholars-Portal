@@ -1,161 +1,195 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, Wallet } from 'lucide-react';
+import { AlertCircle, Wallet, Loader2 } from 'lucide-react';
 import { StipendSemCard } from './StipendSemCard';
 import { StipendDetailsModal } from './StipendDetailsModal';
 import { RecentStipendActivity } from './RecentStipendReleases';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue 
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { toast } from '@/components/ui/toaster'; // Import toast from your Sonner wrapper
+import { Select } from '@/components/ui/select';
+import { toast } from '@/components/ui/toaster';
+import { useCurrentScholarStipend } from '@/hooks/scholar/Stipend Tracking/useCurrentScholarStipend';
+import type { StipendPeriodStatus, Semester} from '@/types';
 
+// --- Helper to generate the grid of expected semesters ---
+const getExpectedSemesters = (
+  startYear: number, 
+  duration: number, 
+  midyearClasses: number[] = []
+) => {
+  const semesters = [];
+  for (let i = 0; i < duration; i++) {
+    const yearLevel = i + 1;
+    const acadYearStart = startYear + i;
+    const acadYearLabel = `AY ${acadYearStart}-${acadYearStart + 1}`;
 
-const mockSemesters = [
-  {
-    id: '1-1',
-    yearTitle: '1st Year',
-    semester: '1st Semester',
-    academicYear: 'AY 2023-2024',
-    gradeStatus: 'Approved',
-    stipendStatus: 'On hold',
-    data: {
-       received: 24000,
-       pending: 22000,
-       onHold: true,
-       total: 46000,
-       breakdown: [
-         { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
-         { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
-         { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
-         { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'On hold' },
-         { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'On hold' },
-         { name: 'Book Allowance', amount: 5000, status: 'On hold' },
-         { name: 'Clothing Allowance', amount: 1000, status: 'On hold' },
-       ],
-       updates: [
-         {
-           message: 'Stipend On Hold: Your 1st Semester 2024 stipend (₱22,000) is on hold.',
-           type: 'warning',
-         },
-         {
-           message: 'Admin Note: Your stipend is on hold pending submission of your Form 5.',
-           type: 'info',
-         },
-       ]
+    // 1st Sem
+    semesters.push({
+      id: `${yearLevel}-1`,
+      yearLevel: yearLevel,
+      semester: '1st Semester' as Semester,
+      academicYear: acadYearLabel,
+      yearTitle: `${yearLevel}${getOrdinal(yearLevel)} Year`,
+    });
+
+    // 2nd Sem
+    semesters.push({
+      id: `${yearLevel}-2`,
+      yearLevel: yearLevel,
+      semester: '2nd Semester' as Semester,
+      academicYear: acadYearLabel,
+      yearTitle: `${yearLevel}${getOrdinal(yearLevel)} Year`,
+    });
+
+    // Midyear (if applicable)
+    if (midyearClasses.includes(yearLevel)) {
+      semesters.push({
+        id: `${yearLevel}-Midyear`,
+        yearLevel: yearLevel,
+        semester: 'Midyear' as Semester,
+        academicYear: acadYearLabel,
+        yearTitle: `${yearLevel}${getOrdinal(yearLevel)} Year`,
+      });
     }
-  },
-  {
-    id: '1-2',
-    yearTitle: '1st Year',
-    semester: '2nd Semester',
-    academicYear: 'AY 2023-2024',
-    gradeStatus: 'Approved',
-    stipendStatus: 'Released',
-    data: {
-       received: 45000,
-       pending: 0,
-       onHold: false,
-       total: 45000,
-       breakdown: [
-         { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
-         { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
-         { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
-         { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Released' },
-         { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Released' },
-         { name: 'Book Allowance', amount: 5000, status: 'Released' },
-       ],
-       updates: [
-         {
-           message: 'Your stipend (₱45,000) for this semester has been fully released.',
-           type: 'success',
-         },
-       ]
-    }
-  },
-  {
-    id: '2-1',
-    yearTitle: '2nd Year',
-    semester: '1st Semester',
-    academicYear: 'AY 2024-2025',
-    gradeStatus: 'Approved',
-    stipendStatus: 'Processing',
-    data: {
-       received: 0,
-       pending: 45000,
-       onHold: false,
-       total: 45000,
-       breakdown: [
-         { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Pending' },
-         { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Pending' },
-         { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Pending' },
-         { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Pending' },
-         { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Pending' },
-         { name: 'Book Allowance', amount: 5000, status: 'Pending' },
-       ],
-       updates: [
-         {
-           message: 'Your grade submission has been approved. Your stipend is now processing. Please wait 21 working days.',
-           type: 'info',
-         },
-       ]
-    }
-  },
-  {
-    id: '2-2',
-    yearTitle: '2nd Year',
-    semester: '2nd Semester',
-    academicYear: 'AY 2024-2025',
-    gradeStatus: 'Pending',
-    stipendStatus: 'Locked',
-    data: null
   }
-];
+  // Reverse to show latest first
+  return semesters.reverse();
+};
 
-const recentActivities = [
-  { 
-    id: 1, 
-    title: '1st Year - 2nd Semester', 
-    amount: '₱45,000', 
-    date: 'Mar 20, 2024', 
-    status: 'Released' 
-  },
-  { 
-    id: 2, 
-    title: '1st Year - 1st Semester', 
-    amount: '₱24,000', 
-    date: 'Oct 15, 2023', 
-    status: 'Released' 
-  },
-];
-
+const getOrdinal = (n: number) => {
+  if (n === 1) return 'st';
+  if (n === 2) return 'nd';
+  if (n === 3) return 'rd';
+  return 'th';
+};
 
 export function StipendTrackingPanel() {
-  const [selectedAcademicYear, setSelectedAcademicYear] = useState('All');
-  const [selectedSemester, setSelectedSemester] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // 1. Get User Context
+  // Ideally this should come from a Context Provider, but session storage works for now
+  const userStr = typeof window !== 'undefined' ? sessionStorage.getItem('user') : null;
+  const user = userStr ? JSON.parse(userStr) : null;
 
-  const handleCardClick = (sem: any) => {
-    if (sem.stipendStatus === 'Locked') {
-      // FIX: Use sonner syntax: toast.error(message, { description })
-      toast.error("Access Denied", {
-        description: "You must submit your grades for this semester first.",
-      });
-      return;
+  // 2. Fetch Real Data
+  const { stipend: stipendRecords, loading, error } = useCurrentScholarStipend(user?.spas_id);
+
+  // 3. Calculate Options & Defaults (Memoized)
+  // We generate the Academic Year options *before* state so we can set a default.
+  const academicYearOptions = useMemo(() => {
+    if (!user) return [];
+    const startYear = Number(user.year_awarded);
+    const duration = Number(user.course_duration) || 4;
+    
+    // Generate list of AY strings
+    const options = Array.from({ length: duration }, (_, i) => {
+      const y = startYear + i;
+      return `AY ${y}-${y + 1}`;
+    });
+    
+    // Reverse to show latest first
+    return options.reverse();
+  }, [user]);
+
+  // 4. State
+  const [selectedSemesterData, setSelectedSemesterData] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Initialize with the latest year (first option), or empty string if loading
+  const [filterAcademicYear, setFilterAcademicYear] = useState(academicYearOptions[0] || '');
+
+  // Ensure state updates if user data loads late
+  useEffect(() => {
+    console.log(academicYearOptions)
+    if (academicYearOptions.length > 0 && !filterAcademicYear) {
+      setFilterAcademicYear(academicYearOptions[0]);
     }
-    setSelectedSemester(sem);
-    setIsModalOpen(true);
+  }, [academicYearOptions, filterAcademicYear]);
+
+  // 4. Process Data (Merge Structure with DB Records)
+  type UIStipendStatus = StipendPeriodStatus;
+  const processedSemesters = useMemo(() => {
+    if (!user) return [];
+
+    // Generate the skeleton structure based on user's course duration
+    const skeleton = getExpectedSemesters(
+      Number(user.year_awarded), // Ensure this matches your DB column for Batch/Year Awarded
+      Number(user.course_duration) || 4, // Fallback to 4 if missing
+      user.midyear_classes || []
+    );
+
+    // Merge with real data
+    return skeleton.map((sem) => {
+      // Find matching record in DB
+      const record = stipendRecords?.find(
+        (r) => r.year_level === sem.yearLevel && r.semester === sem.semester
+      );
+
+      // Determine Status
+      let status = 'Not Available'; // Default if no record and in future
+      let received = 0;
+      let pending = 0;
+      
+      if (record) {
+        status = (record.status as UIStipendStatus)|| 'Pending'; // Use DB status
+        received = record.received || 0;
+        pending = record.unreleased || 0; // Assuming 'unreleased' column exists
+      }
+
+      return {
+        ...sem,
+        stipendStatus: status,
+        data: {
+          received,
+          pending,
+          total: received + pending,
+          // Pass raw record data for the modal
+          dbRecord: record 
+        }
+      };
+    });
+  }, [user, stipendRecords]);
+
+  // 6. Filter Logic (Removed 'All' check)
+  const filteredSemesters = processedSemesters.filter(
+    (s) => s.academicYear === filterAcademicYear
+  );
+
+  // 7. Derive Recent Activity
+  const recentActivities = useMemo(() => {
+    if (!stipendRecords) return [];
+    
+    return stipendRecords
+      .filter(r => r.received && r.received > 0) // Only show actual releases
+      .sort((a, b) => {
+         // Sort by updated_at descending
+         return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      })
+      .map((r, index) => ({
+        id: index,
+        title: `${r.year_level}${getOrdinal(r.year_level)} Year - ${r.semester}`,
+        amount: `₱${(r.received || 0).toLocaleString()}`,
+        date: new Date(r.updated_at).toLocaleDateString(),
+        status: r.status
+      }));
+  }, [stipendRecords]);
+  console.log("Stipend Records: ", stipendRecords);    
+
+  // 8. Handlers
+  const handleCardClick = (sem: any) => {
+    // Allow clicking if status is valid
+    // Adjust this condition based on your exact requirements
+    const validStatuses = ['Released', 'On hold', 'Pending'];
+    console.log("Includes? ", validStatuses.includes(sem.stipendStatus))
+    console.log(sem.stipendStatus == 'Pending')
+    console.log("Stipend Status: ", sem.stipendStatus,'Pending')
+    if (validStatuses.includes(sem.stipendStatus)) {
+        setSelectedSemesterData(sem);
+        setIsModalOpen(true);
+    } else {
+        toast.info("No stipend details available for this semester yet.");
+    }
   };
 
-  const filteredSemesters = selectedAcademicYear === 'All' 
-    ? mockSemesters 
-    : mockSemesters.filter(s => s.academicYear === selectedAcademicYear);
+  if (!user) return <div className="p-8 text-center text-gray-500">Loading user profile...</div>;
 
   return (
     <div className="space-y-6">
@@ -176,57 +210,61 @@ export function StipendTrackingPanel() {
             Stipends are processed only after your <strong>Grade Submission</strong> for the corresponding semester has been approved.
           </p>
           <div className="bg-white/60 p-4 rounded-lg border border-blue-100 flex gap-4 items-start">
-             <Wallet className="h-10 w-10 text-dost-blue flex-shrink-0" />
-             <div>
-                <p className="font-semibold text-dost-title mb-1">Processing Time</p>
-                <p className="text-gray-600">Please allow <strong>22 working days</strong> after grade approval for processing. Statuses are updated automatically.</p>
-             </div>
+            <Wallet className="h-10 w-10 text-dost-blue flex-shrink-0" />
+            <div>
+              <p className="font-semibold text-dost-title mb-1">Processing Time</p>
+              <p className="text-gray-600">Please allow <strong>22 working days</strong> after grade approval for processing. Statuses are updated automatically.</p>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* 2. Year Selection */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium text-gray-700">Select Academic Year</Label>
+      {/* 2. Filters */}
+      <div className="w-full max-w-xs">
         <Select
-          value={selectedAcademicYear}
-          onValueChange={(value) => setSelectedAcademicYear(value)}
-        >
-          <SelectTrigger className="w-full bg-white">
-            <SelectValue placeholder="Select Academic Year" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="All">View All</SelectItem>
-            <SelectItem value="AY 2024-2025">AY 2024-2025</SelectItem>
-            <SelectItem value="AY 2023-2024">AY 2023-2024</SelectItem>
-          </SelectContent>
-        </Select>
+          label="Filter by Academic Year"
+          value={filterAcademicYear}
+          onChange={(e) => setFilterAcademicYear(e.target.value)}
+          options={academicYearOptions.map(ay => ({ value: ay, label: ay }))}
+        />
       </div>
 
-      {/* 3. Semester Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredSemesters.map((sem) => (
-          <StipendSemCard 
-            key={sem.id}
-            title={`${sem.yearTitle} - ${sem.semester}`}
-            subtitle={sem.academicYear}
-            status={sem.stipendStatus as any}
-            amountReleased={sem.data?.received}
-            onClick={() => handleCardClick(sem)}
-          />
-        ))}
-      </div>
+      {/* 3. Content Area */}
+      {loading ? (
+         <div className="flex justify-center py-10">
+            <Loader2 className="h-8 w-8 animate-spin text-dost-blue" />
+         </div>
+      ) : (
+        <>
+          {/* Semester Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredSemesters.map((sem) => (
+              <StipendSemCard 
+                key={sem.id}
+                title={`${sem.yearTitle} - ${sem.semester}`}
+                subtitle={sem.academicYear}
+                status={sem.stipendStatus as any}
+                amountReleased={sem.data.received}
+                onClick={() => handleCardClick(sem)}
+              />
+            ))}
+          </div>
 
-      {/* 4. Recent Activity List */}
-      <RecentStipendActivity activities={recentActivities} />
+          {/* Recent Activity List */}
+          {recentActivities.length > 0 && (
+            <RecentStipendActivity activities={recentActivities} />
+          )}
+        </>
+      )}
 
-      {/* 5. Details Modal */}
-      {selectedSemester && (
+      {/* 4. Details Modal */}
+      {selectedSemesterData && (
         <StipendDetailsModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title={`${selectedSemester.yearTitle} - ${selectedSemester.semester}`}
-          data={selectedSemester.data}
+          title={`${selectedSemesterData.yearTitle} - ${selectedSemesterData.semester}`}
+          // Pass the merged data to the modal
+          data={selectedSemesterData.data}
         />
       )}
     </div>

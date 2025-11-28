@@ -33,7 +33,7 @@ const statusConfig: Record<string, { icon: React.ElementType, colorClass: string
     colorClass: "bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white",
     label: "Partially Released"
   },
-  Processing: { 
+  'Pending': { 
     icon: Clock, 
     colorClass: "bg-yellow-100 text-yellow-600 group-hover:bg-yellow-600 group-hover:text-white",
     label: "Processing"

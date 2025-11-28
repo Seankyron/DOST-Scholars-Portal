@@ -36,6 +36,7 @@ export function SubmissionForm({
     // 1. If not resubmitting (New or View), visibility depends purely on ReadOnly mode
     if (!isResubmit) return { isEditable: !isReadOnly };
 
+  // console.log('Submission', submission);
     // 2. If Resubmitting, only unlock fields mentioned in the comment
     const hasMatch = keywords.some(k => adminComment.toLowerCase().includes(k));
     return { isEditable: hasMatch }; 
@@ -48,8 +49,8 @@ export function SubmissionForm({
   // Helper to get display name
   const regFileName = regForm?.name || submission?.registrationForm || "No file uploaded";
   const gradesFileName = gradesFile?.name || submission?.copyOfGrades || "No file uploaded";
-  const regFileUrl = submission?.registrationFormUrl;
-  const gradesFileUrl = submission?.copyOfGradesUrl;
+  const regFileUrl = submission?.registrationForm;
+  const gradesFileUrl = submission?.copyOfGrades;
 
   return (
     <div className="space-y-6">

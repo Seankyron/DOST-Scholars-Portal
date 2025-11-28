@@ -19,10 +19,10 @@ import { toast } from '@/components/ui/toaster';
 import { AdminCommentAlert } from '@/components/shared/AdminCommenAlert';
 import type { TravelPurpose } from '@/types/services';
 import { differenceInCalendarDays } from 'date-fns'; 
-import { useSubmitTravelClearance, SubmissionData } from '@/hooks/scholars/useSubmitTravelClearance';
+import { useSubmitTravelClearance, SubmissionData } from '@/hooks/scholars/Post/useSubmitTravelClearance';
 import { OfficialBusinessForm } from './OfficialBusinessForm';
 import { OtherPurposesForm } from './OtherPurposesForm';
-import { useUploadDocument } from '@/hooks/scholars/useUploadDocument';
+import { useUploadDocument } from '@/hooks/scholars/Post/useUploadDocument';
 
 interface TravelClearanceModalProps {
   isOpen: boolean;

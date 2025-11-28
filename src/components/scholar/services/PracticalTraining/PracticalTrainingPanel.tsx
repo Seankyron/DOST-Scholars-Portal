@@ -8,6 +8,10 @@ import { Separator } from '@/components/ui/separator';
 import { PracticalTrainingModal } from './PracticalTrainingModal';
 import { ActionSelector } from './ActionSelector'; 
 import { RecentPTPRequests } from './RecentPTPRequests'; 
+import { toast } from '@/components/ui/toaster'; // Import Toast
+
+// Import the hook to fetch data
+import { useCurrentScholarPTP } from '@/hooks/scholar/PTP Submission/useCurrentScholarPTP';
 
 export type PTPTransactionType = 'Referral Letter' | 'Program Completion';
 
@@ -16,7 +20,23 @@ export function PracticalTrainingPanel() {
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Fetch the Referral Letter data to check its status
+  const { data: referralData, loading: referralLoading } = useCurrentScholarPTP('Referral Letter');
+
   const handleSelectAction = (action: PTPTransactionType) => {
+    // LOGIC: Check conditions before opening Program Completion
+    if (action === 'Program Completion') {
+        if (referralLoading) {
+            return; // Prevent clicking while loading
+        }
+        
+        // Condition: Data must exist AND Status must be 'Approved'
+        if (!referralData || referralData.status !== 'Approved') {
+            toast.error("You must have an approved Referral Letter before submitting completion documents.");
+            return; // Stop execution, do not open modal
+        }
+    }
+
     setSelectedAction(action);
     setSelectedRequest(null);
     setIsModalOpen(true);
@@ -114,7 +134,7 @@ export function PracticalTrainingPanel() {
                    variant="outline" 
                    size="sm" 
                    asChild
-                   className="w-full bg-white hover:bg-blue-50 text-dost-title border-blue-200"
+                   className="w-full bg-white hover:bg-blue-50 text-dost-title border-blue-200 justify-start"
                  >
                     <a href="/templates/ptp/Forms_126-128_PTP.pdf" download target="_blank" rel="noopener noreferrer">
                       <Download className="h-3 w-3 mr-2" />
@@ -125,7 +145,7 @@ export function PracticalTrainingPanel() {
                    variant="outline" 
                    size="sm" 
                    asChild
-                   className="w-full bg-white hover:bg-blue-50 text-dost-title border-blue-200"
+                   className="w-full bg-white hover:bg-blue-50 text-dost-title border-blue-200 justify-start"
                  >
                     <a href="/templates/ptp/DTR.pdf" download target="_blank" rel="noopener noreferrer">
                       <Download className="h-3 w-3 mr-2" />
@@ -150,7 +170,7 @@ export function PracticalTrainingPanel() {
           </div>
 
           {/* Footer Note */}
-          <div className="text-xs text-gray-700 italic max-w-3xl">
+          <div className="text-xs text-gray-700 italic max-w-4xl">
               <strong>Note:</strong> If your OJT is scheduled during midyear, also submit your <strong>Certified Complete Grades</strong> and <strong>Official Registration Form</strong> through the <strong>Grade Submission</strong> module.
           </div>
         </CardContent>
@@ -188,7 +208,7 @@ export function PracticalTrainingPanel() {
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           type={selectedAction!}
-          existingRequest={selectedRequest}
+          existingRequest={selectedRequest as any}
         />
       )}
     </div>

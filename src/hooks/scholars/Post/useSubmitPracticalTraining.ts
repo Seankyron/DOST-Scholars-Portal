@@ -15,6 +15,7 @@ export interface SubmissionData {
   comment?: string | null;
   type: string;
   status: string;
+  updated_at?: string | null;
 }
 
 export const useSubmitPraticalTraining = () => {
@@ -43,7 +44,8 @@ export const useSubmitPraticalTraining = () => {
             plan: data.plan,
             comment: data.comment,
             type: data.type,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
+            updated_at: data.updated_at
           });
         
         if (error) { throw new Error(error.message); }

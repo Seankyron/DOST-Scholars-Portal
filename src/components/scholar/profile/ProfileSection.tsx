@@ -19,9 +19,11 @@ import { toast } from 'sonner'; // Ensure importing from sonner or your toaster 
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { ScholarStatus, SubmissionStatus } from '@/types';
 import { QRCodeModal } from './QRCodeModal';
-import { useFetchScholar } from "@/hooks/scholars/useFetchScholar";
+import { useFetchScholar } from "@/hooks/scholars/Get/useFetchScholar";
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils/cn';
+import { useCurrentScholar } from "@/hooks/scholar/useCurrentScholar";
+
 
 // Helper component for clean list items
 function InfoItem({
@@ -56,7 +58,7 @@ export function ProfileSection() {
 
   useEffect(() => {
     if (scholar) {
-      sessionStorage.setItem("scholar", JSON.stringify(scholar));
+      sessionStorage.setItem("user", JSON.stringify(scholar));
     }
   }, [scholar]);
 
