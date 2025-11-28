@@ -118,7 +118,7 @@ export function ShiftingTransferringModal({
     setAdminComment(submissionInfo.adminComment || '');
   }, [submissionInfo.status, submissionInfo.adminComment]);
 
-  const isActionable = currentStatus === 'Pending';
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {

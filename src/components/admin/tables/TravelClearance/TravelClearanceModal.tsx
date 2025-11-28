@@ -121,7 +121,7 @@ export function TravelClearanceModal({
   }, [submissionInfo.status, submissionInfo.adminComment]);
 
   // Determine if the modal is in "Action Mode" or "Read-Only Mode"
-  const isActionable = currentStatus === 'Pending';
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {

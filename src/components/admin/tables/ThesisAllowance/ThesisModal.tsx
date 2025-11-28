@@ -107,6 +107,7 @@ export function ThesisModal({
 }: ThesisModalProps) {
   const { scholarInfo, percentage, abstract, approvalSheet, finalManuscript, registrationForm } = request;
   
+  const pct = Number(percentage);
   // Local state to handle immediate updates
   const [currentStatus, setCurrentStatus] = useState(request.status);
   const [adminComment, setAdminComment] = useState(request.adminComment || '');
@@ -119,7 +120,7 @@ export function ThesisModal({
     setAdminComment(request.adminComment || '');
   }, [request.status, request.adminComment]);
 
-  const isActionable = currentStatus === 'Pending';
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev: string) => {
@@ -154,8 +155,9 @@ export function ThesisModal({
   );
 
   const getReleaseTitle = () => {
-    if (percentage === 90) return '90% Partial Release';
-    if (percentage === 10) return '10% Final Release';
+    // FIX: Compare using the numeric variable 'pct'
+    if (pct === 90) return '90% Partial Release';
+    if (pct === 10) return '10% Final Release';
     return '100% Full Release';
   };
 
@@ -299,7 +301,7 @@ export function ThesisModal({
                     />
 
                     {/* 90% and 100% require Abstract & Approval */}
-                    {(percentage === 90 || percentage === 100) && (
+                    {(pct === 90 || pct === 100) && (
                         <>
                             <FileDisplay
                                 label="One-Page Abstract"
@@ -315,7 +317,7 @@ export function ThesisModal({
                     )}
 
                     {/* 10% and 100% require Final Manuscript */}
-                    {(percentage === 10 || percentage === 100) && (
+                    {(pct === 10 || pct === 100) && (
                         <FileDisplay
                             label="Final Thesis Manuscript"
                             fileName={finalManuscript}
@@ -413,7 +415,7 @@ export function ThesisModal({
       
       <ConfirmDialog
         isOpen={isResubmitOpen}
-        onClose={() => setIsResubmitOpen(false)}
+        onClose={() => setIsResubmitOpen(false)}  
         onConfirm={handleResubmit}
         title="Request Resubmission"
         description={`Are you sure you want to request resubmission from ${scholarInfo.name}? Ensure the comments are clear.`}

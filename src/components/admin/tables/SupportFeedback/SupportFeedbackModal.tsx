@@ -110,7 +110,7 @@ export function SupportFeedbackModal({
     setAdminResponse(submissionInfo.adminResponse || '');
   }, [submissionInfo]);
 
-  const isActionable = currentStatus === 'Pending' || currentStatus === 'Processing' || currentStatus === 'Resubmit';
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
 
   const handleAddResponse = (text: string) => {
     setAdminResponse((prev) => (prev.trim() === '' ? text : `${prev}\n\n${text}`));

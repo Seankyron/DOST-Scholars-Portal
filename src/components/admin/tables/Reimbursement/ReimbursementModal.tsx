@@ -128,7 +128,7 @@ export function ReimbursementModal({
     currency: 'PHP',
   }).format(amount);
 
-  const isActionable = currentStatus === 'Pending';
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {

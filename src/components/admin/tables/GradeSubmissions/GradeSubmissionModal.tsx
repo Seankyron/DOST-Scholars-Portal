@@ -128,7 +128,7 @@ export function GradeSubmissionModal({
     setScholarStatusState(scholarStatus);
   }, [submissionInfo.status, submissionInfo.adminComment, scholarStatus]);
 
-  const isActionable = currentStatus === 'Pending';
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {
