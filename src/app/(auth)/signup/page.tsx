@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { FullPageLoader } from '@/components/shared/FullPageLoader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -18,6 +19,7 @@ import {
 } from '@/lib/utils/constants'; // Assuming this path is correct
 import { isValidScholarId } from '@/lib/utils/validation'; // Assuming this path is correct
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 
 type SignupStep = 1 | 2 | 3 | 4;
 
@@ -339,9 +341,12 @@ export default function SignupPage() {
 
   const provinceOptions = PROVINCES.map(p => ({ value: p, label: p }));
 
-  // --- [Your existing JSX (return statement)] ---
-  // I have made one small but important fix to the OJT Year select
   return (
+    <>
+    <FullPageLoader 
+        isLoading={isLoading} 
+        message="Creating your account..." 
+      />
     <div className="bg-white rounded-2xl shadow-xl p-8">
       {/* Header */}
       <div className="mb-8">
@@ -723,5 +728,6 @@ export default function SignupPage() {
         </p>
       </div>
     </div>
+    </>
   );
 }

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FullPageLoader } from '@/components/shared/FullPageLoader';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -58,6 +59,8 @@ export default function LoginPage() {
   };
 
   return (
+    <>
+    <FullPageLoader isLoading={isLoading} message="Authenticating..." />
     <div className="bg-white rounded-2xl shadow-xl p-8">
       <div className="mb-6">
         <h2 className="text-3xl font-bold text-dost-title mb-2">Sign In</h2>
@@ -130,5 +133,6 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+    </>
   );
 }
