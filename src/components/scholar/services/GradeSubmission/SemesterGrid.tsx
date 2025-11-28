@@ -9,6 +9,18 @@ interface SemesterGridProps {
   academicYear: string;
 }
 
+interface User {
+  spas_id: string;
+  batch: number;
+  scholarship_type: string;
+  midyear_classes: number[]; // array of years that have Midyear semester
+}
+
+interface Semester {
+  year: number;
+  type: "Regular" | "Midyear";
+}
+
 export function SemesterGrid({ 
   semesters, 
   onSelectSemester, 
@@ -20,7 +32,6 @@ export function SemesterGrid({
     (acc[sem.year] = acc[sem.year] || []).push(sem);
     return acc;
   }, {} as Record<number, SemesterAvailability[]>);
-
 
   const yearLabels: { [key: number]: string } = {
     1: 'First Year',

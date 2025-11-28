@@ -39,6 +39,7 @@ export function StipendUpdates({ updates }: StipendUpdatesProps) {
                 update.type === 'error' && 'text-red-800'
               )}
             >
+              {/* Icon Selection */}
               {update.type === 'warning' ? (
                 <AlertOctagon className="h-5 w-5 flex-shrink-0 mt-0.5 text-orange-600" />
               ) : update.type === 'success' ? (
@@ -48,7 +49,18 @@ export function StipendUpdates({ updates }: StipendUpdatesProps) {
               ) : (
                 <Info className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
               )}
-              <p className="text-sm">{update.message}</p>
+
+              {/* Content Container */}
+              <div className="flex-1">
+                <p className="text-sm leading-snug">{update.message}</p>
+                
+                {/* Render Date if available */}
+                {update.date && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    {update.date}
+                  </p>
+                )}
+              </div>
             </div>
           ))}
         </div>

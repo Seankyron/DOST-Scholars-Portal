@@ -8,6 +8,10 @@ import { Separator } from '@/components/ui/separator';
 import { PracticalTrainingModal } from './PracticalTrainingModal';
 import { ActionSelector } from './ActionSelector'; 
 import { RecentPTPRequests } from './RecentPTPRequests'; 
+import { toast } from '@/components/ui/toaster'; // Import Toast
+
+// Import the hook to fetch data
+import { useCurrentScholarPTP } from '@/hooks/scholar/PTP Submission/useCurrentScholarPTP';
 
 export type PTPTransactionType = 'Referral Letter' | 'Program Completion';
 
@@ -16,7 +20,23 @@ export function PracticalTrainingPanel() {
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Fetch the Referral Letter data to check its status
+  const { data: referralData, loading: referralLoading } = useCurrentScholarPTP('Referral Letter');
+
   const handleSelectAction = (action: PTPTransactionType) => {
+    // LOGIC: Check conditions before opening Program Completion
+    if (action === 'Program Completion') {
+        if (referralLoading) {
+            return; // Prevent clicking while loading
+        }
+        
+        // Condition: Data must exist AND Status must be 'Approved'
+        if (!referralData || referralData.status !== 'Approved') {
+            toast.error("You must have an approved Referral Letter before submitting completion documents.");
+            return; // Stop execution, do not open modal
+        }
+    }
+
     setSelectedAction(action);
     setSelectedRequest(null);
     setIsModalOpen(true);
@@ -188,7 +208,7 @@ export function PracticalTrainingPanel() {
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           type={selectedAction!}
-          existingRequest={selectedRequest}
+          existingRequest={selectedRequest as any}
         />
       )}
     </div>

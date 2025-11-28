@@ -22,6 +22,8 @@ import { QRCodeModal } from './QRCodeModal';
 import { useFetchScholar } from "@/hooks/scholars/Get/useFetchScholar";
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils/cn';
+import { useCurrentScholar } from "@/hooks/scholar/useCurrentScholar";
+
 
 // Helper component for clean list items
 function InfoItem({
