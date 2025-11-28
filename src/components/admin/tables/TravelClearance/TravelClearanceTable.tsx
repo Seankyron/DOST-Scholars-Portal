@@ -131,6 +131,41 @@ export function TravelClearanceTable({ searchTerm }: TravelClearanceTableProps) 
             coMakerId: 'id.pdf'
           },
         },
+        {
+          id: '4',
+          spas_id: '2023-101',
+          purpose: 'Official Business Travel',
+          scholarInfo: {
+            name: 'Marco Polo',
+            spas_id: '2023-101',
+            email: 'marco.polo@example.com',
+            contactNumber: '09998887777',
+            completeAddress: 'Davao City',
+          },
+          placementInfo: {
+            scholarshipType: 'RA 7687',
+            batch: 2023,
+            university: 'Ateneo de Davao',
+            program: 'BS Environmental Science',
+          },
+          travelDetails: {
+            destination: 'Bangkok, Thailand',
+            departureDate: '2024-09-10',
+            arrivalDate: '2024-09-15',
+            duration: '5 Days'
+          },
+          submissionInfo: {
+            dateSubmitted: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+            status: 'Resubmit',
+            // Triggers "To Resubmit" on Request Letter
+            adminComment: 'The Request Letter does not indicate the specific dates of travel. Please revise and resubmit.', 
+          },
+          files: {
+            requestLetter: 'incomplete_letter.pdf',
+            requestForm: 'form.pdf',
+            guaranteeLetter: 'guarantee.pdf',
+          },
+        },
       ];
 
       setRequests(mockData);
@@ -167,12 +202,12 @@ export function TravelClearanceTable({ searchTerm }: TravelClearanceTableProps) 
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scholar</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University / Program</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destination</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Travel Dates</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Submitted</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University / Program</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>

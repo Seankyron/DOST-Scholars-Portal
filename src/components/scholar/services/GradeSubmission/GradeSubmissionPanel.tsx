@@ -7,7 +7,7 @@ import { SemesterGrid } from './SemesterGrid';
 import { RecentSubmissions } from './RecentSubmissions';
 import { GradeSubmissionModal } from './GradeSubmissionModal';
 import { toast } from '@/components/ui/toaster';
-import { Select } from '@/components/ui/select';
+import { SelectInput as Select } from '@/components/ui/select';
 import { useCurrentScholarGrade, type iGradeSubmissions } from '@/hooks/scholar/Grade Submission/useCurrentScholarGrade';
 import type { SemesterAvailability, SubmissionStatus, Semester } from '@/types';
 import { comment } from 'postcss';

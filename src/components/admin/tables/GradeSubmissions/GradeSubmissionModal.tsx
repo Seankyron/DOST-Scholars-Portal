@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   ModalContent,
@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Download, MessageSquarePlus } from 'lucide-react';
+import { Download, MessageSquarePlus} from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import type { GradeSubmissionDetails } from './GradeSubmissionsTable';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -43,18 +43,18 @@ function FileDisplay({
   return (
     <div>
       <div className="flex justify-between items-center mb-1">
-        <Label className="text-sm font-medium text-gray-700 truncate" title={label}>{label}</Label>
+        <Label className="text-xs font-medium text-gray-700 truncate" title={label}>{label}</Label>
+        {/* The red indicator label */}
         {needsResubmit && (
-          <span className="text-xs font-medium text-red-600 flex-shrink-0 ml-2">To Resubmit</span>
+          <span className="text-[10px] font-medium text-red-600 flex-shrink-0 ml-2">To Resubmit</span>
         )}
       </div>
-      <div className="flex items-center justify-between p-3 pl-4 border rounded-lg bg-gray-50">
+      {/* The red background/border styling */}
+      <div className={`flex items-center justify-between p-3 pl-4 border rounded-lg transition-colors ${needsResubmit ? 'bg-red-50 border-red-200' : 'bg-gray-50'}`}>
         {fileName ? (
           <>
-            <span className="text-sm font-medium text-gray-800 truncate" title={fileName}>{fileName}</span>
+            <span className={`text-sm font-medium truncate ${needsResubmit ? 'text-red-700' : 'text-gray-800'}`} title={fileName}>{fileName}</span>
             <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
-              <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="View">
-              </Button>
               <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="Download">
                 <Download className="h-4 w-4" />
               </Button>
@@ -86,7 +86,7 @@ const PREBUILT_COMMENTS = [
   },
   {
     key: 'grades_wrong_doc',
-    text: 'Incorrect document uploaded for Grades. Please upload your Copy of Grades.',
+    text: 'Wrong document uploaded for Grades. Please upload your Copy of Grades.',
     short: 'Wrong Grades Doc',
   },
   {
@@ -113,11 +113,22 @@ export function GradeSubmissionModal({
 }: GradeSubmissionModalProps) {
   const { scholarInfo, placementInfo, submissionInfo, files, scholarStatus } = submission;
   
+  // Local state to handle immediate updates
+  const [currentStatus, setCurrentStatus] = useState(submissionInfo.status);
   const [scholarStatusState, setScholarStatusState] = useState(scholarStatus);
   const [adminComment, setAdminComment] = useState(submissionInfo.adminComment || '');
 
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
+
+  // Sync local state when the prop changes (e.g., when reopening the modal)
+  useEffect(() => {
+    setCurrentStatus(submissionInfo.status);
+    setAdminComment(submissionInfo.adminComment || '');
+    setScholarStatusState(scholarStatus);
+  }, [submissionInfo.status, submissionInfo.adminComment, scholarStatus]);
+
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {
@@ -126,39 +137,73 @@ export function GradeSubmissionModal({
     });
   };
 
+  const comment = adminComment.toLowerCase();
+
+  // 1. Regex Helper: Checks for WHOLE words (prevents 'cor' matching inside 'incorrect')
+  const hasKeyword = (keywords: string[]) => {
+    return keywords.some((keyword) => {
+      const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${safeKeyword}\\b`, 'i'); 
+      return regex.test(comment);
+    });
+  };
+
+  const mentionsBoth = hasKeyword(['both', 'all', 'everything']);
+
+  const showCorResubmit = (
+    mentionsBoth || 
+    hasKeyword(['registration', 'form 5', 'cor', 'enrollment', 'reg form', 'certificate'])
+  ) && currentStatus !== 'Approved';
+
+  const showGradesResubmit = (
+    mentionsBoth || 
+    hasKeyword(['grade', 'grades', 'cog', 'card', 'rating', 'scholastic'])
+  ) && currentStatus !== 'Approved';
+
+  // 5. Blocker Logic: Prevents approval if any negative keywords are found
+  const hasResubmitRequest = (
+    showCorResubmit || 
+    showGradesResubmit || 
+    hasKeyword(['incorrect', 'invalid', 'wrong', 'resubmit', 'missing', 'blurry'])
+  );
+
+  const handleAttemptApprove = () => {
+    if (hasResubmitRequest) {
+      toast.error("Action Blocked", {
+        description: "You cannot approve this request while the comment indicates issues. Please edit the comment or request resubmission."
+      });
+      return;
+    }
+    setIsApproveOpen(true);
+  };
+
   const handleApprove = async () => {
     const finalComment = adminComment.trim() === '' ? APPROVED_MESSAGE : adminComment;
 
      try{
-        // Update Grade Submission
         let { error: updateError } = await supabase
         .from('Grade Submission')
-        .update({
-          status: "Approved",
-          comment: finalComment,
-        })
+        .update({ status: "Approved", comment: finalComment })
         .eq('id', submission.id);
 
         if(updateError) throw new Error(updateError.message);
        
-        // Update User Status
         const { error: userError } = await supabase
         .from('User')
-        .update({
-          scholarship_status: scholarStatusState,
-        })
+        .update({ scholarship_status: scholarStatusState })
         .eq('spas_id', submission.spas_id);
 
         if (userError) throw new Error(userError.message);
         
         toast.success('Submission Approved', { description: `${scholarInfo.name} has been notified.` });
+        
+        setCurrentStatus('Approved');
         onUpdate();
+        setIsApproveOpen(false);
+        onClose(); 
     }catch(e: any){
         console.error('Update failed:', e);
         toast.error('Update Failed', { description: e.message });
-    }finally{
-        setIsApproveOpen(false);
-        onClose(); 
     }
   };
 
@@ -171,20 +216,14 @@ export function GradeSubmissionModal({
     try{
         const { error: updateError } = await supabase
         .from('Grade Submission')
-        .update({
-          status: "Resubmit",
-          comment: adminComment,
-        })
+        .update({ status: "Resubmit", comment: adminComment })
         .eq('id', submission.id);
 
         if(updateError) throw new Error(updateError.message);
 
-         // Update User Status
         const { error: userError } = await supabase
         .from('User')
-        .update({
-          scholarship_status: scholarStatusState,
-        })
+        .update({ scholarship_status: scholarStatusState })
         .eq('spas_id', submission.spas_id);
 
         if (userError) throw new Error(userError.message);
@@ -193,19 +232,16 @@ export function GradeSubmissionModal({
             description: `${scholarInfo.name} has been notified.`,
             className: "bg-yellow-50 border-yellow-200", 
         });
+
+        setCurrentStatus('Resubmit');
         onUpdate();
+        setIsResubmitOpen(false);
+        // We keep the modal open so you can see the red flags update immediately
     }catch(e: any){
         console.error('Update failed:', e);
         toast.error('Update Failed', { description: e.message });
-    }finally{
-        setIsResubmitOpen(false);
-        onClose(); 
     }
   };
-
-  const comment = adminComment.toLowerCase();
-  const showCorResubmit = comment.includes('registration') || comment.includes('form 5');
-  const showGradesResubmit = comment.includes('grades');
 
   return (
     <>
@@ -222,106 +258,52 @@ export function GradeSubmissionModal({
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               
-              {/* === COLUMN 1: Scholar Info & Details === */}
+              {/* === COLUMN 1 === */}
               <div className="flex flex-col gap-6 h-full">
-                {/* Card 1: Scholar Info */}
                 <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
-                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                    Scholar Information
-                  </h2>
+                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">Scholar Information</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoItem label="Name" value={scholarInfo.name} />
+                    <InfoItem label="SPAS ID" value={scholarInfo.completeAddress} />
                     <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
-                    <InfoItem label="Date of Birth" value={scholarInfo.dateOfBirth} />
-                    <InfoItem label="Complete Address" value={scholarInfo.completeAddress} />
+                    <InfoItem label="Email" value={scholarInfo.dateOfBirth} />
                   </div>
                 </section>
 
-                {/* Card 2: Submission Details & Status Update */}
                 <section className="bg-white border rounded-lg shadow-sm p-5 space-y-4 flex-1">
-                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                    Submission Details
-                  </h2>
-                  
-                  {/* Read-Only Info */}
+                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">Submission Details</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoItem label="Academic Year" value={submissionInfo.academicYear} />
                     <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
-                    <InfoItem label="Current Submission Status" value={
-                        <StatusBadge status={submissionInfo.status} className="mt-1"/>
-                    } />
+                    <InfoItem label="Current Submission Status" value={<StatusBadge status={currentStatus} className="mt-1"/>} />
                   </div>
 
-                  {/* Status Update Control */}
                   <div className="pt-4 border-t mt-2">
-                    <Label className="block text-xs font-semibold text-gray-500 uppercase mb-3">
-                      Update Scholar Status
-                    </Label>
+                    <Label className="block text-xs font-semibold text-gray-500 uppercase mb-3">Update Scholar Status</Label>
                     <div className="grid grid-cols-2 gap-3 text-sm">
-                      {/* Active */}
-                      <div className="flex items-center gap-2">
-                        <input 
-                          type="radio" 
-                          id="status-active" 
-                          name="scholarStatus" 
-                          value="Active" 
-                          checked={scholarStatusState === 'Active'} 
-                          onChange={() => setScholarStatusState('Active')} 
-                          className="accent-dost-title h-4 w-4"
-                        />
-                        <Label htmlFor="status-active" className="cursor-pointer">Active</Label>
-                      </div>
-                      {/* Warning */}
-                      <div className="flex items-center gap-2">
-                        <input 
-                          type="radio" 
-                          id="status-warning" 
-                          name="scholarStatus" 
-                          value="Warning" 
-                          checked={scholarStatusState === 'Warning'} 
-                          onChange={() => setScholarStatusState('Warning')} 
-                          className="accent-dost-title h-4 w-4"
-                        />
-                        <Label htmlFor="status-warning" className="cursor-pointer">Warning</Label>
-                      </div>
-                      {/* 2nd Warning */}
-                      <div className="flex items-center gap-2">
-                        <input 
-                          type="radio" 
-                          id="status-2ndwarning" 
-                          name="scholarStatus" 
-                          value="2nd Warning" 
-                          checked={scholarStatusState === '2nd Warning'} 
-                          onChange={() => setScholarStatusState('2nd Warning')} 
-                          className="accent-dost-title h-4 w-4"
-                        />
-                        <Label htmlFor="status-2ndwarning" className="cursor-pointer">2nd Warning</Label>
-                      </div>
-                      {/* Suspended */}
-                      <div className="flex items-center gap-2">
-                        <input 
-                          type="radio" 
-                          id="status-suspended" 
-                          name="scholarStatus" 
-                          value="Suspended" 
-                          checked={scholarStatusState === 'Suspended'} 
-                          onChange={() => setScholarStatusState('Suspended')} 
-                          className="accent-dost-title h-4 w-4"
-                        />
-                        <Label htmlFor="status-suspended" className="cursor-pointer">Suspended</Label>
-                      </div>
+                      {['Active', 'Warning', '2nd Warning', 'Suspended'].map((status) => (
+                        <div key={status} className="flex items-center gap-2">
+                          <input 
+                            type="radio" 
+                            id={`status-${status}`} 
+                            name="scholarStatus" 
+                            value={status} 
+                            checked={scholarStatusState === status} 
+                            onChange={() => setScholarStatusState(status as any)} 
+                            className="accent-dost-title h-4 w-4"
+                          />
+                          <Label htmlFor={`status-${status}`} className="cursor-pointer">{status}</Label>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </section>
               </div>
 
-              {/* === COLUMN 2: Placement & Documents === */}
+              {/* === COLUMN 2 === */}
               <div className="flex flex-col gap-6 h-full">
-                {/* Card 3: Placement Info */}
                 <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
-                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                    Placement Information
-                  </h2>
+                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">Placement Information</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoItem label="Scholarship Type" value={placementInfo.scholarshipType} />
                     <InfoItem label="Batch / Year Awarded" value={placementInfo.batch} />
@@ -330,11 +312,8 @@ export function GradeSubmissionModal({
                   </div>
                 </section>
 
-                {/* Card 4: Documents */}
                 <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex-1">
-                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                    Submitted Documents
-                  </h2>
+                  <h2 className="text-lg font-semibold text-dost-title border-b pb-2">Submitted Documents</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <FileDisplay
                         label="Course Curriculum"
@@ -355,85 +334,52 @@ export function GradeSubmissionModal({
               </div>
             </div>
 
-            {/* --- FULL WIDTH SECTION: Comments --- */}
+            {/* --- COMMENTS SECTION --- */}
             <section className="bg-white border rounded-lg shadow-sm p-5">
                <div className="space-y-2">
-                  <Label htmlFor="admin-comment" className="block text-sm font-medium text-gray-700">
-                    Admin Comments
-                  </Label>
-                  <Textarea
-                    id="admin-comment"
-                    placeholder="Add comments for the scholar... (e.g., 'Invalid COR' or 'Congratulations on your grades!')"
-                    className="min-h-[100px]"
-                    value={adminComment}
-                    onChange={(e) => setAdminComment(e.target.value)}
-                  />
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {PREBUILT_COMMENTS.map((comment) => (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        key={comment.key}
-                        onClick={() => handleAddComment(comment.text)}
-                        className="text-xs h-auto py-1 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
-                      >
-                        <MessageSquarePlus className="h-3 w-3 mr-1.5" />
-                        {comment.short}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+                  <Label htmlFor="admin-comment" className="block text-sm font-medium text-gray-700">Admin Comments</Label>
+                  {isActionable ? (
+                    <>
+                      <Textarea
+                        id="admin-comment"
+                        placeholder="Add comments..."
+                        className="min-h-[100px]"
+                        value={adminComment}
+                        onChange={(e) => setAdminComment(e.target.value)}
+                      />
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {PREBUILT_COMMENTS.map((c) => (
+                          <Button key={c.key} type="button" variant="outline" size="sm" onClick={() => handleAddComment(c.text)} className="text-xs h-auto py-1 px-2 border-blue-200 text-blue-700 hover:bg-blue-50">
+                            <MessageSquarePlus className="h-3 w-3 mr-1.5" />{c.short}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-3 bg-gray-50 border rounded-md min-h-[60px] text-sm text-gray-600 whitespace-pre-line">
+                       {adminComment || <span className="text-gray-400 italic">No comments provided.</span>}
+                    </div>
+                  )}
+               </div>
             </section>
-
           </ModalBody>
 
           <ModalFooter>
             <ModalClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
+              <Button type="button" variant="outline">{isActionable ? 'Cancel' : 'Close'}</Button>
             </ModalClose>
-            <Button
-              type="button"
-              variant="primary"
-              className="bg-red-600 hover:bg-red-700"
-              onClick={() => setIsResubmitOpen(true)}
-            >
-              REQUEST RESUBMISSION
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              className="bg-green-600 hover:bg-green-700"
-              onClick={() => setIsApproveOpen(true)}
-            >
-              APPROVE
-            </Button>
+            {isActionable && (
+              <>
+                <Button type="button" variant="primary" className="bg-red-600 hover:bg-red-700" onClick={() => setIsResubmitOpen(true)}>REQUEST RESUBMISSION</Button>
+                <Button type="button" variant="primary" className="bg-green-600 hover:bg-green-700" onClick={handleAttemptApprove}>APPROVE</Button>
+              </>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>
 
-      {/* --- Confirmation Dialogs --- */}
-      <ConfirmDialog
-        isOpen={isApproveOpen}
-        onClose={() => setIsApproveOpen(false)}
-        onConfirm={handleApprove}
-        title="Approve Submission"
-        description={`Are you sure you want to approve this submission for ${scholarInfo.name}?`}
-        variant="info"
-        confirmText="Yes, approve"
-      />
-      
-      <ConfirmDialog
-        isOpen={isResubmitOpen}
-        onClose={() => setIsResubmitOpen(false)}
-        onConfirm={handleResubmit}
-        title="Request Resubmission"
-        description={`Are you sure you want to request resubmission from ${scholarInfo.name}? Make sure you have added a clear comment.`}
-        variant="danger"
-        confirmText="Yes, request resubmission"
-      />
+      <ConfirmDialog isOpen={isApproveOpen} onClose={() => setIsApproveOpen(false)} onConfirm={handleApprove} title="Approve Submission" description={`Are you sure you want to approve this submission for ${scholarInfo.name}?`} variant="info" confirmText="Yes, approve"/>
+      <ConfirmDialog isOpen={isResubmitOpen} onClose={() => setIsResubmitOpen(false)} onConfirm={handleResubmit} title="Request Resubmission" description={`Are you sure you want to request resubmission from ${scholarInfo.name}?`} variant="danger" confirmText="Yes, request resubmission"/>
     </>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   ModalContent,
@@ -43,20 +43,22 @@ function FileDisplay({
   return (
     <div>
       <div className="flex justify-between items-center mb-1">
-        <Label className="text-sm font-medium text-gray-700 truncate" title={label}>{label}</Label>
+        <Label className="text-xs font-medium text-gray-700 truncate" title={label}>{label}</Label>
         {needsResubmit && (
-          <span className="text-xs font-medium text-red-600 flex-shrink-0 ml-2">To Resubmit</span>
+          <span className="text-[10px] font-bold text-red-600 flex-shrink-0 ml-2">To Resubmit</span>
         )}
       </div>
-      <div className="flex items-center justify-between p-3 pl-4 border rounded-lg bg-gray-50">
+      <div className={`flex items-center justify-between p-2 pl-3 border rounded-lg h-12 transition-colors ${needsResubmit ? 'bg-red-50 border-red-200' : 'bg-gray-50'}`}>
         {fileName ? (
            <>
-             <span className="text-sm font-medium text-gray-800 truncate" title={fileName}>{fileName}</span>
-             <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
-               <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="View">
+             <span className={`text-sm font-medium truncate flex-1 mr-2 ${needsResubmit ? 'text-red-700' : 'text-gray-800'}`} title={fileName}>
+               {fileName}
+             </span>
+             <div className="flex items-center gap-1 flex-shrink-0">
+               <Button variant="ghost" size="sm" className="w-6 h-6 p-0 text-gray-500 hover:text-dost-title" title="View">
                </Button>
-               <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="Download">
-                 <Download className="h-4 w-4" />
+               <Button variant="ghost" size="sm" className="w-6 h-6 p-0 text-gray-500 hover:text-dost-title" title="Download">
+                 <Download className="h-3.5 w-3.5" />
                </Button>
              </div>
            </>
@@ -106,10 +108,20 @@ export function TravelClearanceModal({
 }: TravelClearanceModalProps) {
   const { scholarInfo, placementInfo, submissionInfo, travelDetails, files, purpose } = request;
   
+  // Local state for immediate UI updates
+  const [currentStatus, setCurrentStatus] = useState(submissionInfo.status);
   const [adminComment, setAdminComment] = useState(submissionInfo.adminComment || '');
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
-  const [isRejectOpen, setIsRejectOpen] = useState(false);
+
+  // Sync state when props change
+  useEffect(() => {
+    setCurrentStatus(submissionInfo.status);
+    setAdminComment(submissionInfo.adminComment || '');
+  }, [submissionInfo.status, submissionInfo.adminComment]);
+
+  // Determine if the modal is in "Action Mode" or "Read-Only Mode"
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {
@@ -118,8 +130,56 @@ export function TravelClearanceModal({
     });
   };
 
+  const comment = (adminComment || '').toLowerCase();
+
+  // --- SMART RESUBMIT LOGIC ---
+  const hasKeyword = (keywords: string[]) => {
+    return keywords.some((keyword) => {
+      const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${safeKeyword}\\b`, 'i'); 
+      return regex.test(comment);
+    });
+  };
+
+  const mentionsBoth = hasKeyword(['all', 'everything', 'documents']);
+
+  // Document-specific flags (Check keyword AND ensure status is not Approved)
+  const checkResubmit = (keywords: string[]) => 
+    (mentionsBoth || hasKeyword(keywords)) && currentStatus !== 'Approved';
+
+  // Define specific checks for Travel Clearance documents
+  const showRequestLetterResubmit = checkResubmit(['letter', 'request letter', 'intent']);
+  const showRequestFormResubmit = checkResubmit(['form', 'request form', 'application']);
+  const showGuaranteeResubmit = checkResubmit(['guarantee', 'employer']);
+  const showDeedResubmit = checkResubmit(['deed', 'undertaking', 'notarized']);
+  const showEmploymentResubmit = checkResubmit(['employment', 'itr', 'income', 'compensation']);
+  const showIdResubmit = checkResubmit(['id', 'valid id', 'identification']);
+
+  // General blocker: If any specific file needs resubmit OR generic error words are found
+  const hasResubmitRequest = (
+    showRequestLetterResubmit || 
+    showRequestFormResubmit || 
+    showGuaranteeResubmit || 
+    showDeedResubmit || 
+    showEmploymentResubmit || 
+    showIdResubmit ||
+    hasKeyword(['resubmit', 'wrong', 'invalid', 'incorrect', 'missing', 'blur', 'unclear', 'mismatch', 'error'])
+  ) && currentStatus !== 'Approved';
+
+  const handleAttemptApprove = () => {
+    if (hasResubmitRequest) {
+      toast.error("Action Blocked", {
+        description: "You cannot approve this request while the comment indicates issues. Please edit the comment or request resubmission."
+      });
+      return;
+    }
+    setIsApproveOpen(true);
+  };
+
   const handleApprove = async () => {
+    // Simulate API call
     toast.success('Travel Clearance Approved', { description: `${scholarInfo.name} has been notified.` });
+    setCurrentStatus('Approved');
     onUpdate();
     setIsApproveOpen(false);
     onClose();
@@ -127,16 +187,22 @@ export function TravelClearanceModal({
 
   const handleResubmit = async () => {
     if (adminComment.trim() === '') {
-      toast.error('Please provide a comment before requesting resubmission.');
+      toast.error('Comment Required', { description: 'Please provide a comment before requesting resubmission.' });
       return;
     }
-    toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
+    
+    // Simulate API call
+    toast.warning('Resubmission Requested', { 
+        description: `${scholarInfo.name} has been notified.`,
+        className: "bg-yellow-50 border-yellow-200", 
+    });
+    
+    setCurrentStatus('Resubmit');
     onUpdate();
     setIsResubmitOpen(false);
+    // Keep modal open or close depending on preference, usually close
     onClose();
   };
-
-  const comment = adminComment.toLowerCase();
   
   return (
     <>
@@ -151,7 +217,7 @@ export function TravelClearanceModal({
              </div>
           </ModalHeader>
 
-          <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
+          <ModalBody className="max-h-[75vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               
@@ -164,10 +230,10 @@ export function TravelClearanceModal({
                     Scholar Information
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <InfoItem label="Name" value={scholarInfo.name} />
-                  <InfoItem label="SPAS ID" value={request.spas_id} />
-                  <InfoItem label="Email" value={scholarInfo.email} />
-                  <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
+                    <InfoItem label="Name" value={scholarInfo.name} />
+                    <InfoItem label="SPAS ID" value={request.spas_id} />
+                    <InfoItem label="Email" value={scholarInfo.email} />
+                    <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
                   </div>
                 </section>
 
@@ -176,28 +242,31 @@ export function TravelClearanceModal({
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
                     Travel Details
                   </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-3 flex-1">
                     <InfoItem label="Destination" value={travelDetails.destination} />
                     <div className="grid grid-cols-2 gap-2">
                         <InfoItem label="Departure" value={formatDate(travelDetails.departureDate)} />
                         <InfoItem label="Return" value={formatDate(travelDetails.arrivalDate)} />
                     </div>
                     <InfoItem label="Duration" value={travelDetails.duration} />
-                    <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
-                    <InfoItem label="Current Status" value={
-                        <StatusBadge status={submissionInfo.status} className="mt-1"/>
-                    } />
+                    
+                    <div className="pt-2 border-t mt-2 grid grid-cols-2 gap-3">
+                        <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
+                        <InfoItem label="Current Status" value={
+                           <StatusBadge status={currentStatus} className="mt-1"/>
+                        } />
                     </div>
+
                     {submissionInfo.delayReason && (
                         <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-md mt-3">
                             <div className="flex items-center gap-2 text-yellow-700 font-semibold text-xs uppercase mb-1">
                                 <AlertTriangle className="h-3 w-3" />
                                 Late Submission Reason
                             </div>
-                            <p className="text-sm text-gray-800">{submissionInfo.delayReason}</p>
+                            <p className="text-sm text-gray-800 italic">"{submissionInfo.delayReason}"</p>
                         </div>
                     )}
-                  
+                  </div>
                 </section>
               </div>
 
@@ -214,7 +283,7 @@ export function TravelClearanceModal({
                     <InfoItem label="Batch / Year Awarded" value={placementInfo.batch} />
                     <InfoItem label="School / University" value={placementInfo.university} />
                     <InfoItem label="Program / Course" value={placementInfo.program} />
-                 </div>
+                  </div>
                 </section>
 
                 {/* 4. Submitted Documents */}
@@ -225,21 +294,21 @@ export function TravelClearanceModal({
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <FileDisplay
-                        label="Request Letter to Director"
+                        label="Request Letter"
                         fileName={files.requestLetter}
-                        needsResubmit={comment.includes('letter')}
+                        needsResubmit={showRequestLetterResubmit}
                     />
                     <FileDisplay
-                        label="Travel Request Form"
+                        label="Request Form"
                         fileName={files.requestForm}
-                        needsResubmit={comment.includes('form')}
+                        needsResubmit={showRequestFormResubmit}
                     />
 
                     {purpose === 'Official Business Travel' && (
                         <FileDisplay
                             label="Guarantee Letter"
                             fileName={files.guaranteeLetter}
-                            needsResubmit={comment.includes('guarantee')}
+                            needsResubmit={showGuaranteeResubmit}
                         />
                     )}
 
@@ -248,17 +317,17 @@ export function TravelClearanceModal({
                            <FileDisplay
                               label="Deed of Undertaking"
                               fileName={files.deedOfUndertaking}
-                              needsResubmit={comment.includes('deed')}
+                              needsResubmit={showDeedResubmit}
                            />
                            <FileDisplay
-                              label="Co-Maker's Employment/ITR"
+                              label="Employment/ITR"
                               fileName={files.coMakerEmployment}
-                              needsResubmit={comment.includes('employment') || comment.includes('itr')}
+                              needsResubmit={showEmploymentResubmit}
                            />
                            <FileDisplay
-                              label="Co-Maker's Valid ID"
+                              label="Co-Maker's ID"
                               fileName={files.coMakerId}
-                              needsResubmit={comment.includes('id')}
+                              needsResubmit={showIdResubmit}
                            />
                         </>
                     )}
@@ -273,28 +342,37 @@ export function TravelClearanceModal({
                   <Label htmlFor="admin-comment" className="block text-sm font-medium text-gray-700">
                     Admin Comments
                   </Label>
-                  <Textarea
-                    id="admin-comment"
-                    placeholder="Add comments, instructions for resubmission, or reason for rejection..."
-                    className="min-h-[100px]"
-                    value={adminComment}
-                    onChange={(e) => setAdminComment(e.target.value)}
-                  />
-                  <div className="flex flex-wrap gap-1.5">
-                    {PREBUILT_COMMENTS.map((c) => (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        key={c.key}
-                        onClick={() => handleAddComment(c.text)}
-                        className="text-xs h-auto py-1 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
-                      >
-                        <MessageSquarePlus className="h-3 w-3 mr-1.5" />
-                        {c.short}
-                      </Button>
-                    ))}
-                  </div>
+                  
+                  {isActionable ? (
+                    <>
+                      <Textarea
+                        id="admin-comment"
+                        placeholder="Add comments, instructions for resubmission, or reason for rejection..."
+                        className="min-h-[80px]"
+                        value={adminComment}
+                        onChange={(e) => setAdminComment(e.target.value)}
+                      />
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {PREBUILT_COMMENTS.map((c) => (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            key={c.key}
+                            onClick={() => handleAddComment(c.text)}
+                            className="text-xs h-auto py-1 px-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                          >
+                            <MessageSquarePlus className="h-3 w-3 mr-1.5" />
+                            {c.short}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-3 bg-gray-50 border rounded-md min-h-[60px] text-sm text-gray-600 whitespace-pre-line">
+                      {adminComment || <span className="text-gray-400 italic">No comments provided.</span>}
+                    </div>
+                  )}
                 </div>
             </section>
 
@@ -303,25 +381,32 @@ export function TravelClearanceModal({
           <ModalFooter>
             <ModalClose asChild>
               <Button type="button" variant="outline">
-                Cancel
+                {isActionable ? 'Cancel' : 'Close'}
               </Button>
             </ModalClose>
-            <Button
-              type="button"
-              variant="primary"
-              className="bg-red-600 hover:bg-red-700"
-              onClick={() => setIsResubmitOpen(true)}
-            >
-              REQUEST RESUBMISSION
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              className="bg-green-600 hover:bg-green-700"
-              onClick={() => setIsApproveOpen(true)}
-            >
-              APPROVE
-            </Button>
+            
+            {/* ACTION BUTTONS: Only visible if status is Pending */}
+            {isActionable && (
+              <>
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="bg-red-600 hover:bg-red-700"
+                  onClick={() => setIsResubmitOpen(true)}
+                >
+                  REQUEST RESUBMISSION
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={handleAttemptApprove}
+                >
+                  APPROVE
+                </Button>
+              </>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>

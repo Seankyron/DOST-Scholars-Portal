@@ -4,7 +4,8 @@ import type { YearLevel, Semester } from './scholar';
 export type SubmissionStatus = 
   | 'Pending' 
   | 'Approved' 
-  | 'Resubmit' 
+  | 'Resubmit'
+  | 'Resubmit-Pending' 
   | 'Rejected'
   | 'Processing' 
   | 'Closed' 

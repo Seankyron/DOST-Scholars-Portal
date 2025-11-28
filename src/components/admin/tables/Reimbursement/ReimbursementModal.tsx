@@ -17,8 +17,11 @@ import { Download, MessageSquarePlus } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
-import { StatusBadge } from '@/components/shared/StatusBadge';
-import type { LOARequestDetails } from './LeaveOfAbsenceTable';
+import { StatusBadge } from '@/components/shared/StatusBadge'; 
+import { supabase } from '@/lib/supabase/client';
+import type { ReimbursementRequestDetails } from './ReimbursementTable';
+
+// --- Helper Components ---
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -44,19 +47,19 @@ function FileDisplay({
     <div>
       <div className="flex justify-between items-center mb-1">
         <Label className="text-xs font-medium text-gray-700 truncate" title={label}>{label}</Label>
+        {/* Red Indicator Label */}
         {needsResubmit && (
           <span className="text-[10px] font-medium text-red-600 flex-shrink-0 ml-2">To Resubmit</span>
         )}
       </div>
-      <div className={`flex items-center justify-between p-3 pl-4 border rounded-lg ${needsResubmit ? 'bg-red-50 border-red-200' : 'bg-gray-50'}`}>
+      {/* Dynamic Styling based on needsResubmit */}
+      <div className={`flex items-center justify-between p-3 pl-4 border rounded-lg transition-colors ${needsResubmit ? 'bg-red-50 border-red-200' : 'bg-gray-50'}`}>
         {fileName ? (
            <>
              <span className={`text-sm font-medium truncate ${needsResubmit ? 'text-red-700' : 'text-gray-800'}`} title={fileName}>
                 {fileName}
              </span>
              <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
-               <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="View">
-               </Button>
                <Button variant="ghost" size="sm" className="w-7 h-7 p-0 text-gray-500 hover:text-dost-title" title="Download">
                  <Download className="h-4 w-4" />
                </Button>
@@ -72,9 +75,9 @@ function FileDisplay({
 
 const PREBUILT_COMMENTS = [
   {
-    key: 'missing_docs',
-    text: 'Please upload all required documents.',
-    short: 'Missing Docs',
+    key: 'invalid_receipt',
+    text: 'The Official Receipt provided is not valid or not under your name.',
+    short: 'Invalid OR',
   },
   {
     key: 'blur',
@@ -82,46 +85,50 @@ const PREBUILT_COMMENTS = [
     short: 'Blurred File',
   },
   {
-    key: 'univ_approval',
-    text: 'University Approval must be signed by the Dean or College Secretary.',
-    short: 'Invalid Sig',
+    key: 'details_mismatch',
+    text: 'The amount in the receipt does not match the requested amount.',
+    short: 'Amount Mismatch',
   },
   {
-    key: 'med_cert',
-    text: 'Medical Certificate must be issued by a government physician or university clinic.',
-    short: 'Invalid Med Cert',
+    key: 'missing_assessment',
+    text: 'For tuition fees, please include the Certificate of Assessment/Billing.',
+    short: 'Missing Assessment',
   },
 ];
 
-interface LeaveOfAbsenceModalProps {
+interface ReimbursementModalProps {
   isOpen: boolean;
   onClose: () => void;
-  request: LOARequestDetails; 
+  request: ReimbursementRequestDetails; 
   onUpdate: () => void; 
 }
 
-export function LeaveOfAbsenceModal({
+export function ReimbursementModal({
   isOpen,
   onClose,
   request,
   onUpdate
-}: LeaveOfAbsenceModalProps) {
-  const { scholarInfo, currentPlacement, loaDetails, submissionInfo, files, applicationType } = request;
+}: ReimbursementModalProps) {
+  const { scholarInfo, currentPlacement, reimbursementType, amount, submissionInfo, files } = request;
   
-  // Local state to handle immediate updates within modal session
+  // Local state to handle immediate updates
   const [currentStatus, setCurrentStatus] = useState(submissionInfo.status);
   const [adminComment, setAdminComment] = useState(submissionInfo.adminComment || '');
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isResubmitOpen, setIsResubmitOpen] = useState(false);
 
-  // Sync props to state if they change externally (e.g. re-opening modal)
+  // Sync local state when the prop changes
   useEffect(() => {
     setCurrentStatus(submissionInfo.status);
     setAdminComment(submissionInfo.adminComment || '');
-  }, [submissionInfo]);
+  }, [submissionInfo.status, submissionInfo.adminComment]);
 
-  // Determine if actions are allowed
-  const isActionable = currentStatus === 'Pending';
+  const formattedAmount = new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+  }).format(amount);
+
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {
@@ -130,40 +137,26 @@ export function LeaveOfAbsenceModal({
     });
   };
 
-  const handleApprove = async () => {
-    toast.success('LOA Request Approved', { description: `${scholarInfo.name} has been notified.` });
-    setCurrentStatus('Approved');
-    onUpdate();
-    setIsApproveOpen(false);
-    onClose();
-  };
+  // --- LOGIC FOR RESUBMISSION DETECTION ---
+  
+  const comment = (adminComment || '').toLowerCase();
 
-  const handleResubmit = async () => {
-    if (adminComment.trim() === '') {
-      toast.error('Please provide a comment before requesting resubmission.');
-      return;
-    }
-    toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
-    setCurrentStatus('Resubmit');
-    onUpdate();
-    setIsResubmitOpen(false);
-    onClose();
-  };
-
-  const comment = adminComment.toLowerCase();
-  const isMedical = applicationType === 'Medical/Personal';
-
-  // --- LOGIC: Check for resubmission keywords ---
-  // The 'needsResubmit' flag on files will now show even if status is 'Resubmit' or 'Approved',
-  // as long as the keyword is present in the comment. This preserves history.
-  // We only hide it if there is NO issue mentioned.
   const hasKeyword = (keywords: string[]) => {
-      return keywords.some(k => comment.includes(k));
+    return keywords.some((keyword) => {
+      const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b${safeKeyword}\\b`, 'i'); 
+      return regex.test(comment);
+    });
   };
 
-  const hasResubmitRequest = 
-    hasKeyword(['form', 'grades', 'university', 'approval', 'medical', 'registration', 
-                'admission', 'missing', 'blur', 'invalid', 'other', 'resubmit']);
+  // Keywords specific to the reimbursement receipt file
+  const receiptKeywords = ['receipt', 'proof', 'file', 'image', 'scan', 'copy', 'document', 'attachment', 'or', 'assessment', 'billing', 'boarding', 'ticket', 'pass'];
+  const issueKeywords = ['blur', 'unclear', 'invalid', 'wrong', 'missing', 'mismatch', 'error', 'resubmit', 'bad', 'incorrect'];
+
+  const showReceiptResubmit = (hasKeyword(receiptKeywords) || hasKeyword(issueKeywords)) && currentStatus !== 'Approved';
+
+  // General Blocker Logic
+  const hasResubmitRequest = showReceiptResubmit || hasKeyword(['resubmit']);
 
   const handleAttemptApprove = () => {
     if (hasResubmitRequest) {
@@ -175,6 +168,64 @@ export function LeaveOfAbsenceModal({
     setIsApproveOpen(true);
   };
 
+  const handleApprove = async () => {
+    try {
+      // FIX 1 & 2: Cast payload to any to bypass missing type defs, and parseInt the ID
+      const { error: updateError } = await supabase
+        .from('Reimbursement')
+        .update({ status: "Approved", admin_comment: adminComment } as any) 
+        .eq('id', parseInt(request.id));
+
+      if (updateError) throw new Error(updateError.message);
+      
+      toast.success('Reimbursement Approved', { description: `${scholarInfo.name} has been notified.` });
+      
+      setCurrentStatus('Approved');
+      onUpdate();
+      setIsApproveOpen(false);
+      onClose();
+    } catch (e: any) {
+      console.error('Update failed:', e);
+      toast.error('Update Failed', { description: e.message });
+    }
+  };
+
+  const handleResubmit = async () => {
+    if (adminComment.trim() === '') {
+      toast.error('Comment Required', { description: 'Please provide a comment before requesting resubmission.' });
+      return;
+    }
+    try {
+      // FIX 3 & 4: Cast payload to any, and parseInt the ID
+      const { error: updateError } = await supabase
+        .from('Reimbursement')
+        .update({
+          status: "Resubmit",
+          admin_comment: adminComment,
+        } as any)
+        .eq('id', parseInt(request.id));
+
+      if (updateError) throw new Error(updateError.message);
+
+      toast.warning('Resubmission Requested', { 
+        description: `${scholarInfo.name} has been notified.`,
+        className: "bg-yellow-50 border-yellow-200", 
+      });
+
+      setCurrentStatus('Resubmit');
+      onUpdate();
+      setIsResubmitOpen(false);
+    } catch (e: any) {
+      console.error('Update failed:', e);
+      toast.error('Update Failed', { description: e.message });
+    }
+  };
+  
+  // Dynamic Label based on type
+  const fileLabel = reimbursementType === 'Tuition Fee' ? 'Official Receipt / Assessment Form' 
+                  : reimbursementType === 'Transportation Allowance' ? 'Official Receipt / Boarding Pass'
+                  : 'Official Receipt / Proof of Payment';
+
   return (
     <>
       <Modal open={isOpen} onOpenChange={onClose}>
@@ -182,8 +233,8 @@ export function LeaveOfAbsenceModal({
           <ModalHeader>
              <div className="flex items-center justify-between w-full pr-8">
                 <div className="flex flex-col">
-                   <ModalTitle>Leave of Absence Request</ModalTitle>
-                   <p className="text-sm text-gray-500 font-normal mt-1">{applicationType}</p>
+                   <ModalTitle>Reimbursement Request</ModalTitle>
+                   <p className="text-sm text-gray-500 font-normal mt-1">{reimbursementType}</p>
                 </div>  
              </div>
           </ModalHeader>
@@ -201,31 +252,30 @@ export function LeaveOfAbsenceModal({
                     Scholar Information
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <InfoItem label="Name" value={scholarInfo.name} />
-                  <InfoItem label="SPAS ID" value={request.spas_id} />
-                  <InfoItem label="Email" value={scholarInfo.email} />
-                  <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
+                    <InfoItem label="Name" value={scholarInfo.name} />
+                    <InfoItem label="SPAS ID" value={request.spas_id} />
+                    <InfoItem label="Email" value={scholarInfo.email} />
+                    <InfoItem label="Contact Number" value={scholarInfo.contactNumber} />
                   </div>
                 </section>
 
-                {/* 2. LOA Details */}
+                {/* 2. Request Details */}
                 <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex-1 flex flex-col">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">
-                    Application Details
+                    Request Details
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <InfoItem label="Start Semester" value={loaDetails.startSemester} />
-                    <InfoItem label="Academic Year" value={loaDetails.academicYear} />
-                    <InfoItem label="Duration" value={loaDetails.duration} />
+                    <InfoItem label="Type" value={reimbursementType} />
+                    <InfoItem label="Amount Requested" value={<span className="text-green-600 font-bold">{formattedAmount}</span>} />
                     <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
                     <InfoItem label="Current Status" value={
                         <StatusBadge status={currentStatus} className="mt-1"/>
                     } />
                   </div>
                   
-                  {/* Reason Section */}
+                  {/* Particulars/Reason Section */}
                   <div className="mt-4 pt-4 border-t border-gray-100">
-                     <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Reason for Leave</p>
+                     <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Particulars / Details</p>
                      <div className="bg-blue-50 border border-blue-100 p-3 rounded-md">
                         <p className="font-normal italic text-gray-700 text-sm">{submissionInfo.reason}</p>
                      </div>
@@ -256,56 +306,11 @@ export function LeaveOfAbsenceModal({
                     Submitted Documents
                   </h2>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* Common Documents */}
+                  <div className="flex flex-col gap-3">
                     <FileDisplay
-                        label="Application Form"
-                        fileName={files.applicationForm}
-                        needsResubmit={hasKeyword(['form', 'application'])}
-                    />
-                    <FileDisplay
-                        label="Cert. of Grades"
-                        fileName={files.certificationGrades}
-                        needsResubmit={hasKeyword(['grades', 'certification'])}
-                    />
-
-                    {/* Medical / Personal Specific */}
-                    {isMedical && (
-                       <>
-                        <FileDisplay
-                            label="University Approval"
-                            fileName={files.universityApproval}
-                            needsResubmit={hasKeyword(['approval', 'university'])}
-                        />
-                        <FileDisplay
-                            label="Medical Certificate"
-                            fileName={files.medicalCertificate}
-                            needsResubmit={hasKeyword(['medical', 'certificate'])}
-                        />
-                       </>
-                    )}
-
-                    {/* Exchange Student Specific */}
-                    {!isMedical && (
-                        <>
-                        <FileDisplay
-                            label="Reg. Form (Form 5)"
-                            fileName={files.registrationForm}
-                            needsResubmit={hasKeyword(['registration', 'form 5'])}
-                        />
-                        <FileDisplay
-                            label="Proof of Admission"
-                            fileName={files.proofOfAdmission}
-                            needsResubmit={hasKeyword(['admission', 'proof'])}
-                        />
-                        </>
-                    )}
-
-                    {/* Optional/Other */}
-                    <FileDisplay
-                        label="Other Documents"
-                        fileName={files.supportingDocument}
-                        needsResubmit={hasKeyword(['other', 'supporting'])}
+                        label={fileLabel}
+                        fileName={files.officialReceipt}
+                        needsResubmit={showReceiptResubmit}
                     />
                   </div>
                 </section>
@@ -318,7 +323,6 @@ export function LeaveOfAbsenceModal({
                   <Label htmlFor="admin-comment" className="block text-sm font-medium text-gray-700">
                     Admin Comments
                   </Label>
-                  
                   {isActionable ? (
                     <>
                       <Textarea
@@ -328,7 +332,7 @@ export function LeaveOfAbsenceModal({
                         value={adminComment}
                         onChange={(e) => setAdminComment(e.target.value)}
                       />
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex flex-wrap gap-1.5 pt-1">
                         {PREBUILT_COMMENTS.map((c) => (
                           <Button
                             type="button"
@@ -360,8 +364,6 @@ export function LeaveOfAbsenceModal({
                 {isActionable ? 'Cancel' : 'Close'}
               </Button>
             </ModalClose>
-            
-            {/* ACTION BUTTONS: Only visible if status is Pending */}
             {isActionable && (
               <>
                 <Button
@@ -372,7 +374,6 @@ export function LeaveOfAbsenceModal({
                 >
                   REQUEST RESUBMISSION
                 </Button>
-                
                 <Button
                   type="button"
                   variant="primary"
@@ -392,8 +393,8 @@ export function LeaveOfAbsenceModal({
         isOpen={isApproveOpen}
         onClose={() => setIsApproveOpen(false)}
         onConfirm={handleApprove}
-        title="Approve LOA Request"
-        description={`Are you sure you want to approve the Leave of Absence for ${scholarInfo.name}?`}
+        title="Approve Reimbursement"
+        description={`Are you sure you want to approve the reimbursement request for ${scholarInfo.name} amounting to ${formattedAmount}?`}
         variant="info"
         confirmText="Yes, approve"
       />

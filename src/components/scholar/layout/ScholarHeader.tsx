@@ -21,7 +21,6 @@ export function ScholarHeader() {
   const { signOut, user } = useAuth();
 
   const handleLogout = async () => {
-    toast.loading('Logging out...');
     
     await signOut();
     
