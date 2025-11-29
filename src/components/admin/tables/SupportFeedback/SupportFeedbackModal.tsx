@@ -209,7 +209,12 @@ export function SupportFeedbackModal({
                    <h2 className="text-lg font-semibold text-dost-title border-b pb-2 mb-3">
                     Ticket Details
                    </h2>
-                   
+                   <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3'>
+                     <InfoItem label="Category" value={submissionInfo.category} />
+                     <InfoItem label="Current Status" value={
+                        <StatusBadge status={displayStatus} className="mt-1"/>} />
+                     <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
+                  </div>
                    {/* Message */}
                    <div className="bg-yellow-50 border border-yellow-100 p-4 rounded-md flex-1 mb-4">
                       <Label className="text-xs text-yellow-700 uppercase font-bold mb-1 block">Description / Message</Label>
@@ -232,12 +237,10 @@ export function SupportFeedbackModal({
                     Placement & Status
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <InfoItem label="University" value={currentPlacement.university} />
-                    <InfoItem label="Program" value={currentPlacement.program} />
-                    <InfoItem label="Date Submitted" value={formatDate(submissionInfo.dateSubmitted)} />
-                    <InfoItem label="Current Status" value={
-                        <StatusBadge status={displayStatus} className="mt-1"/>
-                    } />
+                    <InfoItem label="Scholarship Type" value={currentPlacement.scholarshipType} />
+                    <InfoItem label="Batch / Year Awarded" value={currentPlacement.batch} />
+                    <InfoItem label="School / University" value={currentPlacement.university} />
+                    <InfoItem label="Program / Course" value={currentPlacement.program} />
                  </div>
                 </section>
 

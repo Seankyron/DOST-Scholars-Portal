@@ -141,7 +141,7 @@ export function PTPModal({
     setAdminComment(submissionInfo.adminComment || '');
   }, [submissionInfo.status, submissionInfo.adminComment]);
 
-  const isActionable = currentStatus === 'Pending';
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {
@@ -250,12 +250,10 @@ export function PTPModal({
       <Modal open={isOpen} onOpenChange={onClose}>
         <ModalContent size="4xl">
           <ModalHeader>
-            <div className="flex items-center justify-between w-full pr-8">
               <div className="flex flex-col">
                 <ModalTitle>Practical Training Request</ModalTitle>
                 <p className="text-sm text-gray-500 font-normal mt-1">{request.type}</p>
               </div>
-            </div>
           </ModalHeader>
 
           <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
