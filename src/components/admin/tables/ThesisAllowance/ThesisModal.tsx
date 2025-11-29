@@ -106,7 +106,7 @@ export function ThesisModal({
   onUpdate
 }: ThesisModalProps) {
   const { scholarInfo, percentage, abstract, approvalSheet, finalManuscript, registrationForm } = request;
-  
+
   // Local state to handle immediate updates
   const [currentStatus, setCurrentStatus] = useState(request.status);
   const [adminComment, setAdminComment] = useState(request.adminComment || '');
@@ -154,8 +154,8 @@ export function ThesisModal({
   );
 
   const getReleaseTitle = () => {
-    if (percentage === 90) return '90% Partial Release';
-    if (percentage === 10) return '10% Final Release';
+    if (parseInt(percentage) === 90) return '90% Partial Release';
+    if (parseInt(percentage) === 10) return '10% Final Release';
     return '100% Full Release';
   };
 
@@ -299,7 +299,7 @@ export function ThesisModal({
                     />
 
                     {/* 90% and 100% require Abstract & Approval */}
-                    {(percentage === 90 || percentage === 100) && (
+                    {(parseInt(percentage) === 90 || parseInt(percentage) === 100) && (
                         <>
                             <FileDisplay
                                 label="One-Page Abstract"
@@ -315,7 +315,7 @@ export function ThesisModal({
                     )}
 
                     {/* 10% and 100% require Final Manuscript */}
-                    {(percentage === 10 || percentage === 100) && (
+                    {(parseInt(percentage) === 10 || parseInt(percentage) === 100) && (
                         <FileDisplay
                             label="Final Thesis Manuscript"
                             fileName={finalManuscript}
