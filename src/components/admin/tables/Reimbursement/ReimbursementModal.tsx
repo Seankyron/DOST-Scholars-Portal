@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -173,7 +174,7 @@ export function ReimbursementModal({
       // FIX 1 & 2: Cast payload to any to bypass missing type defs, and parseInt the ID
       const { error: updateError } = await supabase
         .from('Reimbursement')
-        .update({ status: "Approved", admin_comment: adminComment } as any) 
+        .update({ status: "Approved", comment: adminComment } as any) 
         .eq('id', parseInt(request.id));
 
       if (updateError) throw new Error(updateError.message);
@@ -201,7 +202,7 @@ export function ReimbursementModal({
         .from('Reimbursement')
         .update({
           status: "Resubmit",
-          admin_comment: adminComment,
+          comment: adminComment,
         } as any)
         .eq('id', parseInt(request.id));
 

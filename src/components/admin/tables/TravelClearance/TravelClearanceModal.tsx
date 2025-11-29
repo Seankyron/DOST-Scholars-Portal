@@ -19,6 +19,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge'; 
 import type { TravelRequestDetails } from './TravelClearanceTable';
+import { supabase } from '@/lib/supabase/client';
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -107,7 +108,7 @@ export function TravelClearanceModal({
   onUpdate
 }: TravelClearanceModalProps) {
   const { scholarInfo, placementInfo, submissionInfo, travelDetails, files, purpose } = request;
-  
+  console.log(request)
   // Local state for immediate UI updates
   const [currentStatus, setCurrentStatus] = useState(submissionInfo.status);
   const [adminComment, setAdminComment] = useState(submissionInfo.adminComment || '');
@@ -176,32 +177,52 @@ export function TravelClearanceModal({
     setIsApproveOpen(true);
   };
 
-  const handleApprove = async () => {
-    // Simulate API call
-    toast.success('Travel Clearance Approved', { description: `${scholarInfo.name} has been notified.` });
-    setCurrentStatus('Approved');
-    onUpdate();
-    setIsApproveOpen(false);
-    onClose();
-  };
+    const handleApprove = async () => {
+       try{
+          let { error: updateError } = await supabase
+          .from('Travel Clearance')
+          .update({ status: "Approved", comment: 'Travel Clearance Approved!' })
+          .eq('id', parseInt(request.id));
+  
+          if(updateError) throw new Error(updateError.message);
+         
+          toast.success('Travel Clearance Approved', { description: `${scholarInfo.name} has been notified.` });
+          setCurrentStatus('Approved');
+          onUpdate();
+          setIsApproveOpen(false);
+          onClose();
+      }catch(e: any){
+          console.error('Update failed:', e);
+          toast.error('Update Failed', { description: e.message });
+      }
+    };
 
   const handleResubmit = async () => {
     if (adminComment.trim() === '') {
       toast.error('Comment Required', { description: 'Please provide a comment before requesting resubmission.' });
       return;
     }
-    
-    // Simulate API call
-    toast.warning('Resubmission Requested', { 
-        description: `${scholarInfo.name} has been notified.`,
-        className: "bg-yellow-50 border-yellow-200", 
-    });
-    
-    setCurrentStatus('Resubmit');
-    onUpdate();
-    setIsResubmitOpen(false);
-    // Keep modal open or close depending on preference, usually close
-    onClose();
+    try{
+          let { error: updateError } = await supabase
+          .from('Travel Clearance')
+          .update({ status: "Resubmit", comment: adminComment.trim() })
+          .eq('id', parseInt(request.id));
+  
+          if(updateError) throw new Error(updateError.message);
+         
+          toast.warning('Resubmission Requested', { 
+              description: `${scholarInfo.name} has been notified.`,
+              className: "bg-yellow-50 border-yellow-200", 
+          });
+          
+          setCurrentStatus('Resubmit');
+          onUpdate();
+          setIsResubmitOpen(false);
+          onClose();
+      }catch(e: any){
+          console.error('Update failed:', e);
+          toast.error('Update Failed', { description: e.message });
+      }
   };
   
   return (

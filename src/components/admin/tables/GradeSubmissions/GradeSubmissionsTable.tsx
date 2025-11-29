@@ -48,57 +48,66 @@ export function GradeSubmissionsTable({ searchTerm }: GradeSubmissionsTableProps
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch('/api/admin/grades/get');
-      if (!response.ok) throw new Error('Failed to fetch data');
-      
-      const res = await response.json();
+ const fetchData = useCallback(async () => {
+  setLoading(true);
+  setError(null);
 
-      const formatted: GradeSubmissionDetails[] = (res.submissions || []).map((e: any) => ({
-        id: e.submission_id,
-        spas_id: e.spas_id,
-        scholarInfo: {
-          name: e.scholar_name,
-          contactNumber: e.contact_number,
-          dateOfBirth: e.date_of_birth,
-          completeAddress: e.complete_address,
-        },
-        placementInfo: {
-          scholarshipType: e.scholarship_type as ScholarshipType,
-          batch: Number(e.batch),
-          university: e.university,
-          program: e.program,
-        },
-        submissionInfo: {
-          year: `${e.year_level}th Year` as YearLevel,
-          semester: e.semester as Semester,
-          academicYear: e.academic_year,
-          dateSubmitted: e.updated_at, 
-          status: e.submission_status as SubmissionStatus,
-          adminComment: e.comment || '', 
-        },
-        files: {
-          registrationForm: e.cor_file_key,
-          copyOfGrades: e.grade_file_key,
-          curriculumFile: e.curriculum_file_key, 
-        },
-        scholarStatus: e.scholar_status === 'pending' ? 'Active' : (e.scholar_status as any),
-      }));
-      setSubmissions(formatted);
+  try {
+    const query = new URLSearchParams({
+      view: 'GradeSubmissionView',
+      orderBy: 'submission_status',
+      ascending: 'false',
+    });
 
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch submissions.');
-      toast.error("Error", {
-        description: "Failed to load grade submissions.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    const response = await fetch(`/api/admin/get_view?${query.toString()}`);
+    if (!response.ok) throw new Error('Failed to fetch data');
+
+    const res = await response.json();
+    const rows = res.data || [];
+
+    const formatted: GradeSubmissionDetails[] = rows.map((e: any) => ({
+      id: e.submission_id,
+      spas_id: e.spas_id,
+      scholarInfo: {
+        name: e.scholar_name,
+        contactNumber: e.contact_number,
+        dateOfBirth: e.date_of_birth,
+        completeAddress: e.complete_address,
+      },
+      placementInfo: {
+        scholarshipType: e.scholarship_type as ScholarshipType,
+        batch: Number(e.batch),
+        university: e.university,
+        program: e.program,
+      },
+      submissionInfo: {
+        year: `${e.year_level}th Year` as YearLevel,
+        semester: e.semester as Semester,
+        academicYear: e.academic_year,
+        dateSubmitted: e.updated_at,
+        status: e.submission_status as SubmissionStatus,
+        adminComment: e.comment || '',
+      },
+      files: {
+        registrationForm: e.cor_file_key,
+        copyOfGrades: e.grade_file_key,
+        curriculumFile: e.curriculum_file_key,
+      },
+      scholarStatus: e.scholar_status === 'pending' ? 'Active' : (e.scholar_status as any),
+    }));
+
+    setSubmissions(formatted);
+  } catch (err) {
+    console.error(err);
+    setError('Failed to fetch submissions.');
+    toast.error('Error', {
+      description: 'Failed to load grade submissions.',
+    });
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
 
   useEffect(() => {
     fetchData();

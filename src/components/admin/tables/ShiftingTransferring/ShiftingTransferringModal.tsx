@@ -19,6 +19,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge'; 
 import type { ShiftingRequestDetails } from './ShiftingTransferringTable';
+import { supabase } from '@/lib/supabase/client';
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -166,14 +167,22 @@ export function ShiftingTransferringModal({
   };
 
   const handleApprove = async () => {
-    // In a real app, you would call your API here
-    toast.success('Application Approved', { description: `${scholarInfo.name} has been notified.` });
+    try{
+      let { error: updateError } = await supabase
+          .from('Shifting Course')
+          .update({ status: "Approved", comment: 'Shifting Course Approved!' })
+          .eq('id', parseInt(request.id));
+      if(updateError) throw new Error(updateError.message);
+      toast.success('Application Approved', { description: `${scholarInfo.name} has been notified.` });
+      setCurrentStatus('Approved');
+      onUpdate();
+      setIsApproveOpen(false);
+      onClose();
+    }catch(e: any){
+      console.error('Update failed:', e);
+      toast.error('Update Failed', { description: e.message });
+    }
     
-    // Simulate update
-    setCurrentStatus('Approved');
-    onUpdate();
-    setIsApproveOpen(false);
-    onClose();
   };
 
   const handleResubmit = async () => {
@@ -181,18 +190,24 @@ export function ShiftingTransferringModal({
       toast.error('Comment Required', { description: 'Please provide a comment before requesting resubmission.' });
       return;
     }
-    // In a real app, you would call your API here
-    toast.warning('Resubmission Requested', { 
-        description: `${scholarInfo.name} has been notified.`,
-        className: "bg-yellow-50 border-yellow-200", 
-    });
-    
-    // Simulate update
-    setCurrentStatus('Resubmit');
-    onUpdate();
-    setIsResubmitOpen(false);
-    // Modal stays open or closes depending on preference, usually close:
-    // onClose(); 
+    try{
+      let { error: updateError } = await supabase
+          .from('Shifting Course')
+          .update({ status: "Resubmit", comment: adminComment.trim() })
+          .eq('id', parseInt(request.id));
+      if(updateError) throw new Error(updateError.message);
+      toast.warning('Resubmission Requested', { 
+          description: `${scholarInfo.name} has been notified.`,
+          className: "bg-yellow-50 border-yellow-200", 
+      });
+      setCurrentStatus('Resubmit');
+      onUpdate();
+      setIsResubmitOpen(false);
+      onClose();
+    }catch(e: any){
+      console.error('Update failed:', e);
+      toast.error('Update Failed', { description: e.message });
+    }
   };
   
   return (

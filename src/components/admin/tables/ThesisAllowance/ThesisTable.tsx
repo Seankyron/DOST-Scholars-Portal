@@ -21,13 +21,16 @@ export function ThesisTable({ searchTerm }: ThesisTableProps) {
     setLoading(true);
     setError(null);
     try {
-       const response = await fetch('/api/admin/thesis/get');
-       if (!response.ok) throw new Error('Failed to fetch data');
-      
-       const res = await response.json();
-      
-       // Robust mapping to handle nulls/undefined
-       const data: ThesisRequestDetails[] = res.submissions.map((item: any) => ({
+     const query = new URLSearchParams({
+        view: 'thesis_view',
+        orderBy: 'status',
+        ascending: 'false',
+      });
+      const response = await fetch(`/api/admin/get_view?${query.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch data');
+
+      const res = await response.json();
+       const data: ThesisRequestDetails[] = res.data.map((item: any) => ({
          id: item.thesis_id?.toString() ?? '',
          scholarId: item.spas_id ?? '',
          status: item.status ?? 'Pending',

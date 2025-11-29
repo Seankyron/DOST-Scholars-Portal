@@ -20,40 +20,43 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockData: PTPRequestDetails[] = [
-        {
-          id: '1',
-          spas_id: '2021-001',
-          type: 'Referral Letter',
-          scholarInfo: {
-            name: 'Juan Dela Cruz',
-            spas_id: '2021-001',
-            email: 'juan.delacruz@example.com',
-            contactNumber: '09123456789',
-            dateOfBirth: '2000-01-01',
-            completeAddress: 'Manila',
-          },
-          placementInfo: {
-            scholarshipType: 'RA 7687',
-            batch: 2021,
-            university: 'University of the Philippines',
-            program: 'BS Computer Science',
-          },
-          submissionInfo: {
-            dateSubmitted: new Date().toISOString(),
-            status: 'Pending',
-            trainingYear: 2024,
-            plan: 'undertake_ptp', // "I will undertake..."
-            semester: 'Midyear',
-            academicYear: '2023-2024'
-          },
-          files: {
-            grades: 'grades.pdf',
-            replySlip: 'reply_slip.pdf',
-            curriculum: 'curriculum.pdf',
-          },
+      const query = new URLSearchParams({
+        view: 'ptp_view',
+        orderBy: 'ptp_status',
+        ascending: 'false',
+      });
+      const response = await fetch(`/api/admin/get_view?${query.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch data');
+
+      const res = await response.json();
+      const data: PTPRequestDetails[] = res.data.map((item: any) => ({
+        id: item.ptp_id?.toString() ?? '',
+        spas_id: item.spas_id ?? '',
+        type: item.ptp_type ?? 'Practical Training',
+        
+        scholarInfo: {
+          name: item.full_name ?? 'Unknown',
+          spas_id: item.spas_id ?? '',
+          email: item.email ?? '',
+          contactNumber: item.contact_number ?? '',
+          completeAddress: item.address ?? '',
+        },
+
+        placementInfo: {
+          scholarshipType: item.scholarship_type ?? '',
+          batch: item.year_awarded ? Number(item.year_awarded) : 0,
+          university: item.university ?? '',
+          program: item.program_course ?? '',
+        },
+
+        submissionInfo: {
+          dateSubmitted: item.ptp_created_at ?? new Date().toISOString(),
+          status: item.ptp_status ?? 'Pending',
+          trainingYear: "N/A", 
+          plan: item.ptp_plan ?? undefined,
+          semester: "N/A",
+          academicYear: "N/A",
+          adminComment: item.comment || item.ptp_comment || item.admin_comment || item.remarks || '', 
         },
         {
           id: '2',

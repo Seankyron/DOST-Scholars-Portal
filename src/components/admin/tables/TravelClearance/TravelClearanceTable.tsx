@@ -57,118 +57,69 @@ export function TravelClearanceTable({ searchTerm }: TravelClearanceTableProps) 
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockData: TravelRequestDetails[] = [
-        {
-          id: '1',
-          spas_id: '2021-001',
-          purpose: 'Official Business Travel',
-          scholarInfo: {
-            name: 'Juan Dela Cruz',
-            spas_id: '2021-001',
-            email: 'juan.delacruz@example.com',
-            contactNumber: '09123456789',
-            completeAddress: 'Manila',
-          },
-          placementInfo: {
-            scholarshipType: 'RA 7687',
-            batch: 2021,
-            university: 'UP Diliman',
-            program: 'BS Physics',
-          },
-          travelDetails: {
-            destination: 'Tokyo, Japan',
-            departureDate: '2024-06-15',
-            arrivalDate: '2024-06-20',
-            duration: '5 Days'
-          },
-          submissionInfo: {
-            dateSubmitted: new Date().toISOString(),
-            status: 'Pending',
-          },
-          files: {
-            requestLetter: 'letter_to_director.pdf',
-            requestForm: 'travel_request_form.pdf',
-            guaranteeLetter: 'employer_guarantee.pdf',
-          },
-        },
-        // Late Submission Mock Data
-        {
-          id: '3',
-          spas_id: '2022-055',
-          purpose: 'Other',
-          scholarInfo: {
-            name: 'Isabella Late',
-            spas_id: '2022-055',
-            email: 'isabella.late@example.com',
-            contactNumber: '09171234567',
-            completeAddress: 'Cebu City',
-          },
-          placementInfo: {
-            scholarshipType: 'Merit',
-            batch: 2022,
-            university: 'San Carlos University',
-            program: 'BS Biology',
-          },
-          travelDetails: {
-            destination: 'Seoul, South Korea',
-            departureDate: '2024-05-20', 
-            arrivalDate: '2024-05-25',
-            duration: '5 Days'
-          },
-          submissionInfo: {
-            dateSubmitted: new Date().toISOString(),
-            status: 'Pending',
-            delayReason: 'I received my Visa approval late and could not submit the requirements earlier.', 
-          },
-          files: {
-            requestLetter: 'letter.pdf',
-            requestForm: 'form.pdf',
-            deedOfUndertaking: 'deed.pdf',
-            coMakerEmployment: 'employ.pdf',
-            coMakerId: 'id.pdf'
-          },
-        },
-        {
-          id: '4',
-          spas_id: '2023-101',
-          purpose: 'Official Business Travel',
-          scholarInfo: {
-            name: 'Marco Polo',
-            spas_id: '2023-101',
-            email: 'marco.polo@example.com',
-            contactNumber: '09998887777',
-            completeAddress: 'Davao City',
-          },
-          placementInfo: {
-            scholarshipType: 'RA 7687',
-            batch: 2023,
-            university: 'Ateneo de Davao',
-            program: 'BS Environmental Science',
-          },
-          travelDetails: {
-            destination: 'Bangkok, Thailand',
-            departureDate: '2024-09-10',
-            arrivalDate: '2024-09-15',
-            duration: '5 Days'
-          },
-          submissionInfo: {
-            dateSubmitted: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-            status: 'Resubmit',
-            // Triggers "To Resubmit" on Request Letter
-            adminComment: 'The Request Letter does not indicate the specific dates of travel. Please revise and resubmit.', 
-          },
-          files: {
-            requestLetter: 'incomplete_letter.pdf',
-            requestForm: 'form.pdf',
-            guaranteeLetter: 'guarantee.pdf',
-          },
-        },
-      ];
+    setError(null);
 
-      setRequests(mockData);
+    try {
+      const query = new URLSearchParams({
+        view: 'travel_view',
+        orderBy: 'status',
+        ascending: 'false',
+      });
+
+      const response = await fetch(`/api/admin/get_view?${query.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch data');
+
+      const res = await response.json();
+      const rows = res.data || [];
+
+      const formatted: TravelRequestDetails[] = rows.map((e: any) => {
+        const departureDate = new Date(e.departure);
+        const arrivalDate = new Date(e.arrival);
+        const durationDays = Math.ceil(
+          (arrivalDate.getTime() - departureDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        return {
+          id: e.travel_id.toString(),
+          spas_id: e.spas_id,
+          purpose: e.type as TravelPurpose,
+          scholarInfo: {
+            name: e.full_name,
+            spas_id: e.spas_id,
+            email: e.email,
+            contactNumber: e.contact_number,
+            completeAddress: e.address || '',
+          },
+          placementInfo: {
+            scholarshipType: e.scholarship_type,
+            batch: Number(e.year_awarded), 
+            university: e.university,
+            program: e.program_course,
+          },
+          travelDetails: {
+            destination: e.destination,
+            departureDate: e.departure,
+            arrivalDate: e.arrival,
+            duration: `${durationDays} day${durationDays > 1 ? 's' : ''}`,
+          },
+          submissionInfo: {
+            dateSubmitted: e.submitted_at,
+            status: e.status as SubmissionStatus,
+            adminComment: e.comment || '',
+            delayReason: e.cause_of_submission_delay || '',
+          },
+          files: {
+            requestLetter: e.request_letter_file_key,
+            requestForm: e.completed_request_form_file_key,
+            guaranteeLetter: e.guarantee_letter_file_key || undefined,
+            deedOfUndertaking: e.deed_of_undertaking_file_key || undefined,
+            coMakerEmployment: e.employment_file_key || undefined,
+            coMakerId: e.valid_id_file_key || undefined,
+          },
+        };
+      });
+
+      setRequests(formatted);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch requests.');
@@ -176,6 +127,8 @@ export function TravelClearanceTable({ searchTerm }: TravelClearanceTableProps) 
       setLoading(false);
     }
   }, []);
+
+
 
   useEffect(() => {
     fetchData();

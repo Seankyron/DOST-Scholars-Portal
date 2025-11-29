@@ -21,6 +21,7 @@ import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge'; 
 import { cn } from '@/lib/utils/cn'; // Assuming you have this utility
 import type { RequestFormDetails } from './RequestFormsTable';
+import { supabase } from '@/lib/supabase/client';
 
 function InfoItem({ label, value, fullWidth = false }: { label: string; value: React.ReactNode, fullWidth?: boolean }) {
   return (
@@ -141,31 +142,52 @@ export function RequestFormsModal({
   };
 
   const handleApprove = async () => {
-    // Simulate API call using the 'deliveryMode' state
-    setTimeout(() => {
-        const successMsg = isEmail ? 'Request Approved & Emailed' : 'Request Approved for Pickup';
-        toast.success(successMsg, { description: `${scholarInfo.name} has been notified.` });
-        setCurrentStatus('Approved');
-        onUpdate();
-        setIsApproveOpen(false);
-        onClose();
-    }, 500);
-  };
+    const successMsg = isEmail ? 'Request Approved & Emailed' : 'Request Approved for Pickup';
+    
+    try{
+          let { error: updateError } = await supabase
+          .from('Request Forms')
+          .update({ status: "Approved", comment: 'Travel Clearance Approved!' })
+          .eq('id', parseInt(request.id));
+  
+          if(updateError) throw new Error(updateError.message);
+          
+          toast.success(successMsg, { description: `${scholarInfo.name} has been notified.` });
+          setCurrentStatus('Approved');
+          onUpdate();
+          setIsApproveOpen(false);
+          onClose();
+      }catch(e: any){
+          console.error('Update failed:', e);
+          toast.error('Update Failed', { description: e.message });
+      }
+    };
 
   const handleResubmit = async () => {
     if (adminComment.trim() === '') {
       toast.error('Comment Required', { description: 'Please provide a comment before requesting resubmission.' });
       return;
     }
-    setTimeout(() => {
+    try{
+        let { error: updateError } = await supabase
+        .from('Request Forms')
+        .update({ status: "Resubmit", comment: adminComment.trim() })
+        .eq('id', parseInt(request.id));
+
+        if(updateError) throw new Error(updateError.message);
         toast.warning('Resubmission Requested', { 
-            description: `${scholarInfo.name} has been notified.`,
-            className: "bg-yellow-50 border-yellow-200", 
+          description: `${scholarInfo.name} has been notified.`,
+          className: "bg-yellow-50 border-yellow-200", 
         });
         setCurrentStatus('Resubmit');
         onUpdate();
         setIsResubmitOpen(false);
-    }, 500);
+      }catch(e: any){
+          console.error('Update failed:', e);
+          toast.error('Update Failed', { description: e.message });
+      }
+        
+
   };
 
   // Dynamic Text for Dialog

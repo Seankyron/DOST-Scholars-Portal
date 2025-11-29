@@ -59,131 +59,70 @@ export function ShiftingTransferringTable({ searchTerm }: ShiftingTransferringTa
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockData: ShiftingRequestDetails[] = [
-        // 1. PENDING (Actionable)
-        {
-          id: '1',
-          spas_id: '2021-00123',
-          applicationType: 'Shifting Course',
-          scholarInfo: {
-            name: 'Juan Dela Cruz',
-            spas_id: '2021-00123',
-            email: 'juan.delacruz@up.edu.ph',
-            contactNumber: '09170001234',
-            completeAddress: 'Quezon City',
-          },
-          currentPlacement: {
-            scholarshipType: 'RA 7687',
-            batch: 2021,
-            university: 'UP Diliman',
-            program: 'BS Physics',
-          },
-          newPlacement: {
-            program: 'BS Mathematics',
-            effectivity: '1st Semester, AY 2024-2025',
-            duration: '4 Years'
-          },
-          submissionInfo: {
-            dateSubmitted: new Date().toISOString(),
-            status: 'Pending',
-            reason: 'I realized my strengths lie more in pure mathematics.',
-          },
-          files: {
-            applicationForm: 'shifting_form_juan.pdf',
-            certificationAdmission: 'math_dept_acceptance.pdf',
-            certificationAccredited: 'accredited_sub.pdf',
-            certificationYearLevel: 'year_level.pdf',
-            certificationGrades: 'grades_physics.pdf',
-            approvedProgram: 'math_curriculum.pdf',
-          },
-        },
+      const query = new URLSearchParams({
+        view: 'shifting_view',
+        orderBy: 'status',
+        ascending: 'false',
+      });
+      const response = await fetch(`/api/admin/get_view?${query.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch data');
 
-        // 2. APPROVED (Read Only)
-        {
-          id: '2',
-          spas_id: '2022-05501',
-          applicationType: 'Transferring School',
-          scholarInfo: {
-            name: 'Maria Clara',
-            spas_id: '2022-05501',
-            email: 'maria.clara@example.com',
-            contactNumber: '09171234567',
-            completeAddress: 'Laguna',
-          },
-          currentPlacement: {
-            scholarshipType: 'Merit',
-            batch: 2022,
-            university: 'Ateneo de Manila University',
-            program: 'BS Biology',
-          },
-          newPlacement: {
-            university: 'De La Salle University',
-            effectivity: '1st Semester, AY 2024-2025',
-            duration: '3 Years'
-          },
-          submissionInfo: {
-            dateSubmitted: '2024-05-20T10:00:00Z',
-            status: 'Approved',
-            reason: 'Family relocation.',
-            adminComment: 'Approved as per request.',
-          },
-          files: {
-            applicationForm: 'transfer_form.pdf',
-            certificationAdmission: 'dlsu_admit.pdf',
-            certificationAccredited: 'credit_eval.pdf',
-            certificationYearLevel: 'standing.pdf',
-            certificationGrades: 'grades_ateneo.pdf',
-            approvedProgram: 'bio_curr_dlsu.pdf',
-          },
-        },
-        {
-          id: '5',
-          spas_id: '2020-77112',
-          applicationType: 'Transferring School',
-          scholarInfo: {
-            name: 'Gabriela Silang',
-            spas_id: '2020-77112',
-            email: 'gabriela.s@example.com',
-            contactNumber: '09198887777',
-            completeAddress: 'Ilocos Sur',
-          },
-          currentPlacement: {
-            scholarshipType: 'RA 7687',
-            batch: 2020,
-            university: 'UP Baguio',
-            program: 'BS Biology',
-          },
-          newPlacement: {
-            university: 'UP Manila',
-            effectivity: '1st Semester, AY 2024-2025',
-            duration: '2 Years'
-          },
-          submissionInfo: {
-            dateSubmitted: '2024-05-10T09:15:00Z',
-            status: 'Resubmit',
-            reason: 'Transferring to be closer to family.',
-            adminComment: 'The Application Form is unsigned. The Certification of Grades is blurry. Please also re-upload the Program of Study.',
-          },
-          files: {
-            applicationForm: 'app_form_unsigned.pdf',
-            certificationAdmission: 'upm_admission.pdf',
-            certificationAccredited: 'credited_subjs.pdf',
-            certificationYearLevel: 'standing_cert.pdf',
-            certificationGrades: 'grades_blurred.pdf',
-            approvedProgram: 'prog_study_draft.pdf',
-          },
-        },
-      ];
+      const res = await response.json();
+      const rows = res.data || [];
 
-      setRequests(mockData);
+      const formatted: ShiftingRequestDetails[] = rows.map((e: any) => {
+        // Compute duration from OJT or just use semester string
+        const duration = e.ojt ? `${e.ojt.semester}, Year ${e.ojt.year}` : '';
+
+        return {
+          id: e.id.toString(),
+          spas_id: e.spas_id,
+          applicationType: e.type as ShiftingType,
+          scholarInfo: {
+            name: e.full_name,
+            spas_id: e.spas_id,
+            email: e.email,
+            contactNumber: e.contact_number,
+            completeAddress: e.address || '',
+          },
+          currentPlacement: {
+            scholarshipType: e.scholarship_type,
+            batch: Number(e.year_awarded),
+            university: e.university,
+            program: e.program_course,
+          },
+          newPlacement: {
+            university: e.new_school || e.university || '',
+            program: e.new_course || e.program_course || '',
+            effectivity: e.effectivity_of_shifting,
+            duration,
+          },
+          submissionInfo: {
+            dateSubmitted: e.created_at,
+            status: e.status as SubmissionStatus,
+            reason: e.reason,
+            adminComment: e.comment || '',
+          },
+          files: {
+            applicationForm: e.application_form_file_key,
+            certificationAdmission: e.admission_cert_file_key,
+            certificationAccredited: e.accredited_sub_file_key,
+            certificationYearLevel: e.new_year_level_file_key,
+            certificationGrades: e.all_grades_file_key,
+            approvedProgram: e.approved_pos_file_key,
+          },
+        };
+      });
+
+      setRequests(formatted);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch requests.');
       toast.error("Error", {
-         description: "Failed to load requests."
+        description: "Failed to load requests.",
       });
     } finally {
       setLoading(false);

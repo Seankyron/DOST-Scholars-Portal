@@ -48,112 +48,65 @@ export function ReimbursementTable({ searchTerm }: ReimbursementTableProps) {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockData: ReimbursementRequestDetails[] = [
-        // 1. Tuition Fee Reimbursement
-        {
-          id: '1',
-          spas_id: '2023-00123',
-          reimbursementType: 'Tuition Fee',
-          amount: 25000.00,
-          scholarInfo: {
-            name: 'Juan Dela Cruz',
-            spas_id: '2023-00123',
-            email: 'juan.delacruz@ust.edu.ph',
-            contactNumber: '09170001234',
-          },
-          currentPlacement: {
-            scholarshipType: 'Merit',
-            batch: 2023,
-            university: 'University of Santo Tomas',
-            program: 'BS Biochemistry',
-          },
-          submissionInfo: {
-            dateSubmitted: new Date().toISOString(),
-            status: 'Pending',
-            reason: 'Tuition fee for 1st Sem AY 2024-2025',
-          },
-          files: {
-            officialReceipt: 'assessment_form_ust.pdf',
-          },
-        },
+      const query = new URLSearchParams({
+        view: 'reimbursement_view',
+        orderBy: 'status',
+        ascending: 'false',
+      });
 
-        // 2. Transportation Allowance
-        {
-          id: '2',
-          spas_id: '2022-05501',
-          reimbursementType: 'Transportation Allowance',
-          amount: 4500.00,
-          scholarInfo: {
-            name: 'Maria Clara',
-            spas_id: '2022-05501',
-            email: 'maria.clara@example.com',
-            contactNumber: '09171234567',
-          },
-          currentPlacement: {
-            scholarshipType: 'RA 7687',
-            batch: 2022,
-            university: 'Ateneo de Manila University',
-            program: 'BS Physics',
-          },
-          submissionInfo: {
-            dateSubmitted: '2024-05-20T10:00:00Z',
-            status: 'Resubmit',
-            reason: 'Round trip bus fare Manila to Cebu for semester break.',
-            adminComment: 'Please upload the original Boarding Pass, not just the booking confirmation.',
-          },
-          files: {
-            officialReceipt: 'booking_confirmation.pdf',
-          },
-        },
+      const response = await fetch(`/api/admin/get_view?${query.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch data');
 
-        // 3. Review Fee
-        {
-          id: '3',
-          spas_id: '2020-09999',
-          reimbursementType: 'Review Fee',
-          amount: 15000.00,
-          scholarInfo: {
-            name: 'Crisostomo Ibarra',
-            spas_id: '2020-09999',
-            email: 'crisostomo@up.edu.ph',
-            contactNumber: '09181234567',
-          },
-          currentPlacement: {
-            scholarshipType: 'Merit',
-            batch: 2020,
-            university: 'UP Diliman',
-            program: 'BS Civil Engineering',
-          },
-          submissionInfo: {
-            dateSubmitted: '2024-06-01T08:30:00Z',
-            status: 'Approved',
-            reason: 'Enrollment in Review Center for CE Board Exam.',
-          },
-          files: {
-            officialReceipt: 'review_center_receipt.pdf',
-          },
-        },
-      ];
+      const res = await response.json();
+      const rows = res.data || [];
 
-      setRequests(mockData);
+      const formatted: ReimbursementRequestDetails[] = rows.map((e: any) => ({
+        id: e.id.toString(),
+        spas_id: e.spas_id,
+        reimbursementType: e.type as 'Tuition Fee' | 'Transportation Allowance' | 'Review Fee' | 'Others',
+        amount: e.amount,
+        scholarInfo: {
+          name: e.full_name,
+          spas_id: e.spas_id,
+          email: e.email,
+          contactNumber: e.contact_number,
+        },
+        currentPlacement: {
+          scholarshipType: e.scholarship_type,
+          batch: Number(e.year_awarded),
+          university: e.university,
+          program: e.program_course,
+        },
+        submissionInfo: {
+          dateSubmitted: e.created_at,
+          status: e.status as SubmissionStatus,
+          reason: e.reason,
+          adminComment: e.comment || '',
+        },
+        files: {
+          officialReceipt: e.receipt_file_key,
+        },
+      }));
+
+      setRequests(formatted);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch requests.');
       toast.error("Error", {
-         description: "Failed to load requests."
+        description: "Failed to load reimbursement requests.",
       });
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+
+    useEffect(() => {
+      fetchData();
+    }, [fetchData]);
 
   if (loading) {
     return (
