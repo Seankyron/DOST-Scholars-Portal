@@ -6,14 +6,31 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Eye } from 'lucide-react';
 import { formatDate } from '@/lib/utils/date';
 import { PTPModal } from './PTPModal'; 
+import { PTPPlan } from '@/types/services';
 import type { PTPRequestDetails } from '@/types/admin';
 
 interface PTPRowProps {
   request: PTPRequestDetails; 
   onUpdate: () => void;
+  showPlanColumn?: boolean; // New Prop
 }
 
-export function PTPRow({ request, onUpdate }: PTPRowProps) {
+// Helper to shorten plan text for table view
+const getPlanShortLabel = (plan?: PTPPlan) => {
+  switch (plan) {
+    case 'undertake_ptp': return 'Will Undertake PTP';
+    case 'ojt_midyear_and_ptp': return 'OJT Included';
+    case 'cannot_participate': return 'Cannot Participate';
+    default: return '-';
+  }
+};
+
+const getPlanBadgeColor = (plan?: PTPPlan) => {
+  if (plan === 'cannot_participate') return 'bg-red-50 text-red-700 border-red-200';
+  return 'bg-blue-50 text-blue-700 border-blue-200';
+}
+
+export function PTPRow({ request, onUpdate, showPlanColumn = false }: PTPRowProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -27,10 +44,14 @@ export function PTPRow({ request, onUpdate }: PTPRowProps) {
           </div>
         </td>
 
-        {/* Transaction Type */}
-        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-        {request.type}   
-        </td>
+        {/* Selected Plan (Only for Referral) */}
+        {showPlanColumn && (
+          <td className="px-4 py-3 whitespace-nowrap">
+             <span className={`text-xs font-medium px-2 py-1 rounded border ${getPlanBadgeColor(request.submissionInfo.plan)}`}>
+                {getPlanShortLabel(request.submissionInfo.plan)}
+             </span>
+          </td>
+        )}
 
         {/* Academic Term */}
         <td className="px-4 py-3 whitespace-nowrap">

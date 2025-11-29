@@ -3,91 +3,140 @@
 import { useState, useEffect, useCallback } from 'react';
 import { PTPRow } from './PTPRow';
 import { Pagination } from '@/components/shared/Pagination';
-import { Loader2, Download } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Loader2, Download } from 'lucide-react'; 
+import { Button } from '@/components/ui/button'; 
 import type { PTPRequestDetails } from '@/types/admin';
-import { toast } from '@/components/ui/toaster';
 
 interface PTPTableProps {
   searchTerm: string;
+  filterType: 'Referral Letter' | 'Program Completion';
 }
 
-export function PTPTable({ searchTerm }: PTPTableProps) {
+export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
   const [requests, setRequests] = useState<PTPRequestDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
-      const response = await fetch('/api/admin/ptp/get');
-      if (!response.ok) throw new Error('Failed to fetch data');
-
-      const res = await response.json();
-
-      // Mapping database fields to the PTPRequestDetails interface
-      const data: PTPRequestDetails[] = res.submissions.map((item: any) => ({
-        id: item.ptp_id?.toString() ?? '',
-        spas_id: item.spas_id ?? '',
-        type: item.ptp_type ?? 'Practical Training',
-        
-        scholarInfo: {
-          name: item.full_name ?? 'Unknown',
-          spas_id: item.spas_id ?? '',
-          email: item.email ?? '',
-          contactNumber: item.contact_number ?? '',
-          completeAddress: item.address ?? '',
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const mockData: PTPRequestDetails[] = [
+        {
+          id: '1',
+          spas_id: '2021-001',
+          type: 'Referral Letter',
+          scholarInfo: {
+            name: 'Juan Dela Cruz',
+            spas_id: '2021-001',
+            email: 'juan.delacruz@example.com',
+            contactNumber: '09123456789',
+            dateOfBirth: '2000-01-01',
+            completeAddress: 'Manila',
+          },
+          placementInfo: {
+            scholarshipType: 'RA 7687',
+            batch: 2021,
+            university: 'University of the Philippines',
+            program: 'BS Computer Science',
+          },
+          submissionInfo: {
+            dateSubmitted: new Date().toISOString(),
+            status: 'Pending',
+            trainingYear: 2024,
+            plan: 'undertake_ptp', // "I will undertake..."
+            semester: 'Midyear',
+            academicYear: '2023-2024'
+          },
+          files: {
+            grades: 'grades.pdf',
+            replySlip: 'reply_slip.pdf',
+            curriculum: 'curriculum.pdf',
+          },
         },
-
-        placementInfo: {
-          scholarshipType: item.scholarship_type ?? '',
-          batch: item.year_awarded ? Number(item.year_awarded) : 0,
-          university: item.university ?? '',
-          program: item.program_course ?? '',
+        {
+          id: '2',
+          spas_id: '2021-002',
+          type: 'Program Completion',
+          scholarInfo: {
+            name: 'Maria Clara',
+            spas_id: '2021-002',
+            email: 'maria.clara@example.com',
+            contactNumber: '09987654321',
+            dateOfBirth: '2001-05-05',
+            completeAddress: 'Quezon City',
+          },
+          placementInfo: {
+            scholarshipType: 'Merit',
+            batch: 2021,
+            university: 'Ateneo de Manila University',
+            program: 'BS Physics',
+          },
+          submissionInfo: {
+            dateSubmitted: new Date(Date.now() - 86400000).toISOString(),
+            status: 'Approved',
+            trainingYear: 2024,
+            semester: 'Midyear',
+            academicYear: '2023-2024'
+          },
+          files: {
+            form126: 'f126.pdf',
+            form127: 'f127.pdf',
+            form128: 'f128.pdf',
+            dtr: 'dtr_signed.pdf',
+            certCompletion: 'certificate.pdf',
+          },
         },
+        {
+          id: '3',
+          spas_id: '2021-003',
+          type: 'Referral Letter',
+          scholarInfo: {
+            name: 'Jose Rizal',
+            spas_id: '2021-003',
+            email: 'jose.rizal@example.com',
+            contactNumber: '09170000000',
+            dateOfBirth: '1999-06-19',
+            completeAddress: 'Laguna',
+          },
+          placementInfo: {
+            scholarshipType: 'Merit',
+            batch: 2021,
+            university: 'UST',
+            program: 'BS Biology',
+          },
+          submissionInfo: {
+            dateSubmitted: new Date().toISOString(),
+            status: 'Approved',
+            trainingYear: 2024,
+            plan: 'cannot_participate', // "I cannot participate..."
+            semester: 'Midyear',
+            academicYear: '2023-2024'
+          },
+          files: {
+            grades: 'grades.pdf',
+            replySlip: 'reply_slip.pdf',
+            curriculum: 'curriculum.pdf',
+          },
+        }
+      ];
 
-        submissionInfo: {
-          dateSubmitted: item.ptp_created_at ?? new Date().toISOString(),
-          status: item.ptp_status ?? 'Pending',
-          trainingYear: "N/A", 
-          plan: item.ptp_plan ?? undefined,
-          semester: "N/A",
-          academicYear: "N/A",
-          adminComment: item.comment || item.ptp_comment || item.admin_comment || item.remarks || '', 
-        },
+      // Filter logic to simulate Tabs
+      const filtered = mockData.filter(item => item.type === filterType);
+      setRequests(filtered);
 
-        files: {
-          grades: item.grade_file_key ?? '',
-          replySlip: item.reply_slip_file_key ?? '',
-          curriculum: item.curriculum_file_key ?? '', 
-          form126: item.form_126_file_key ?? '',
-          form127: item.form_127_file_key ?? '',
-          form128: item.form_128_file_key ?? '',
-          dtr: item.dtr_file_key ?? '',
-          certCompletion: item.training_completion_file_key ?? '',
-        },
-      }));
-
-      setRequests(data);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch requests.');
-      toast.error("Error", {
-        description: "Failed to load PTP requests.",
-      });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filterType]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  const filteredRequests = requests.filter((r) =>
-    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   if (loading) {
     return (
@@ -97,16 +146,11 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-48 gap-4">
-        <p className="text-red-500">{error}</p>
-        <Button variant="outline" onClick={fetchData}>
-          Try Again
-        </Button>
-      </div>
-    );
-  }
+  if (error) return <p className="p-4 text-red-500 text-center">{error}</p>;
+
+  const filteredRequests = requests.filter((r) =>
+    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <>
@@ -115,7 +159,12 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scholar</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction Type</th>
+              
+              {/* Only show Plan column for Referral Letters */}
+              {filterType === 'Referral Letter' && (
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Selected Plan</th>
+              )}
+
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Academic Term</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University / Program</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Submitted</th>
@@ -124,19 +173,24 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredRequests.map((req) => (
-              <PTPRow 
-                key={req.id} 
-                request={req} 
-                onUpdate={fetchData}
-              />
-            ))}
+            {filteredRequests.length > 0 ? (
+              filteredRequests.map((req) => (
+                <PTPRow 
+                  key={req.id} 
+                  request={req} 
+                  onUpdate={fetchData}
+                  showPlanColumn={filterType === 'Referral Letter'} // Pass prop to Row
+                />
+              ))
+            ) : (
+              <tr>
+                <td colSpan={filterType === 'Referral Letter' ? 7 : 6} className="px-4 py-8 text-center text-sm text-gray-500">
+                  No {filterType === 'Referral Letter' ? 'referral requests' : 'completion reports'} found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
-        
-        {filteredRequests.length === 0 && (
-           <p className="text-sm text-gray-500 text-center py-8">No requests found.</p>
-        )}
       </div>
 
       <div className="p-4 grid grid-cols-1 sm:grid-cols-3 items-center gap-4 border-t">
