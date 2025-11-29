@@ -46,151 +46,58 @@ export function RequestFormsTable({ searchTerm }: RequestFormsTableProps) {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockData: RequestFormDetails[] = [
-        // 1. Pending - Letter of Endorsement (Standard Request)
-        {
-          id: '1',
-          spas_id: '2023-00123',
-          requestType: 'Letter of Endorsement',
-          scholarInfo: {
-            name: 'Juan Dela Cruz',
-            email: 'juan.delacruz@ust.edu.ph',
-            contactNumber: '09170001234',
-          },
-          currentPlacement: {
-            scholarshipType: 'Merit',
-            batch: 2023,
-            university: 'University of Santo Tomas',
-            program: 'BS Biochemistry',
-          },
-          submissionInfo: {
-            dateSubmitted: new Date().toISOString(),
-            status: 'Pending',
-            reason: 'Requirement for OJT Application at DOST-SEI.',
-            details: 'Dr. Josette Biyo, Director, DOST-SEI', 
-          },
-          files: {
-            supportingDocument: 'acceptance_letter_draft.pdf',
-          },
+      const query = new URLSearchParams({
+        view: 'request_forms_view',
+        orderBy: 'status',
+        ascending: 'false',
+      });
+
+      const response = await fetch(`/api/admin/get_view?${query.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch data');
+
+      const res = await response.json();
+      const rows = res.data || [];
+
+      const formatted: RequestFormDetails[] = rows.map((e: any) => ({
+        id: e.id.toString(),
+        spas_id: e.spas_id,
+        requestType: e.requested_document as RequestFormType,
+        scholarInfo: {
+          name: e.full_name,
+          email: e.email,
+          contactNumber: e.contact_number,
         },
-
-        // 2. Approved - Certificate of Scholarship (Historical Data)
-        {
-          id: '2',
-          spas_id: '2022-05501',
-          requestType: 'Certificate of Scholarship',
-          scholarInfo: {
-            name: 'Maria Clara',
-            email: 'maria.clara@example.com',
-            contactNumber: '09171234567',
-          },
-          currentPlacement: {
-            scholarshipType: 'RA 7687',
-            batch: 2022,
-            university: 'Ateneo de Manila University',
-            program: 'BS Physics',
-          },
-          submissionInfo: {
-            dateSubmitted: '2024-05-20T10:00:00Z',
-            status: 'Approved',
-            reason: 'For opening of Landbank Payroll Account.',
-            adminComment: 'Sent via email on May 21, 2024.',
-          },
-          files: {}, 
+        currentPlacement: {
+          scholarshipType: e.scholarship_type,
+          batch: Number(e.year_awarded),
+          university: e.university,
+          program: e.program_course,
         },
-
-        // 3. Resubmit - Certificate of Grades (Problematic File)
-        {
-          id: '3',
-          spas_id: '2020-09999',
-          requestType: 'Certificate of Grades',
-          scholarInfo: {
-            name: 'Crisostomo Ibarra',
-            email: 'crisostomo@up.edu.ph',
-            contactNumber: '09181234567',
-          },
-          currentPlacement: {
-            scholarshipType: 'Merit',
-            batch: 2020,
-            university: 'UP Diliman',
-            program: 'BS Civil Engineering',
-          },
-          submissionInfo: {
-            dateSubmitted: '2024-06-01T08:30:00Z',
-            status: 'Resubmit',
-            reason: 'For scholarship renewal reference.',
-            adminComment: 'The attached request letter is blurred. Please upload a clearer copy.',
-          },
-          files: {
-            supportingDocument: 'request_letter_scan_blurred.jpg',
-          },
+        submissionInfo: {
+          dateSubmitted: e.requested_at,
+          status: e.status as SubmissionStatus,
+          reason: e.reason,
+          details: e.updated_at ? `Last updated on ${e.updated_at}` : undefined,
+          adminComment: e.comment || undefined,
         },
-
-        // 4. Pending - Financial Breakdown (Complex Request)
-        {
-          id: '4',
-          spas_id: '2021-08888',
-          requestType: 'Financial Breakdown',
-          scholarInfo: {
-            name: 'Simoun Ibarra',
-            email: 'simoun@dlsu.edu.ph',
-            contactNumber: '09191234567',
-          },
-          currentPlacement: {
-            scholarshipType: 'RA 7687',
-            batch: 2021,
-            university: 'De La Salle University',
-            program: 'BS Chemical Engineering',
-          },
-          submissionInfo: {
-            dateSubmitted: '2024-06-15T14:20:00Z',
-            status: 'Pending',
-            reason: 'Requirement for transferring to another university.',
-          },
-          files: {
-            supportingDocument: 'clearance_form.pdf',
-          },
+        files: {
+          supportingDocument: e.supporting_document || undefined,
         },
+      }));
 
-        // 5. Pending - Certificate of Good Moral (Simple Request)
-        {
-          id: '5',
-          spas_id: '2023-01111',
-          requestType: 'Certificate of Good Moral',
-          scholarInfo: {
-            name: 'Basilio Sisa',
-            email: 'basilio@pup.edu.ph',
-            contactNumber: '09201234567',
-          },
-          currentPlacement: {
-            scholarshipType: 'JLSS',
-            batch: 2023,
-            university: 'Polytechnic University of the Philippines',
-            program: 'BS Biology',
-          },
-          submissionInfo: {
-            dateSubmitted: '2024-06-18T09:00:00Z',
-            status: 'Pending',
-            reason: 'Requirement for medical school application.',
-          },
-          files: {},
-        }
-      ];
-
-      setRequests(mockData);
+      setRequests(formatted);
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch requests.');
-      toast.error("Error", {
-         description: "Failed to load requests."
-      });
+      setError('Failed to fetch request forms.');
+      toast.error('Error', { description: 'Failed to load request forms.' });
     } finally {
       setLoading(false);
     }
   }, []);
+
 
   useEffect(() => {
     fetchData();

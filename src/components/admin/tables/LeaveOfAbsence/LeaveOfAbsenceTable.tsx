@@ -60,93 +60,69 @@ export function LeaveOfAbsenceTable({ searchTerm }: LeaveOfAbsenceTableProps) {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockData: LOARequestDetails[] = [
-        // 1. MEDICAL LOA
-        {
-          id: '1',
-          spas_id: '2021-00123',
-          applicationType: 'Medical/Personal',
-          scholarInfo: {
-            name: 'Juan Dela Cruz',
-            spas_id: '2021-00123',
-            email: 'juan.delacruz@up.edu.ph',
-            contactNumber: '09170001234',
-          },
-          currentPlacement: {
-            scholarshipType: 'RA 7687',
-            batch: 2021,
-            university: 'UP Diliman',
-            program: 'BS Physics',
-          },
-          loaDetails: {
-            startSemester: '1st Semester',
-            academicYear: '2024-2025',
-            duration: '1 Year',
-          },
-          submissionInfo: {
-            dateSubmitted: new Date().toISOString(),
-            status: 'Pending',
-            reason: 'I need to undergo surgery and recovery for 6 months.',
-          },
-          files: {
-            applicationForm: 'loa_form_juan.pdf',
-            certificationGrades: 'grades_summary.pdf',
-            universityApproval: 'univ_clearance.pdf',
-            medicalCertificate: 'med_cert_hospital.pdf',
-          },
-        },
+      const query = new URLSearchParams({
+        view: 'loa_view',
+        orderBy: 'status',
+        ascending: 'false',
+      });
 
-        // 2. EXCHANGE STUDENT LOA
-        {
-          id: '2',
-          spas_id: '2022-05501',
-          applicationType: 'Exchange Student Program',
-          scholarInfo: {
-            name: 'Maria Clara',
-            spas_id: '2022-05501',
-            email: 'maria.clara@example.com',
-            contactNumber: '09171234567',
-          },
-          currentPlacement: {
-            scholarshipType: 'Merit',
-            batch: 2022,
-            university: 'Ateneo de Manila University',
-            program: 'BS Biology',
-          },
-          loaDetails: {
-            startSemester: '2nd Semester',
-            academicYear: '2024-2025',
-            duration: '1 Semester',
-          },
-          submissionInfo: {
-            dateSubmitted: '2024-05-20T10:00:00Z',
-            status: 'Resubmit',
-            reason: 'Accepted into the exchange program at National University of Singapore.',
-            adminComment: 'Please upload a clearer copy of your Proof of Admission.',
-          },
-          files: {
-            applicationForm: 'loa_exchange_maria.pdf',
-            certificationGrades: 'grades_ateneo.pdf',
-            registrationForm: 'form5_exchange.pdf',
-            proofOfAdmission: 'nus_acceptance_blur.pdf',
-          },
-        },
-      ];
+      const response = await fetch(`/api/admin/get_view?${query.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch data');
 
-      setRequests(mockData);
+      const res = await response.json();
+      const rows = res.data || [];
+
+      const formatted: LOARequestDetails[] = rows.map((e: any) => ({
+        id: e.id.toString(),
+        spas_id: e.spas_id,
+        applicationType: e.type as LOAReason,
+        scholarInfo: {
+          name: e.full_name,
+          spas_id: e.spas_id,
+          email: e.email,
+          contactNumber: e.contact_number,
+        },
+        currentPlacement: {
+          scholarshipType: e.scholarship_type,
+          batch: Number(e.year_awarded),
+          university: e.university,
+          program: e.program_course,
+        },
+        loaDetails: {
+          startSemester: e.semester,
+          academicYear: e.academic_year,
+          duration: e.duration,
+        },
+        submissionInfo: {
+          dateSubmitted: e.created_at,
+          status: e.status as SubmissionStatus,
+          reason: e.reason,
+          adminComment: e.comment || '',
+        },
+        files: {
+          applicationForm: e.LOA_form_file_key,
+          certificationGrades: e.required_document_file_key?.Grades,
+          universityApproval: e.required_document_file_key?.['University Approval'] || undefined,
+          medicalCertificate: e.required_document_file_key?.['Medical Certificate'] || undefined,
+          registrationForm: e.required_document_file_key?.['Registration Form'] || undefined,
+          proofOfAdmission: e.required_document_file_key?.['Proof of Admission'] || undefined,
+          supportingDocument: e.required_document_file_key?.['Other Documents'] || undefined,
+        },
+      }));
+
+      setRequests(formatted);
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch requests.');
-      toast.error("Error", {
-         description: "Failed to load requests."
-      });
+      setError('Failed to fetch LOA requests.');
+      toast.error('Error', { description: 'Failed to load LOA requests.' });
     } finally {
       setLoading(false);
     }
   }, []);
+
 
   useEffect(() => {
     fetchData();
