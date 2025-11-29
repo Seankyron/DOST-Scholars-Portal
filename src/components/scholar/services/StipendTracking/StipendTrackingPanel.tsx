@@ -6,10 +6,11 @@ import { AlertCircle, Wallet, Loader2 } from 'lucide-react';
 import { StipendSemCard } from './StipendSemCard';
 import { StipendDetailsModal } from './StipendDetailsModal';
 import { RecentStipendActivity } from './RecentStipendReleases';
-import { Select } from '@/components/ui/select';
+import { FormSelect } from '@/components/ui/form-select';
 import { toast } from '@/components/ui/toaster';
 import { useCurrentScholarStipend } from '@/hooks/scholar/Stipend Tracking/useCurrentScholarStipend';
 import type { StipendPeriodStatus, Semester} from '@/types';
+import { formatRelativeTime } from '@/lib/utils/date';
 
 // --- Helper to generate the grid of expected semesters ---
 const getExpectedSemesters = (
@@ -29,7 +30,7 @@ const getExpectedSemesters = (
       yearLevel: yearLevel,
       semester: '1st Semester' as Semester,
       academicYear: acadYearLabel,
-      yearTitle: `${yearLevel}${getOrdinal(yearLevel)} Year`,
+      yearTitle: `${getOrdinal(yearLevel)} Year`,
     });
 
     // 2nd Sem
@@ -38,7 +39,7 @@ const getExpectedSemesters = (
       yearLevel: yearLevel,
       semester: '2nd Semester' as Semester,
       academicYear: acadYearLabel,
-      yearTitle: `${yearLevel}${getOrdinal(yearLevel)} Year`,
+      yearTitle: `${getOrdinal(yearLevel)} Year`,
     });
 
     // Midyear (if applicable)
@@ -48,7 +49,7 @@ const getExpectedSemesters = (
         yearLevel: yearLevel,
         semester: 'Midyear' as Semester,
         academicYear: acadYearLabel,
-        yearTitle: `${yearLevel}${getOrdinal(yearLevel)} Year`,
+        yearTitle: `${getOrdinal(yearLevel)} Year`,
       });
     }
   }
@@ -57,10 +58,10 @@ const getExpectedSemesters = (
 };
 
 const getOrdinal = (n: number) => {
-  if (n === 1) return 'st';
-  if (n === 2) return 'nd';
-  if (n === 3) return 'rd';
-  return 'th';
+  if (n === 1) return 'First';
+  if (n === 2) return 'Second';
+  if (n === 3) return 'Third';
+  return 'Fourth';
 };
 
 export function StipendTrackingPanel() {
@@ -153,25 +154,48 @@ export function StipendTrackingPanel() {
     (s) => s.academicYear === filterAcademicYear
   );
 
-  // 7. Derive Recent Activity
+// 7. Derive Recent Activity
   const recentActivities = useMemo(() => {
     if (!stipendRecords) return [];
     
     return stipendRecords
       .filter(r => r.received && r.received > 0) // Only show actual releases
       .sort((a, b) => {
-         // Sort by updated_at descending
          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
       })
-      .map((r, index) => ({
-        id: index,
-        title: `${r.year_level}${getOrdinal(r.year_level)} Year - ${r.semester}`,
-        amount: `₱${(r.received || 0).toLocaleString()}`,
-        date: new Date(r.updated_at).toLocaleDateString(),
-        status: r.status
-      }));
-  }, [stipendRecords]);
-  console.log("Stipend Records: ", stipendRecords);    
+      .map((r, index) => {
+        // Find the complete semester object for this record
+        const matchingSem = processedSemesters.find(
+            s => s.yearLevel === r.year_level && s.semester === r.semester
+        );
+
+        const effectiveStatus = r.status || matchingSem?.stipendStatus || 'Pending';
+        const yearTitle = matchingSem?.yearTitle || `${r.year_level}${getOrdinal(r.year_level)} Year`;
+
+        // IMPORTANT: We explicitly construct the 'data' object here so it is never missing
+        const modalData = {
+            received: r.received || 0,
+            pending: r.unreleased || 0,
+            total: (r.received || 0) + (r.unreleased || 0),
+            dbRecord: r 
+        };
+
+        return {
+            id: index,
+            // Display Fields
+            title: `${yearTitle} - ${r.semester}`,
+            amount: `₱${(r.received || 0).toLocaleString()}`,
+            date: `Updated ${formatRelativeTime( new Date(r.updated_at))}`,
+            status: effectiveStatus,
+            
+            // Logic Fields for Modal (Must be present!)
+            stipendStatus: effectiveStatus, 
+            data: modalData, // <--- This was likely missing or undefined in your object
+            yearTitle: yearTitle,
+            semester: r.semester
+        };
+      });
+  }, [stipendRecords, processedSemesters]);
 
   // 8. Handlers
   const handleCardClick = (sem: any) => {
@@ -180,7 +204,7 @@ export function StipendTrackingPanel() {
     const validStatuses = ['Released', 'On hold', 'Pending'];
     console.log("Includes? ", validStatuses.includes(sem.stipendStatus))
     console.log(sem.stipendStatus == 'Pending')
-    console.log("Stipend Status: ", sem.stipendStatus,'Pending')
+    console.log("Stipend Status: ", sem.stipendStatus)
     if (validStatuses.includes(sem.stipendStatus)) {
         setSelectedSemesterData(sem);
         setIsModalOpen(true);
@@ -221,10 +245,10 @@ export function StipendTrackingPanel() {
 
       {/* 2. Filters */}
       <div className="w-full max-w-xs">
-        <Select
+        <FormSelect
           label="Filter by Academic Year"
           value={filterAcademicYear}
-          onChange={(e) => setFilterAcademicYear(e.target.value)}
+          onChange={(e) => setFilterAcademicYear(e)}
           options={academicYearOptions.map(ay => ({ value: ay, label: ay }))}
         />
       </div>
@@ -252,7 +276,8 @@ export function StipendTrackingPanel() {
 
           {/* Recent Activity List */}
           {recentActivities.length > 0 && (
-            <RecentStipendActivity activities={recentActivities} />
+            <RecentStipendActivity activities={recentActivities}
+            onViewDetails={handleCardClick} />
           )}
         </>
       )}

@@ -12,16 +12,20 @@ import { X, Calendar } from 'lucide-react';
 import { DateRangeFilter } from '@/components/shared/DateRangeFilter';
 import { UNIVERSITIES, SEMESTERS } from '@/lib/utils/constants';
 
-export function PTPFilters() {
+interface PTPFiltersProps {
+  showPlanFilter?: boolean;
+}
+
+export function PTPFilters({ showPlanFilter = false }: PTPFiltersProps) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 bg-white p-1">
       
-      {/* Primary Filters Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+     
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         
         {/* 1. Status */}
         <Select>
-          <SelectTrigger className="bg-white h-10">
+          <SelectTrigger className="bg-white h-10 w-full">
             <SelectValue placeholder="Status: All" />
           </SelectTrigger>
           <SelectContent>
@@ -33,21 +37,9 @@ export function PTPFilters() {
           </SelectContent>
         </Select>
         
-        {/* 2. Type */}
+        {/* 2. Training Year */}
         <Select>
-          <SelectTrigger className="bg-white h-10">
-            <SelectValue placeholder="Transaction Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="All">All Types</SelectItem>
-            <SelectItem value="Referral Letter">Referral Letter</SelectItem>
-            <SelectItem value="Program Completion">Program Completion</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {/* 3. Training Year */}
-        <Select>
-          <SelectTrigger className="bg-white h-10">
+          <SelectTrigger className="bg-white h-10 w-full">
             <SelectValue placeholder="Training Year: All" />
           </SelectTrigger>
           <SelectContent>
@@ -58,9 +50,9 @@ export function PTPFilters() {
           </SelectContent>
         </Select>
 
-        {/* 4. Semester */}
+        {/* 3. Semester */}
         <Select>
-          <SelectTrigger className="bg-white h-10">
+          <SelectTrigger className="bg-white h-10 w-full">
             <SelectValue placeholder="Semester: All" />
           </SelectTrigger>
           <SelectContent>
@@ -71,9 +63,9 @@ export function PTPFilters() {
           </SelectContent>
         </Select>
 
-        {/* 5. Academic Year */}
+        {/* 4. Academic Year */}
         <Select>
-          <SelectTrigger className="bg-white h-10">
+          <SelectTrigger className="bg-white h-10 w-full">
             <SelectValue placeholder="A.Y.: All" />
           </SelectTrigger>
           <SelectContent>
@@ -84,9 +76,9 @@ export function PTPFilters() {
           </SelectContent>
         </Select>
         
-        {/* 6. University */}
+        {/* 5. University */}
         <Select>
-          <SelectTrigger className="bg-white h-10">
+          <SelectTrigger className="bg-white h-10 w-full">
              <SelectValue placeholder="University: All" />
           </SelectTrigger>
           <SelectContent>
@@ -96,21 +88,32 @@ export function PTPFilters() {
             ))}
           </SelectContent>
         </Select>
+
+        {/* 6. Plan (Conditional) */}
+        {showPlanFilter && (
+          <Select>
+            <SelectTrigger className="bg-white h-10 w-full">
+               <SelectValue placeholder="Plan: All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All Plans</SelectItem>
+              <SelectItem value="undertake_ptp">Will Undertake PTP</SelectItem>
+              <SelectItem value="ojt_midyear_and_ptp">OJT Included in Curriculum</SelectItem>
+              <SelectItem value="cannot_participate">Cannot Participate</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* Secondary Row: Date Range & Reset */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 border-t border-gray-50">
-        <div className="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-500">
-           <div className="flex items-center gap-2 mb-1 sm:mb-0">
-              <Calendar className="h-4 w-4" />
-              <span className="sm:inline">Filter by Date Submitted:</span>
-           </div>
-
-           <div className="flex-1 w-full sm:w-auto">
-             {/* Removed h-9 to allow auto-height on mobile grid */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-gray-50">
+        <div className="w-full sm:flex-1 flex items-center gap-2 text-sm text-gray-500">
+           <Calendar className="h-4 w-4 shrink-0 text-gray-400 hidden sm:block" />
+           <span className="hidden lg:inline text-nowrap">Filter by Date Submitted:</span>
+           <div className="w-full sm:max-w-[260px]">
              <DateRangeFilter 
                 onFilter={(start, end) => console.log(start, end)} 
-                className="w-full"
+                className="w-full h-9"
              />
            </div>
         </div>
@@ -118,7 +121,8 @@ export function PTPFilters() {
         <Button 
           type="button" 
           variant="ghost" 
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 h-10 w-full sm:w-auto"
+          className="w-full sm:w-auto text-red-600 hover:text-red-700 hover:bg-red-50 h-9 px-3 flex items-center justify-center sm:justify-start"
+          title="Reset Filters"
         >
            <X className="h-4 w-4 mr-2" />
            Reset Filters

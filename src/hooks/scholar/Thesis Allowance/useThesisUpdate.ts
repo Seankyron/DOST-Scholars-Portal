@@ -21,10 +21,6 @@ export const useUpdateThesis = () => {
 
       // Prepare Payload
       const payload: ThesisUpdate = {
-        status: 'Pending', // Reset status on update
-        // No 'updated_at' field in the 'Update' type provided in type.ts, 
-        // but if your DB has it via trigger, you don't need to send it.
-        // If schema has it, add: updated_at: new Date().toISOString(),
       };
 
       // Conditionally add fields to payload

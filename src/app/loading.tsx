@@ -1,9 +1,8 @@
 'use client';
 
-import { FullPageLoader } from '@/components/shared/FullPageLoader';
+import { GlobalLoader } from '@/components/shared/GlobalLoader';
 
 export default function Loading() {
-  // Since loading.tsx is only mounted when Next.js is loading, 
-  // we can hardcode isLoading={true}.
-  return <FullPageLoader isLoading={true} message="Loading Portal..." />;
+  // Always true because this component only mounts when Next.js is loading
+  return <GlobalLoader isLoading={true} message="Please wait..." />;
 }

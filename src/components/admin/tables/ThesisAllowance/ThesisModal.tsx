@@ -119,7 +119,7 @@ export function ThesisModal({
     setAdminComment(request.adminComment || '');
   }, [request.status, request.adminComment]);
 
-  const isActionable = currentStatus === 'Pending';
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev: string) => {
@@ -413,7 +413,7 @@ export function ThesisModal({
       
       <ConfirmDialog
         isOpen={isResubmitOpen}
-        onClose={() => setIsResubmitOpen(false)}
+        onClose={() => setIsResubmitOpen(false)}  
         onConfirm={handleResubmit}
         title="Request Resubmission"
         description={`Are you sure you want to request resubmission from ${scholarInfo.name}? Ensure the comments are clear.`}

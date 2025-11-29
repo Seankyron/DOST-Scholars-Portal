@@ -36,7 +36,7 @@ export const useUpdateGrade = () => {
             spas_id: data.spas_id,
             year_level: data.year_level,
             semester: data.semester,
-            status: 'Pending',
+            status: data.status,
             cor_file_key: data.cor_file_key,
             grade_file_key: data.grade_file_key,
             updated_at: new Date().toISOString(),

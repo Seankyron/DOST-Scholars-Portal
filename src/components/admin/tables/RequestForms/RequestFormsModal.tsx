@@ -114,7 +114,7 @@ export function RequestFormsModal({
     setDeliveryMode('Email');
   }, [submissionInfo.status, submissionInfo.adminComment, isOpen]);
 
-  const isActionable = currentStatus === 'Pending';
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
   const isEndorsement = requestType === 'Letter of Endorsement';
   const isEmail = deliveryMode === 'Email';
 

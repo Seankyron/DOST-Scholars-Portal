@@ -227,13 +227,17 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
          payload.type = type;
 
          console.log("Current Data: ", currentData)
+
+         let currentStatus = 'Pending';
+
         if(currentData) {
+          if(currentData.status === 'Resubmit') currentStatus = 'Resubmit-Pending'
           await updatePTP({
             id: Number(currentData.id), // Ensure ID is a number
             plan: plan || currentData.plan, // Ensure plan is passed as string
             grade_file_key: gradesKey,
             reply_slip_file_key: replySlipKey,
-            status: 'Pending'
+            status: currentStatus
           })
         } else {
           await submitGrade(payload);
@@ -277,7 +281,10 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
          payload.training_completion_file_key = certKey;
          payload.type = type;
          
+         let currentStatus = 'Pending';
+
         if(currentData) {
+          if (currentData.status === 'Resubmit') currentStatus = 'Resubmit-Pending'
           await updatePTP({
             id: Number(currentData.id),
             form_126_file_key: form126Key,
@@ -285,7 +292,7 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
             form_128_file_key: form128Key,
             dtr_file_key: dtrKey,
             training_completion_file_key: certKey,
-            status: 'Pending'
+            status: currentStatus
           })
         } else {
           console.log("Payload: ", payload)

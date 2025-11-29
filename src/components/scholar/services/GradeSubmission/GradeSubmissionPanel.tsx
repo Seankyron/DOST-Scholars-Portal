@@ -10,6 +10,7 @@ import { toast } from '@/components/ui/toaster';
 import { SelectInput as Select } from '@/components/ui/select';
 import { useCurrentScholarGrade, type iGradeSubmissions } from '@/hooks/scholar/Grade Submission/useCurrentScholarGrade';
 import type { SemesterAvailability, SubmissionStatus, Semester } from '@/types';
+import { comment } from 'postcss';
 
 // 1. Constants
 const jlssScholarships = ["JLSS, RA 7687", "JLSS, Merit", "JLSS, RA 10612"];
@@ -83,6 +84,7 @@ function GetGradeRecordBySemester(
         year: option.year,
         gradeFileKey: entry?.grade_file_key ?? null,
         corFileKey: entry?.cor_file_key ?? null,
+        comment: entry?.comment ?? null,
       };
     });
   });

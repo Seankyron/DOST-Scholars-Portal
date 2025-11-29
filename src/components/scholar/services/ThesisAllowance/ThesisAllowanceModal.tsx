@@ -142,14 +142,17 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
 
       setIsUploading(false); 
 
+      let currentStatus = 'Pending';
       // 4. Submit to DB
       if (existingRequest && existingRequest.id) {
-          await updateThesis({
-              id: existingRequest.id,
-              type: `${percentage}`, 
-              abstract_thesis_file_key: abstractKey,
-              approval_file_key: approvalKey,
-              final_thesis_file_key: manuscriptKey,
+        if (existingRequest.status === 'Resubmit') currentStatus = 'Resubmit-Pending'
+        await updateThesis({
+          id: existingRequest.id,
+          type: `${percentage}`, 
+          abstract_thesis_file_key: abstractKey,
+          approval_file_key: approvalKey,
+          final_thesis_file_key: manuscriptKey,
+          status: currentStatus,
           });
       } else {
           await submitThesis({
@@ -182,9 +185,41 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
   ) => {
     const existingFKUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${existingRequest?.[dbKey]}.pdf`;
 
+    // Helper to determine if this specific field should be editable
+    const isFieldEditable = () => {
+        // If it's a new request, everything is editable
+        if (!existingRequest) return true;
+        
+        // If the main edit switch is off, nothing is editable
+        if (!isEditing) return false;
+
+        // --- NEW LOGIC: Resubmit filtering based on comment ---
+        if (isResubmit && adminComment) {
+            const lowerComment = adminComment.toLowerCase();
+            
+            if (dbKey === 'abstract_thesis_file_key') {
+                return lowerComment.includes('abstract');
+            }
+            if (dbKey === 'approval_file_key') {
+                return lowerComment.includes('approval');
+            }
+            if (dbKey === 'final_thesis_file_key') {
+                return lowerComment.includes('manuscript') || lowerComment.includes('final');
+            }
+            
+            // If the field isn't mentioned, it remains read-only
+            return false;
+        }
+
+        // Default behavior for other statuses (e.g. if we allow editing Pending)
+        return true;
+    };
+
+    const editable = isFieldEditable();
+
     // CASE 1: READ-ONLY MODE
     // If we are NOT editing, we ONLY show the read-only display.
-    if (!isEditing && existingRequest) {
+    if (!editable && existingRequest) {
       return (
         <div className="space-y-2">
             <FileDisplayReadOnly 
