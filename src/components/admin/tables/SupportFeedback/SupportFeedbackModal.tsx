@@ -19,7 +19,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge'; 
 import type { SupportFeedbackRequestDetails } from './SupportFeedbackTable';
-
+import { supabase } from '@/lib/supabase/client';
 // --- Helper Components ---
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
@@ -133,19 +133,27 @@ export function SupportFeedbackModal({
     setIsResolveOpen(true);
   };
 
-  // --- MOCK ACTIONS (Simulate Backend) ---
   const handleResolve = async () => {
     setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+          const { error: updateError } = await supabase
+            .from('Scholar Support and Feedback Mechanism')
+            .update({ status: "Approved", comment: adminResponse } as any) 
+            .eq('id', parseInt(request.id));
     
-    toast.success('Ticket Resolved', { description: `Ticket for ${scholarInfo.name} closed successfully.` });
+          if (updateError) throw new Error(updateError.message);
+          
+          toast.success('Ticket Resolved', { description: `Ticket for ${scholarInfo.name} closed successfully.` });
     
-    // In Scholar View, 'Approved' is typically used for Resolved tickets in BaseSubmission
-    setCurrentStatus('Approved'); 
-    onUpdate(); 
-    setIsProcessing(false);
-    setIsResolveOpen(false);
-    onClose();
+          setCurrentStatus('Approved'); 
+          onUpdate(); 
+          setIsProcessing(false);
+          setIsResolveOpen(false);
+          onClose();
+        } catch (e: any) {
+          console.error('Update failed:', e);
+          toast.error('Update Failed', { description: e.message });
+        }
   };
 
   const handleRequestInfo = async () => {
@@ -153,20 +161,33 @@ export function SupportFeedbackModal({
       toast.error('Response Required', { description: 'Please enter instructions before requesting info.' });
       return;
     }
-
-    setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    toast.warning('Info Requested', { 
-      description: `Ticket returned to ${scholarInfo.name} for clarification.`,
-      className: "bg-yellow-50 border-yellow-200", 
-    });
+     try {
+          const { error: updateError } = await supabase
+            .from('Scholar Support and Feedback Mechanism')
+            .update({
+              status: "Resubmit",
+              comment: adminResponse,
+            } as any)
+            .eq('id', parseInt(request.id));
     
-    setCurrentStatus('Resubmit');
-    onUpdate();
-    setIsProcessing(false);
-    setIsRequestInfoOpen(false);
-    onClose();
+          if (updateError) throw new Error(updateError.message);
+    
+             toast.warning('Info Requested', { 
+              description: `Ticket returned to ${scholarInfo.name} for clarification.`,
+              className: "bg-yellow-50 border-yellow-200", 
+            });
+            
+            setCurrentStatus('Resubmit');
+            onUpdate();
+            setIsProcessing(false);
+            setIsRequestInfoOpen(false);
+            onClose();
+        } catch (e: any) {
+          console.error('Update failed:', e);
+          toast.error('Update Failed', { description: e.message });
+        }
+  
+ 
   };
 
   const displayStatus = currentStatus === 'Approved' ? 'Resolved' : currentStatus;
