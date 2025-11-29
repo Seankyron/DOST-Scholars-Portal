@@ -21,13 +21,16 @@ export function PTPTable({ searchTerm }: PTPTableProps) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/admin/ptp/get');
+      const query = new URLSearchParams({
+        view: 'ptp_view',
+        orderBy: 'ptp_status',
+        ascending: 'false',
+      });
+      const response = await fetch(`/api/admin/get_view?${query.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch data');
 
       const res = await response.json();
-
-      // Mapping database fields to the PTPRequestDetails interface
-      const data: PTPRequestDetails[] = res.submissions.map((item: any) => ({
+      const data: PTPRequestDetails[] = res.data.map((item: any) => ({
         id: item.ptp_id?.toString() ?? '',
         spas_id: item.spas_id ?? '',
         type: item.ptp_type ?? 'Practical Training',
