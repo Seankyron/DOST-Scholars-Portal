@@ -19,6 +19,7 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { toast } from '@/components/ui/toaster';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { LOARequestDetails } from './LeaveOfAbsenceTable';
+import { supabase } from '@/lib/supabase/client';
 
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -131,11 +132,23 @@ export function LeaveOfAbsenceModal({
   };
 
   const handleApprove = async () => {
-    toast.success('LOA Request Approved', { description: `${scholarInfo.name} has been notified.` });
-    setCurrentStatus('Approved');
-    onUpdate();
-    setIsApproveOpen(false);
-    onClose();
+     try{
+          let { error: updateError } = await supabase
+          .from('Leave of Absence')
+          .update({ status: "Approved", comment: 'Leave of Absence Approved!' })
+          .eq('id', parseInt(request.id));
+
+          if(updateError) throw new Error(updateError.message);
+
+          toast.success('LOA Request Approved', { description: `${scholarInfo.name} has been notified.` });
+          setCurrentStatus('Approved');
+          onUpdate();
+          setIsApproveOpen(false);
+          onClose();
+        }catch(e: any){
+          console.error('Update failed:', e);
+          toast.error('Update Failed', { description: e.message });
+        }
   };
 
   const handleResubmit = async () => {
@@ -143,11 +156,29 @@ export function LeaveOfAbsenceModal({
       toast.error('Please provide a comment before requesting resubmission.');
       return;
     }
-    toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
-    setCurrentStatus('Resubmit');
-    onUpdate();
-    setIsResubmitOpen(false);
-    onClose();
+    try{
+          let { error: updateError } = await supabase
+          .from('Leave of Absence')
+          .update({ status: "Resubmit", comment: adminComment.trim() })
+          .eq('id', parseInt(request.id));
+  
+          if(updateError) throw new Error(updateError.message);
+         
+          toast.warning('Resubmission Requested', { 
+              description: `${scholarInfo.name} has been notified.`,
+              className: "bg-yellow-50 border-yellow-200", 
+          });
+          
+          toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
+          setCurrentStatus('Resubmit');
+          onUpdate();
+          setIsResubmitOpen(false);
+          onClose();
+      }catch(e: any){
+          console.error('Update failed:', e);
+          toast.error('Update Failed', { description: e.message });
+      }
+   
   };
 
   const comment = adminComment.toLowerCase();
