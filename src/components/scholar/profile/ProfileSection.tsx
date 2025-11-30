@@ -58,7 +58,7 @@ export function ProfileSection() {
 
   useEffect(() => {
     if (scholar) {
-      sessionStorage.setItem("user", JSON.stringify(scholar));
+      sessionStorage.setItem("scholar", JSON.stringify(scholar));
     }
   }, [scholar]);
 

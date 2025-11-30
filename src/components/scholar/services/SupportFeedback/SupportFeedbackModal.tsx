@@ -18,6 +18,8 @@ import { formatDate } from '@/lib/utils/date';
 import { toast } from '@/components/ui/toaster';
 import { AdminCommentAlert } from '@/components/shared/AdminCommenAlert';
 import { FeedbackForm } from './FeedbackForm';
+import { SubmissionData, useSubmitFeedback } from '@/hooks/scholars/Post/useSubmitFeedback';
+import { useUploadDocument } from '@/hooks/scholars/Post/useUploadDocument';
 
 interface SupportFeedbackModalProps {
   isOpen: boolean;
@@ -41,6 +43,12 @@ export function SupportFeedbackModal({ isOpen, onClose, category, existingReques
   // Initial Mode: Edit if New Request OR Pending (allow updates)
   const [isEditing, setIsEditing] = useState(!existingRequest || status === 'Pending');
 
+  const { submitFeedback, error } = useSubmitFeedback();
+  const { uploadDocument } = useUploadDocument();
+
+  const storedSCholar = sessionStorage.getItem('scholar');
+  const scholar = storedSCholar ? JSON.parse(storedSCholar) : null;
+
   const handleSubmit = async () => {
     if (!isConfirmed) {
       toast.error('Please confirm your submission.');
@@ -53,10 +61,43 @@ export function SupportFeedbackModal({ isOpen, onClose, category, existingReques
 
     setIsLoading(true);
     try {
-      // Simulate API call
-      console.log({ category, message, file });
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      let attachmentUrl = null, errorUrl = null;
+
+      console.log('File:', file);
+
+      if (file) {
+      console.log(2);
+        ({ url: attachmentUrl, errorUrl } = await uploadDocument(file!, `DOST/${scholar.spas_id}/feeback/${category}/attachment`));
+
+        error ? console.log('URL:', errorUrl) : console.log('URL:', attachmentUrl);
+      }
+
+      console.log(3);
+
+      const submissionData: SubmissionData = {
+        spas_id: scholar.spas_id,
+        type: category,
+        reason: message,
+        comment: null,
+        status: 'Pending',
+        attachment: attachmentUrl,
+        updated_at: new Date().toISOString()
+      }
+
+      if (!existingRequest) {
+      console.log(4);
+        await submitFeedback(submissionData, null);
+      }
+      else {
+      console.log(5);
+        const id = existingRequest.id;
+        if (!id) { throw new Error('An error occurred. Failed to update request.'); }
+
+        submissionData.status = 'Resubmit - Pending';
+        await submitFeedback(submissionData, id);
+      }
+      console.log(6);
+
       toast.success('Ticket submitted successfully!');
       onClose();
     } catch (error) {
