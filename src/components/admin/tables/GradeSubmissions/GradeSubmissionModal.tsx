@@ -139,7 +139,6 @@ export function GradeSubmissionModal({
 
   const comment = adminComment.toLowerCase();
 
-  // 1. Regex Helper: Checks for WHOLE words (prevents 'cor' matching inside 'incorrect')
   const hasKeyword = (keywords: string[]) => {
     return keywords.some((keyword) => {
       const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -160,7 +159,6 @@ export function GradeSubmissionModal({
     hasKeyword(['grade', 'grades', 'cog', 'card', 'rating', 'scholastic'])
   ) && currentStatus !== 'Approved';
 
-  // 5. Blocker Logic: Prevents approval if any negative keywords are found
   const hasResubmitRequest = (
     showCorResubmit || 
     showGradesResubmit || 
@@ -236,7 +234,6 @@ export function GradeSubmissionModal({
         setCurrentStatus('Resubmit');
         onUpdate();
         setIsResubmitOpen(false);
-        // We keep the modal open so you can see the red flags update immediately
     }catch(e: any){
         console.error('Update failed:', e);
         toast.error('Update Failed', { description: e.message });

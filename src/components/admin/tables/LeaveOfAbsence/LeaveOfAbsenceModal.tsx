@@ -21,6 +21,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { LOARequestDetails } from './LeaveOfAbsenceTable';
 import { supabase } from '@/lib/supabase/client';
 
+
 function InfoItem({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
@@ -122,7 +123,7 @@ export function LeaveOfAbsenceModal({
   }, [submissionInfo]);
 
   // Determine if actions are allowed
-  const isActionable = currentStatus === 'Pending';
+  const isActionable = currentStatus === 'Pending' || 'Resubmit-Pending';
 
   const handleAddComment = (commentText: string) => {
     setAdminComment((prev) => {
@@ -139,13 +140,12 @@ export function LeaveOfAbsenceModal({
           .eq('id', parseInt(request.id));
 
           if(updateError) throw new Error(updateError.message);
-
           toast.success('LOA Request Approved', { description: `${scholarInfo.name} has been notified.` });
           setCurrentStatus('Approved');
           onUpdate();
           setIsApproveOpen(false);
           onClose();
-        }catch(e: any){
+          }catch(e: any){
           console.error('Update failed:', e);
           toast.error('Update Failed', { description: e.message });
         }
@@ -168,26 +168,22 @@ export function LeaveOfAbsenceModal({
               description: `${scholarInfo.name} has been notified.`,
               className: "bg-yellow-50 border-yellow-200", 
           });
-          
           toast.warning('Resubmission Requested', { description: `${scholarInfo.name} has been notified.` });
           setCurrentStatus('Resubmit');
           onUpdate();
           setIsResubmitOpen(false);
           onClose();
-      }catch(e: any){
+          }catch(e: any){
           console.error('Update failed:', e);
           toast.error('Update Failed', { description: e.message });
       }
-   
+
   };
 
   const comment = adminComment.toLowerCase();
   const isMedical = applicationType === 'Medical/Personal';
 
-  // --- LOGIC: Check for resubmission keywords ---
-  // The 'needsResubmit' flag on files will now show even if status is 'Resubmit' or 'Approved',
-  // as long as the keyword is present in the comment. This preserves history.
-  // We only hide it if there is NO issue mentioned.
+
   const hasKeyword = (keywords: string[]) => {
       return keywords.some(k => comment.includes(k));
   };

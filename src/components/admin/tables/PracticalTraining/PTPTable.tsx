@@ -29,10 +29,12 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
       if (!response.ok) throw new Error('Failed to fetch data');
 
       const res = await response.json();
-      const data: PTPRequestDetails[] = res.data.map((item: any) => ({
+      
+      // 1. Map the API response correctly without the hardcoded mock data artifacts
+      const allRequests: PTPRequestDetails[] = res.data.map((item: any) => ({
         id: item.ptp_id?.toString() ?? '',
         spas_id: item.spas_id ?? '',
-        type: item.ptp_type ?? 'Practical Training',
+        type: item.ptp_type ?? 'Practical Training', // Ensure this matches 'Referral Letter' or 'Program Completion' in your DB
         
         scholarInfo: {
           name: item.full_name ?? 'Unknown',
@@ -52,81 +54,21 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
         submissionInfo: {
           dateSubmitted: item.ptp_created_at ?? new Date().toISOString(),
           status: item.ptp_status ?? 'Pending',
-          trainingYear: "N/A", 
+          trainingYear: "N/A", // Map this if available in API
           plan: item.ptp_plan ?? undefined,
-          semester: "N/A",
-          academicYear: "N/A",
+          semester: "N/A", // Map this if available in API
+          academicYear: "N/A", // Map this if available in API
           adminComment: item.comment || item.ptp_comment || item.admin_comment || item.remarks || '', 
         },
-        {
-          id: '2',
-          spas_id: '2021-002',
-          type: 'Program Completion',
-          scholarInfo: {
-            name: 'Maria Clara',
-            spas_id: '2021-002',
-            email: 'maria.clara@example.com',
-            contactNumber: '09987654321',
-            dateOfBirth: '2001-05-05',
-            completeAddress: 'Quezon City',
-          },
-          placementInfo: {
-            scholarshipType: 'Merit',
-            batch: 2021,
-            university: 'Ateneo de Manila University',
-            program: 'BS Physics',
-          },
-          submissionInfo: {
-            dateSubmitted: new Date(Date.now() - 86400000).toISOString(),
-            status: 'Approved',
-            trainingYear: 2024,
-            semester: 'Midyear',
-            academicYear: '2023-2024'
-          },
-          files: {
-            form126: 'f126.pdf',
-            form127: 'f127.pdf',
-            form128: 'f128.pdf',
-            dtr: 'dtr_signed.pdf',
-            certCompletion: 'certificate.pdf',
-          },
-        },
-        {
-          id: '3',
-          spas_id: '2021-003',
-          type: 'Referral Letter',
-          scholarInfo: {
-            name: 'Jose Rizal',
-            spas_id: '2021-003',
-            email: 'jose.rizal@example.com',
-            contactNumber: '09170000000',
-            dateOfBirth: '1999-06-19',
-            completeAddress: 'Laguna',
-          },
-          placementInfo: {
-            scholarshipType: 'Merit',
-            batch: 2021,
-            university: 'UST',
-            program: 'BS Biology',
-          },
-          submissionInfo: {
-            dateSubmitted: new Date().toISOString(),
-            status: 'Approved',
-            trainingYear: 2024,
-            plan: 'cannot_participate', // "I cannot participate..."
-            semester: 'Midyear',
-            academicYear: '2023-2024'
-          },
-          files: {
-            grades: 'grades.pdf',
-            replySlip: 'reply_slip.pdf',
-            curriculum: 'curriculum.pdf',
-          },
+        
+        // Initialize files object (map specific fields from item if your API returns them)
+        files: {
+            // Example: form126: item.file_form126 ?? undefined
         }
-      ];
+      }));
 
-      // Filter logic to simulate Tabs
-      const filtered = mockData.filter(item => item.type === filterType);
+      // 2. Filter the mapped data based on the prop
+      const filtered = allRequests.filter(item => item.type === filterType);
       setRequests(filtered);
 
     } catch (err) {
@@ -182,7 +124,7 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
                   key={req.id} 
                   request={req} 
                   onUpdate={fetchData}
-                  showPlanColumn={filterType === 'Referral Letter'} // Pass prop to Row
+                  showPlanColumn={filterType === 'Referral Letter'} 
                 />
               ))
             ) : (
