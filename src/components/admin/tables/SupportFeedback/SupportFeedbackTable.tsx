@@ -46,99 +46,64 @@ export function SupportFeedbackTable({ searchTerm }: SupportFeedbackTableProps) 
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockData: SupportFeedbackRequestDetails[] = [
-        // 1. Technical Issue (Pending)
-        {
-          id: 'TKT-001',
-          spas_id: '2023-00123',
-          scholarInfo: {
-            name: 'Juan Dela Cruz',
-            spas_id: '2023-00123',
-            email: 'juan.delacruz@ust.edu.ph',
-            contactNumber: '09170001234',
-          },
-          currentPlacement: {
-            scholarshipType: 'Merit',
-            batch: 2023,
-            university: 'University of Santo Tomas',
-            program: 'BS Biochemistry',
-          },
-          submissionInfo: {
-            dateSubmitted: new Date().toISOString(),
-            status: 'Pending',
-            category: 'Technical Issue',
-            description: 'I cannot upload my Grade Submission file. It keeps saying "Network Error" even though my internet is fine.',
-          },
-          files: {
-            attachment: 'error_screenshot.png',
-          },
-        },
-        // 2. Inquiry (Info Needed / Resubmit)
-        {
-          id: 'TKT-002',
-          spas_id: '2022-05501',
-          scholarInfo: {
-            name: 'Maria Clara',
-            spas_id: '2022-05501',
-            email: 'maria.clara@example.com',
-            contactNumber: '09171234567',
-          },
-          currentPlacement: {
-            scholarshipType: 'RA 7687',
-            batch: 2022,
-            university: 'Ateneo de Manila University',
-            program: 'BS Physics',
-          },
-          submissionInfo: {
-            dateSubmitted: '2024-11-20T10:00:00Z',
-            status: 'Resubmit', // Admin requested info
-            category: 'Scholarship Inquiry',
-            description: 'Can I request for a thesis allowance in advance? I need to buy chemicals next week.',
-            adminResponse: 'We need to see your approved thesis proposal first. Please upload it in the Thesis module.',
-          },
-          files: {},
-        },
-        // 3. Suggestion (Resolved)
-        {
-          id: 'TKT-003',
-          spas_id: '2021-09999',
-          scholarInfo: {
-            name: 'Crisostomo Ibarra',
-            spas_id: '2021-09999',
-            email: 'crisostomo@up.edu.ph',
-            contactNumber: '09181234567',
-          },
-          currentPlacement: {
-            scholarshipType: 'Merit',
-            batch: 2021,
-            university: 'UP Diliman',
-            program: 'BS Civil Engineering',
-          },
-          submissionInfo: {
-            dateSubmitted: '2024-11-15T08:30:00Z',
-            status: 'Approved', // Mapped to 'Resolved' in Scholar View
-            category: 'Suggestion / Feedback',
-            description: 'It would be great if we could see a history of our stipend releases in a chart format.',
-            adminResponse: 'Thank you for your suggestion! We have noted this for future updates.',
-          },
-          files: {},
-        },
-      ];
+      setLoading(true);
+      setError(null);
+  
+      try {
+        const query = new URLSearchParams({
+          view: 'feedback_view',
+          orderBy: 'status',
+          ascending: 'false',
+        });
+  
+        const response = await fetch(`/api/admin/get_view?${query.toString()}`);
+        if (!response.ok) throw new Error('Failed to fetch data');
+  
+        const res = await response.json();
+        const rows = res.data || [];
+        const formatted: SupportFeedbackRequestDetails[] = rows.map((row: any) => ({
+              id: String(row.id),
+              spas_id: row.spas_id,
 
-      setRequests(mockData);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch tickets.');
-      toast.error("Error", { description: "Failed to load support tickets." });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+              scholarInfo: {
+                name: row.full_name,
+                spas_id: row.spas_id,
+                email: row.email,
+                contactNumber: row.contact_number,
+              },
+
+              currentPlacement: {
+                scholarshipType: row.scholarship_type,
+                batch: Number(row.year_awarded),
+                university: row.university,
+                program: row.program_course,
+              },
+
+              submissionInfo: {
+                dateSubmitted: row.created_at,
+                status: row.status,
+                category: row.type,
+                description: row.reason,
+                adminResponse: row.comment || undefined,
+              },
+
+              files: {
+                attachment: row.attachment || undefined,
+              },
+            }));
+            
+        setRequests(formatted);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to fetch requests.');
+        toast.error("Error", {
+          description: "Failed to load Support and Feedback.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    }, []);
+  
 
   useEffect(() => {
     fetchData();
