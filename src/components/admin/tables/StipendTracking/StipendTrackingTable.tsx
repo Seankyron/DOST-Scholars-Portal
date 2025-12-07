@@ -1,3 +1,5 @@
+// seankyron/dost-scholars-portal/DOST-Scholars-Portal-merge/src/components/admin/tables/StipendTracking/StipendTrackingTable.tsx
+
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -8,6 +10,7 @@ import type {
   Semester,
   Allowance,
   ScholarStatus,
+  Province, // Added Province import
 } from '@/types';
 import { StipendUpdate } from '@/components/scholar/services/StipendTracking/StipendUpdates';
 import { Button } from '@/components/ui/button';
@@ -45,6 +48,7 @@ export interface StipendDetails {
     contactNumber: string;
     scholarshipType: string;
     batch: string;
+    province: Province; // Added province field
   };
   placementInfo: {
     university: string;
@@ -70,6 +74,7 @@ let MOCK_DB: StipendDetails[] = [
       contactNumber: '0917-123-4567',
       scholarshipType: 'RA 7687',
       batch: '2021',
+      province: 'Cavite', // Added province
     },
     placementInfo: {
       university: 'University of the Philippines - Diliman',
@@ -118,6 +123,7 @@ let MOCK_DB: StipendDetails[] = [
       contactNumber: '0917-123-4567',
       scholarshipType: 'RA 7687',
       batch: '2021',
+      province: 'Cavite', // Added province
     },
     placementInfo: {
       university: 'University of the Philippines - Diliman',
@@ -161,6 +167,7 @@ let MOCK_DB: StipendDetails[] = [
       contactNumber: '0917-123-4567',
       scholarshipType: 'RA 7687',
       batch: '2021',
+      province: 'Cavite', // Added province
     },
     placementInfo: {
       university: 'University of the Philippines - Diliman',
@@ -204,6 +211,7 @@ let MOCK_DB: StipendDetails[] = [
       contactNumber: '0998-765-4321',
       scholarshipType: 'Merit',
       batch: '2022',
+      province: 'Laguna', // Added province
     },
     placementInfo: {
       university: 'Ateneo de Manila University',
@@ -483,6 +491,7 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
                 />
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scholar</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Province</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University / Program</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Academic Term</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -504,7 +513,7 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
             ))}
             {paginatedData.length === 0 && (
                 <tr>
-                    <td colSpan={9} className="text-center py-8 text-sm text-gray-500">
+                    <td colSpan={10} className="text-center py-8 text-sm text-gray-500">
                         No stipend records found.
                     </td>
                 </tr>
