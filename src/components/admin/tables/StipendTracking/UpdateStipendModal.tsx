@@ -45,7 +45,7 @@ export function UpdateStipendModal({
   const { scholarInfo, placementInfo, semesterInfo } = stipendDetails;
   
   const [breakdown, setBreakdown] = useState(stipendDetails.stipend.breakdown);
-  const [updates, setUpdates] = useState(stipendDetails.stipend.updates);
+  const [updates, setUpdates] = useState<StipendUpdate[]>(stipendDetails.stipend.updates); // ← Type explicitly
   const [customUpdateMsg, setCustomUpdateMsg] = useState('');
 
   const handleBreakdownChange = (
@@ -117,8 +117,6 @@ export function UpdateStipendModal({
         </ModalHeader>
 
         <ModalBody className="p-6 space-y-6">
-          {/* --- TOP SECTION: Info Grid --- */}
-          {/* CHANGED: Used lg:grid-cols-2 instead of md:grid-cols-2 to prevent overlap on tablets */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Scholar Information Column */}

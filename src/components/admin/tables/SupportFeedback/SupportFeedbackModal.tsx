@@ -197,12 +197,10 @@ export function SupportFeedbackModal({
       <Modal open={isOpen} onOpenChange={onClose}>
         <ModalContent size="3xl">
           <ModalHeader>
-             <div className="flex items-center justify-between w-full pr-8">
                 <div className="flex flex-col">
                    <ModalTitle>Support Ticket #{request.id}</ModalTitle>
                    <p className="text-sm text-gray-500 font-normal mt-1">{submissionInfo.category}</p>
                 </div>  
-             </div>
           </ModalHeader>
 
           <ModalBody className="p-6 space-y-6">

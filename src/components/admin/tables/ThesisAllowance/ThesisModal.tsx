@@ -229,12 +229,10 @@ export function ThesisModal({
       <Modal open={isOpen} onOpenChange={onClose}>
         <ModalContent size="3xl" className="w-[95%] sm:w-full">
           <ModalHeader>
-             <div className="flex items-center justify-between w-full pr-8">
                 <div className="flex flex-col">
                    <ModalTitle>Thesis Allowance Request</ModalTitle>
                    <p className="text-sm text-gray-500 font-normal mt-1">{getReleaseTitle()}</p>
                 </div>  
-             </div>
           </ModalHeader>
 
           <ModalBody className="p-6 space-y-6">

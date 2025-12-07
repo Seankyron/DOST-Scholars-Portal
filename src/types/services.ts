@@ -75,7 +75,7 @@ export type Allowance = {
 
 export type StipendUpdate = {
   message: string;
-  type: | 'info' | 'warning' | 'success';
+  type: | 'info' | 'warning' | 'success' | 'error';
 };
 
 export type PTPPlan = | 'undertake_ptp' | 'cannot_participate' | 'ojt_midyear_and_ptp';

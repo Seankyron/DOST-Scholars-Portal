@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils/cn';
 export type StipendUpdate = {
   message: string;
   date?: string; // <-- ADDED: Date field to match the data passed
-  type: 'info' | 'warning' | 'success';
+  type: 'info' | 'warning' | 'success' | 'error';
 };
 
 interface StipendUpdatesProps {
