@@ -22,6 +22,7 @@ function GetAcademicYearOptions(batch: number, scholarshipType: string, courseDu
   const scholarshipDuration = jlssScholarships.includes(scholarshipType)
     ? (courseDuration === 4 ? 2 : 3)
     : courseDuration;
+    //
 
   // Generate array of years
   const options = Array.from({ length: scholarshipDuration }, (_, i) => {
