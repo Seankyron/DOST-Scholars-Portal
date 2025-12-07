@@ -205,17 +205,15 @@ export function LeaveOfAbsenceModal({
   return (
     <>
       <Modal open={isOpen} onOpenChange={onClose}>
-        <ModalContent size="4xl">
+        <ModalContent size="3xl">
           <ModalHeader>
-             <div className="flex items-center justify-between w-full pr-8">
                 <div className="flex flex-col">
                    <ModalTitle>Leave of Absence Request</ModalTitle>
                    <p className="text-sm text-gray-500 font-normal mt-1">{applicationType}</p>
                 </div>  
-             </div>
           </ModalHeader>
 
-          <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
+          <ModalBody className="p-6 space-y-6">
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               

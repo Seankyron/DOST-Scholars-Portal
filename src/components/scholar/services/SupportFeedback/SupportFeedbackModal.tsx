@@ -109,14 +109,14 @@ export function SupportFeedbackModal({ isOpen, onClose, category, existingReques
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="lg">
+      <ModalContent size="xl">
         <ModalHeader>
           <ModalTitle>
             {existingRequest ? (isEditing ? 'Update Ticket' : 'View Ticket') : 'Create Support Ticket'}
           </ModalTitle>
         </ModalHeader>
 
-        <ModalBody className="max-h-[75vh] overflow-y-auto scrollbar-thin space-y-6">
+        <ModalBody >
           
           {/* Show Admin Response if Resolved */}
           {existingRequest && status === 'Approved' && adminResponse && (

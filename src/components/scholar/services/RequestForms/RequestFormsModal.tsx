@@ -70,14 +70,14 @@ export function RequestFormsModal({ isOpen, onClose, type, existingRequest }: Re
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="lg">
+      <ModalContent size="xl">
         <ModalHeader>
           <ModalTitle>
             {existingRequest ? (isEditing ? 'Update Request' : 'View Request') : 'New Request'}
           </ModalTitle>
         </ModalHeader>
 
-        <ModalBody className="max-h-[75vh] overflow-y-auto scrollbar-thin space-y-6">
+        <ModalBody>
           
           {existingRequest && (status === 'Resubmit' || status === 'Approved') && (
              <AdminCommentAlert status={status} comment={adminComment || ''} />

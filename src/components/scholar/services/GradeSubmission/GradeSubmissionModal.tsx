@@ -209,7 +209,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="2xl">
+      <ModalContent size="xl">
         <ModalHeader>
           <ModalTitle>
             Grade Submission: {yearLabels[semester.year] || `${semester.year}th Year`}
@@ -220,7 +220,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
           </p>
         </ModalHeader>
         
-        <ModalBody className="space-y-6 max-h-[70vh] overflow-y-auto scrollbar-thin">
+        <ModalBody>
           
           {dataLoading && (
              <div className="flex justify-center py-8">
@@ -247,7 +247,7 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
               />
 
               {isEditing && (
-                 <div className="pt-4 border-t">
+                 <div className="pt-4 border-t mt-4">
                     <Checkbox
                         label="I confirm that the uploaded documents are correct, clear, and authentic."
                         checked={isConfirmed}

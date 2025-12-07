@@ -243,7 +243,7 @@ export function GradeSubmissionModal({
   return (
     <>
       <Modal open={isOpen} onOpenChange={onClose}>
-        <ModalContent size="4xl">
+        <ModalContent size="3xl">
           <ModalHeader>
              <div className="flex flex-col">
                 <ModalTitle>Grade Submission Details</ModalTitle>
@@ -251,13 +251,13 @@ export function GradeSubmissionModal({
              </div>
           </ModalHeader>
 
-          <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
+          <ModalBody className="p-6 space-y-6">
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 content-stretch items-stretch">
               
               {/* === COLUMN 1 === */}
-              <div className="flex flex-col gap-6 h-full">
-                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
+              <div className="flex flex-col gap-6">
+              <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex flex-col h-full">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">Scholar Information</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoItem label="Name" value={scholarInfo.name} />
@@ -267,7 +267,7 @@ export function GradeSubmissionModal({
                   </div>
                 </section>
 
-                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-4 flex-1">
+                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex flex-col h-full">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">Submission Details</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoItem label="Academic Year" value={submissionInfo.academicYear} />
@@ -299,7 +299,7 @@ export function GradeSubmissionModal({
 
               {/* === COLUMN 2 === */}
               <div className="flex flex-col gap-6 h-full">
-                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
+                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex flex-col h-full">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">Placement Information</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <InfoItem label="Scholarship Type" value={placementInfo.scholarshipType} />
@@ -309,7 +309,7 @@ export function GradeSubmissionModal({
                   </div>
                 </section>
 
-                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex-1">
+                <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3 flex flex-col h-full">
                   <h2 className="text-lg font-semibold text-dost-title border-b pb-2">Submitted Documents</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <FileDisplay

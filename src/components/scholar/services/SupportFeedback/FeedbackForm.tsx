@@ -78,9 +78,9 @@ export function FeedbackForm({
 
         {/* Confirmation Checkbox */}
         {!isReadOnly && (
-            <div className="pt-2">
+            <div className="pt-4 border-t mt-4">
               <Checkbox
-                label="I certify that the information provided is true and correct."
+                label="I confirm that the information provided is true and correct."
                 checked={isConfirmed}
                 onChange={(e) => setIsConfirmed(e.target.checked)}
               />

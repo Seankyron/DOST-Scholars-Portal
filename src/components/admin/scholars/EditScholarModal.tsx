@@ -107,14 +107,14 @@ export function EditScholarModal({
 
   return (
     <Modal open={open} onOpenChange={onClose}>
-      <ModalContent size="4xl">
+      <ModalContent size="2xl">
         <ModalHeader>
           <ModalTitle>
             Edit Scholar: {scholar.firstName} {scholar.surname}
           </ModalTitle>
         </ModalHeader>
 
-        <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6">
+        <ModalBody>
           <form
             id="edit-scholar-form"
             onSubmit={handleSubmit}

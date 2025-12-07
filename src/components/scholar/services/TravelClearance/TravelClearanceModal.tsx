@@ -191,7 +191,7 @@ export function TravelClearanceModal({ isOpen, onClose, purpose, existingRequest
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="3xl">
+      <ModalContent size="xl">
         <ModalHeader>
           <ModalTitle>
             {existingRequest ? (isEditing ? 'Update Request' : 'View Request') : 'Request Travel Clearance'}
@@ -201,7 +201,7 @@ export function TravelClearanceModal({ isOpen, onClose, purpose, existingRequest
           </p>
         </ModalHeader>
 
-        <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin space-y-6">
+        <ModalBody>
           
           {showAdminAlert && (
             <AdminCommentAlert status={status} comment={adminComment || 'No comment provided.'} />
@@ -248,9 +248,9 @@ export function TravelClearanceModal({ isOpen, onClose, purpose, existingRequest
           )}
 
           {isEditing && (
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t mt-4">
               <Checkbox
-                label="I certify that the information provided is true and correct."
+                label="I confirm that the information provided is true and correct."
                 checked={isConfirmed}
                 onChange={(e) => setIsConfirmed(e.target.checked)}
               />

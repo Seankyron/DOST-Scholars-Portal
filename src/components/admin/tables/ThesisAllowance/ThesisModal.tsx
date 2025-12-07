@@ -227,7 +227,7 @@ export function ThesisModal({
   return (
     <>
       <Modal open={isOpen} onOpenChange={onClose}>
-        <ModalContent size="4xl" className="w-[95%] sm:w-full">
+        <ModalContent size="3xl" className="w-[95%] sm:w-full">
           <ModalHeader>
              <div className="flex items-center justify-between w-full pr-8">
                 <div className="flex flex-col">
@@ -237,7 +237,7 @@ export function ThesisModal({
              </div>
           </ModalHeader>
 
-          <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
+          <ModalBody className="p-6 space-y-6">
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               

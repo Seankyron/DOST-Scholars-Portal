@@ -138,7 +138,7 @@ export function StipendDetailsModal({ isOpen, onClose, data, title }: StipendDet
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="4xl">
+      <ModalContent size="xl">
         <ModalHeader>
           <ModalTitle>{title}</ModalTitle>
           <p className="text-sm text-gray-500 font-normal">
@@ -148,7 +148,7 @@ export function StipendDetailsModal({ isOpen, onClose, data, title }: StipendDet
           </p>
         </ModalHeader>
 
-        <ModalBody className="max-h-[75vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
+        <ModalBody>
           
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

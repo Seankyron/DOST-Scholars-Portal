@@ -170,7 +170,7 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="3xl">
+      <ModalContent size="xl">
         <ModalHeader>
           <ModalTitle>
             {existingRequest ? (isEditing ? 'Update Application' : 'View Application') : 'Application Form'}
@@ -180,7 +180,7 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
           </p>
         </ModalHeader>
 
-        <ModalBody className="max-h-[75vh] overflow-y-auto scrollbar-thin space-y-6">
+        <ModalBody>
           
           {showAdminAlert && (
             <AdminCommentAlert status={status} comment={adminComment} />
@@ -228,7 +228,7 @@ export function ShiftingTransferringModal({ isOpen, onClose, type, existingReque
           />
 
           {isEditing && (
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t mt-4">
               <Checkbox
                 label="I confirm that the uploaded documents are correct, clear, and authentic."
                 checked={isConfirmed}

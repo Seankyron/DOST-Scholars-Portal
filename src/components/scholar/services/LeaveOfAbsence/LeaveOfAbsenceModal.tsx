@@ -228,7 +228,7 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="3xl">
+      <ModalContent size="xl">
         <ModalHeader>
           <ModalTitle>
             {existingRequest ? (isEditing ? 'Update Request' : 'View Request') : 'Apply for Leave of Absence'}
@@ -238,7 +238,7 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
           </p>
         </ModalHeader>
 
-        <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin space-y-6">
+        <ModalBody>
           
           {showAdminAlert && (
             <AdminCommentAlert 
@@ -338,7 +338,7 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
           </div>
 
           {isEditing && (
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t mt-4">
               <Checkbox
                 label="I confirm that the uploaded documents are correct, clear, and authentic."
                 checked={isConfirmed}

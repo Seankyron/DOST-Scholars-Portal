@@ -248,7 +248,7 @@ export function PTPModal({
   return (
     <>
       <Modal open={isOpen} onOpenChange={onClose}>
-        <ModalContent size="4xl">
+        <ModalContent size="3xl">
           <ModalHeader>
               <div className="flex flex-col">
                 <ModalTitle>Practical Training Request</ModalTitle>
@@ -256,7 +256,7 @@ export function PTPModal({
               </div>
           </ModalHeader>
 
-          <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
+          <ModalBody className="p-6 space-y-6" >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
 
               {/* --- LEFT COLUMN --- */}

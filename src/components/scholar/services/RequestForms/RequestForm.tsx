@@ -102,7 +102,7 @@ export function RequestForm({
 
         {/* 3. Confirmation Checkbox */}
         {!isReadOnly && (
-            <div className="pt-2">
+            <div className="pt-4 border-t mt-4">
               <Checkbox
                 label="I confirm that the uploaded documents are correct."
                 checked={isConfirmed}

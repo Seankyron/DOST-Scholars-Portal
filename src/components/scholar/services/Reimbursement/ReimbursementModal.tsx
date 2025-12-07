@@ -102,14 +102,14 @@ export function ReimbursementModal({ isOpen, onClose, type, existingRequest }: R
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="lg">
+      <ModalContent size="xl">
         <ModalHeader>
           <ModalTitle>
             {existingRequest ? (isEditing ? 'Update Request' : 'View Request') : 'New Reimbursement'}
           </ModalTitle>
         </ModalHeader>
 
-        <ModalBody className="max-h-[75vh] overflow-y-auto scrollbar-thin space-y-6">
+        <ModalBody>
           
           {existingRequest && (status === 'Resubmit' || status === 'Approved') && (
              <AdminCommentAlert status={status} comment={adminComment || ''} />
@@ -124,9 +124,9 @@ export function ReimbursementModal({ isOpen, onClose, type, existingRequest }: R
           />
 
            {isEditing && (
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t mt-4">
               <Checkbox
-                label="I certify that the expenses incurred are valid and the receipt is authentic."
+                label="I confirm that the expenses incurred are valid and the receipt is authentic."
                 checked={isConfirmed}
                 onChange={(e) => setIsConfirmed(e.target.checked)}
               />

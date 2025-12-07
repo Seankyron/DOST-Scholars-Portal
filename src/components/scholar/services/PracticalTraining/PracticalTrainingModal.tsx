@@ -320,7 +320,7 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="3xl">
+      <ModalContent size="xl">
         <ModalHeader>
           <ModalTitle>
              {submissionData ? (isEditing ? 'Update Request' : 'View Request') : (type === 'Referral Letter' ? 'Request PTP Referral' : 'Submit PTP Completion')}
@@ -330,7 +330,7 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
           </p>
         </ModalHeader>
 
-        <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin space-y-6">
+        <ModalBody>
           
           {dataLoading && !existingRequest ? (
              <div className="flex justify-center py-8">
@@ -373,7 +373,7 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
               )}
 
               {isEditing && (
-                <div className="pt-4 border-t">
+                <div className="pt-4 border-t mt-4">
                   <Checkbox
                     label="I confirm that the uploaded documents are correct and complete."
                     checked={isConfirmed}

@@ -104,7 +104,7 @@ export function UpdateStipendModal({
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="4xl">
+      <ModalContent size="3xl">
         <ModalHeader>
           <div className="flex items-center justify-between w-full pr-8">
             <div className="flex flex-col">
@@ -116,8 +116,7 @@ export function UpdateStipendModal({
           </div>
         </ModalHeader>
 
-        <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6 space-y-6">
-          
+        <ModalBody className="p-6 space-y-6">
           {/* --- TOP SECTION: Info Grid --- */}
           {/* CHANGED: Used lg:grid-cols-2 instead of md:grid-cols-2 to prevent overlap on tablets */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

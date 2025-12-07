@@ -253,7 +253,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="3xl">
+      <ModalContent size="xl">
         <ModalHeader>
           <ModalTitle>
             {existingRequest ? (isEditing ? 'Update Request' : 'View Request') : 'Apply for Thesis Allowance'}
@@ -263,7 +263,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
           </p>
         </ModalHeader>
 
-        <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin space-y-6">
+        <ModalBody>
           
           {showAdminAlert && (
             <AdminCommentAlert 
@@ -304,7 +304,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
           </div>
 
           {isEditing && (
-            <div className="pt-4 border-t">
+            <div className="pt-4">
               <Checkbox
                 label="I confirm that the uploaded documents are correct, clear, and authentic."
                 checked={isConfirmed}
