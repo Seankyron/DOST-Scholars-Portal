@@ -18,7 +18,8 @@ import {
   PROVINCES,
   PROGRAMS_BY_UNIVERSITY 
 } from '@/lib/utils/constants'; 
-import { isValidScholarId } from '@/lib/utils/validation';
+// Imported validation helpers
+import { isValidScholarId, isValidEmail, isValidPhoneNumber } from '@/lib/utils/validation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 type SignupStep = 1 | 2 | 3 | 4;
@@ -75,7 +76,7 @@ export default function SignupPage() {
     surname: '',
     suffix: '',
     dateOfBirth: '',
-    contactNumber: '+63',
+    contactNumber: '', // Changed from '+63' to empty to allow '09' format matching validation.ts
     addressBrgy: '',
     addressCity: '',
     addressProvince: '',
@@ -109,6 +110,7 @@ export default function SignupPage() {
   }));
 
   const updateFormData = (field: keyof FormData, value: any) => {
+    // JLSS Logic
     if (field === 'scholarshipType') {
       const isJlssScholar = (value as string).includes('JLSS');
       setIsJlss(isJlssScholar);
@@ -125,6 +127,22 @@ export default function SignupPage() {
         return; 
       }
     }
+
+    // Input constraints for specific fields
+    if (field === 'contactNumber') {
+      // Allow only numbers
+      const numericValue = value.replace(/\D/g, '');
+      if (numericValue.length > 11) return; // Prevent > 11 chars
+      setFormData(prev => ({ ...prev, [field]: numericValue }));
+      setErrors(prev => ({ ...prev, [field]: '' }));
+      return;
+    }
+
+    if (field === 'scholarId') {
+      // Simple mask or length check could go here, but validation handles the format
+      if (value.length > 9) return; // YYYY-XXXX is 9 chars
+    }
+
     setFormData(prev => ({ ...prev, [field]: value }));
     setErrors(prev => ({ ...prev, [field]: '' }));
 
@@ -138,14 +156,19 @@ export default function SignupPage() {
     const newErrors: Record<string, string> = {};
 
     if (step === 1) {
-      if (!formData.firstName) newErrors.firstName = 'First name is required';
-      if (!formData.surname) newErrors.surname = 'Surname is required';
+      if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+      if (!formData.surname.trim()) newErrors.surname = 'Surname is required';
       if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
-      if (!formData.contactNumber || formData.contactNumber === '+63' || formData.contactNumber.length < 13) {
-        newErrors.contactNumber = 'Valid contact number is required';
+      
+      // Improved Phone Validation
+      if (!formData.contactNumber) {
+        newErrors.contactNumber = 'Contact number is required';
+      } else if (!isValidPhoneNumber(formData.contactNumber)) {
+        newErrors.contactNumber = 'Invalid format. Use 09XXXXXXXXX';
       }
-      if (!formData.addressBrgy) newErrors.addressBrgy = 'Barangay is required';
-      if (!formData.addressCity) newErrors.addressCity = 'City/Municipality is required';
+
+      if (!formData.addressBrgy.trim()) newErrors.addressBrgy = 'Barangay is required';
+      if (!formData.addressCity.trim()) newErrors.addressCity = 'City/Municipality is required';
       if (!formData.addressProvince) newErrors.addressProvince = 'Province is required';
     }
 
@@ -159,22 +182,30 @@ export default function SignupPage() {
     if (step === 3) {
       const hasThesis = formData.thesis1stYear || formData.thesis2ndYear || 
                         formData.thesis3rdYear || formData.thesis4thYear;
-      if (!hasThesis) newErrors.thesis = 'Please select thesis year';
+      if (!hasThesis) newErrors.thesis = 'Please select at least one thesis year';
       if (!formData.ojtYear) newErrors.ojtYear = 'OJT year is required';
       if (!formData.ojtSemester) newErrors.ojtSemester = 'OJT semester is required';
       if (!formData.curriculumFile) newErrors.curriculumFile = 'Curriculum file is required';
     }
 
     if (step === 4) {
+      // Improved Scholar ID Validation
       if (!formData.scholarId) {
         newErrors.scholarId = 'Scholar ID is required';
       } else if (!isValidScholarId(formData.scholarId)) {
         newErrors.scholarId = 'Invalid format. Use YYYY-XXXX';
       }
-      if (!formData.email) newErrors.email = 'Email is required';
+
+      // Improved Email Validation
+      if (!formData.email) {
+        newErrors.email = 'Email is required';
+      } else if (!isValidEmail(formData.email)) {
+        newErrors.email = 'Please enter a valid email address';
+      }
+
       if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
       if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
-      if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to terms';
+      if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the Terms and Conditions';
     }
 
     setErrors(newErrors);
@@ -191,11 +222,10 @@ export default function SignupPage() {
     setCurrentStep((prev) => Math.max(prev - 1, 1) as SignupStep);
   };
 
-  // --- FIXED HANDLE SUBMIT ---
   const handleSubmit = async () => {
     if (!validateStep(4)) return;
 
-    setIsLoading(true); // Shows the FullPageLoader
+    setIsLoading(true);
     setErrorMessage('');
 
     try {
@@ -246,7 +276,7 @@ export default function SignupPage() {
             last_name: formData.surname,
             suffix: formData.suffix,
             date_of_birth: formData.dateOfBirth,
-            contact_number: formData.contactNumber,
+            contact_number: formData.contactNumber, // Sends standard 09 format
             address: completeAddress,
             municipality_city: formData.addressCity,
             province: formData.addressProvince,
@@ -277,21 +307,13 @@ export default function SignupPage() {
         throw new Error(result.error || 'Failed to create account');
       }
 
-      // SUCCESS:
-      // Redirect to success page. 
-      // NOTE: We do NOT call setIsLoading(false) here. 
-      // We want the splash screen to cover the transition.
       router.push('/signup/success');
 
     } catch (error: any) {
       console.error('Signup error:', error);
       setErrorMessage(error.message || 'Failed to create account');
-      
-      // ERROR:
-      // We MUST turn off the loader here so the user can fix the error.
       setIsLoading(false); 
     }
-    // REMOVED: finally { setIsLoading(false) }
   };
 
   const yearOptions = Array.from({ length: 10 }, (_, i) => {
@@ -308,13 +330,11 @@ export default function SignupPage() {
 
   return (
     <>
-      {/* 2. ADD THE LOADER HERE */}
       <GlobalLoader isLoading={isLoading} message="Creating your account" />
 
       <div className="bg-white rounded-2xl shadow-xl p-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-dost-title mb-2">Create Account</h2>
-          {/* Progress Indicators */}
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <span className={currentStep >= 1 ? 'text-dost-title font-medium' : ''}>Scholar Information</span>
             <span>→</span>
@@ -386,7 +406,8 @@ export default function SignupPage() {
                 value={formData.contactNumber}
                 onChange={(e) => updateFormData('contactNumber', e.target.value)}
                 error={errors.contactNumber}
-                placeholder="+639123456789"
+                placeholder="09123456789"
+                maxLength={11}
                 required
                 disabled={isLoading}
               />
@@ -414,7 +435,6 @@ export default function SignupPage() {
                 />
               </div>
 
-              {/* Barangay stays full width below them */}
               <Input
                 label="Barangay, Street, House/Unit No."
                 value={formData.addressBrgy}
@@ -557,6 +577,7 @@ export default function SignupPage() {
               onChange={(e) => updateFormData('scholarId', e.target.value)}
               error={errors.scholarId}
               placeholder="YYYY-XXXX"
+              maxLength={9}
               required
               disabled={isLoading}
             />
