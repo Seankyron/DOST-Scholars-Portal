@@ -13,6 +13,14 @@ export function RequestFormsPanel() {
   const [selectedType, setSelectedType] = useState<RequestFormType | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // 1. State to control refreshing
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // 2. Function to increment key (forcing reload)
+  const handleSuccess = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
 
   const handleSelectType = (type: RequestFormType) => {
     setSelectedType(type);
@@ -114,7 +122,10 @@ export function RequestFormsPanel() {
 
       {/* 3. Recent Activity */}
       <div className="mt-8">
-         <RecentRequests onViewDetails={handleViewRequest} />
+         <RecentRequests 
+            onViewDetails={handleViewRequest} 
+            refreshTrigger={refreshKey}
+         />
       </div>
 
       {/* 4. Modal */}
@@ -124,6 +135,7 @@ export function RequestFormsPanel() {
           onClose={handleCloseModal}
           type={selectedType!}
           existingRequest={selectedRequest}
+          onSuccess={handleSuccess}
         />
       )}
     </div>
