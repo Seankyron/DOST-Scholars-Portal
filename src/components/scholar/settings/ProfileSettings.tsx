@@ -1,19 +1,30 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select'; 
+import { SelectInput } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/toaster';
 import { Loader2, Save, User, MapPin, Phone, ArrowLeft } from 'lucide-react';
-import { PROVINCES } from '@/lib/utils/constants';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; // Import useRouter
+import { createClient } from '@/lib/supabase/client';
+import { useCurrentScholar } from '@/hooks/scholar/useCurrentScholar';
+
+// Define RO4A Provinces explicitly
+const RO4A_PROVINCES = [
+  "Cavite", 
+  "Laguna", 
+  "Batangas", 
+  "Rizal", 
+  "Quezon"
+] as const;
 
 // Validation Schema
 const profileSchema = z.object({
@@ -32,41 +43,93 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
-// Initial Mock Data
-const INITIAL_DATA = {
-  firstName: 'Joshua',
-  middleName: 'A.',
-  surname: 'De Larosa',
-  suffix: '',
-  contactNumber: '09171234567',
-  dateOfBirth: '2003-01-15',
-  addressProvince: 'Laguna',
-  addressCity: 'San Pablo City',
-  addressBrgy: 'Brgy. San Vicente',
-};
-
 export function ProfileSettings() {
+  const { user, loading: loadingUser } = useCurrentScholar();
   const [isSaving, setIsSaving] = useState(false);
+  const router = useRouter(); // Initialize router
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: INITIAL_DATA,
+    defaultValues: {
+      firstName: '',
+      middleName: '',
+      surname: '',
+      suffix: '',
+      contactNumber: '',
+      dateOfBirth: '',
+      addressProvince: '',
+      addressCity: '',
+      addressBrgy: '',
+    },
   });
 
+  // Populate form when user data is fetched
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        firstName: user.first_name || '',
+        middleName: user.middle_name || '',
+        surname: user.last_name || '',
+        suffix: user.suffix || '',
+        contactNumber: user.contact_number || '',
+        dateOfBirth: user.date_of_birth || '',
+        addressProvince: user.province || '',
+        addressCity: user.municipality_city || '',
+        addressBrgy: user.address || '',
+      });
+    }
+  }, [user, form]);
+
   const onSubmit = async (data: ProfileFormValues) => {
+    if (!user?.id) return;
     setIsSaving(true);
     
-    // Simulate Network Request
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const supabase = createClient();
 
-    console.log('Saved Data:', data);
-    
-    toast.success("Settings Saved", {
-        description: "Your personal information has been updated successfully.",
-    });
+      const updates = {
+        first_name: data.firstName,
+        middle_name: data.middleName || null,
+        last_name: data.surname,
+        suffix: data.suffix || null,
+        contact_number: data.contactNumber,
+        date_of_birth: data.dateOfBirth,
+        province: data.addressProvince,
+        municipality_city: data.addressCity,
+        address: data.addressBrgy,
+      };
 
-    setIsSaving(false);
+      const { error } = await supabase
+        .from('User')
+        .update(updates)
+        .eq('id', user.id);
+
+      if (error) throw error;
+      
+      toast.success("Settings Saved", {
+          description: "Your personal information has been updated successfully.",
+      });
+
+      // Redirect to dashboard on success
+      router.push('/scholar/dashboard');
+
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      toast.error("Update Failed", {
+        description: error.message || "Could not save changes. Please try again.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (loadingUser) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-dost-title" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -79,7 +142,6 @@ export function ProfileSettings() {
                     Update your personal details and contact information.
                 </CardDescription>
             </div>
-            {/* Optional: Top 'Back' button for better navigation on mobile */}
             <Button asChild variant="ghost" size="sm" className="hidden sm:flex text-gray-500">
                 <Link href="/scholar/dashboard">
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -90,7 +152,6 @@ export function ProfileSettings() {
         </CardHeader>
         
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          {/* Fieldset disables all inputs when submitting */}
           <fieldset disabled={isSaving} className="group">
             <CardContent className="space-y-8 pt-6">
                 
@@ -149,12 +210,18 @@ export function ProfileSettings() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <Select
-                        label="Province"
-                        {...form.register('addressProvince')}
-                        options={PROVINCES.map((p) => ({ value: p, label: p }))}
-                        error={form.formState.errors.addressProvince?.message}
-                        placeholder="Select Province"
+                        <Controller
+                            control={form.control}
+                            name="addressProvince"
+                            render={({ field }) => (
+                                <SelectInput
+                                    label="Province"
+                                    placeholder="Select Province"
+                                    options={RO4A_PROVINCES.map((p) => ({ value: p, label: p }))}
+                                    error={form.formState.errors.addressProvince?.message}
+                                    {...field}
+                                />
+                            )}
                         />
                     </div>
 
