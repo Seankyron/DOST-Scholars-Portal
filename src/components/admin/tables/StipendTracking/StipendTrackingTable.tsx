@@ -10,7 +10,7 @@ import type {
   Semester,
   Allowance,
   ScholarStatus,
-  Province, // Added Province import
+  Province,
 } from '@/types';
 import { StipendUpdate } from '@/components/scholar/services/StipendTracking/StipendUpdates';
 import { Button } from '@/components/ui/button';
@@ -25,11 +25,13 @@ import {
   type BulkAction,
   type BulkActionPayload,
 } from '@/components/admin/tables/StipendTracking/BulkStipendActtionModal';
+import type { StipendFiltersState } from './StipendTrackingFilters';
+import { isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 
 // --- Types ---
 export type ScholarStipendData = {
   received: number;
-  pending: number;
+  pending: number; // Maps to 'unreleased' in DB
   onHold: boolean;
   total: number;
   status: SubmissionStatus | ScholarStatus;
@@ -39,16 +41,16 @@ export type ScholarStipendData = {
 };
 
 export interface StipendDetails {
-  id: string;
+  id: string; // The numeric ID from DB converted to string
   scholarInfo: {
-    id: string;
+    id: string; // spas_id
     name: string;
-    scholarId: string;
+    scholarId: string; // spas_id
     email: string;
     contactNumber: string;
     scholarshipType: string;
     batch: string;
-    province: Province; // Added province field
+    province: Province;
   };
   placementInfo: {
     university: string;
@@ -62,199 +64,14 @@ export interface StipendDetails {
   stipend: ScholarStipendData;
 }
 
-// --- Persistent Mock Database ---
-let MOCK_DB: StipendDetails[] = [
-  {
-    id: 'stipend-1-1',
-    scholarInfo: {
-      id: 'scholar1',
-      name: 'Joshua De Larosa',
-      scholarId: '2021-00123',
-      email: 'joshua.delarosa@example.com',
-      contactNumber: '0917-123-4567',
-      scholarshipType: 'RA 7687',
-      batch: '2021',
-      province: 'Cavite', // Added province
-    },
-    placementInfo: {
-      university: 'University of the Philippines - Diliman',
-      program: 'BS Computer Science',
-    },
-    semesterInfo: {
-      year: '1st Year',
-      semester: '1st Semester',
-      academicYear: 'AY 2023-2024',
-    },
-    stipend: {
-      received: 24000,
-      pending: 22000,
-      onHold: true,
-      total: 46000,
-      status: 'On hold',
-      effectiveDate: '2023-10-15T09:30:00Z',
-      breakdown: [
-        { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
-        { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
-        { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
-        { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'On hold' },
-        { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'On hold' },
-        { name: 'Book Allowance', amount: 5000, status: 'On hold' },
-        { name: 'Clothing Allowance', amount: 1000, status: 'On hold' },
-      ],
-      updates: [
-        {
-          message: 'Stipend On Hold: Your 1st Semester 2024 stipend (₱22,000) is on hold.',
-          type: 'warning',
-        },
-        {
-          message: 'Admin Note: Your stipend is on hold pending submission of your Form 5.',
-          type: 'info',
-        },
-      ],
-    },
-  },
-  {
-    id: 'stipend-1-2',
-    scholarInfo: {
-      id: 'scholar1',
-      name: 'Joshua De Larosa',
-      scholarId: '2021-00123',
-      email: 'joshua.delarosa@example.com',
-      contactNumber: '0917-123-4567',
-      scholarshipType: 'RA 7687',
-      batch: '2021',
-      province: 'Cavite', // Added province
-    },
-    placementInfo: {
-      university: 'University of the Philippines - Diliman',
-      program: 'BS Computer Science',
-    },
-    semesterInfo: {
-      year: '1st Year',
-      semester: '2nd Semester',
-      academicYear: 'AY 2023-2024',
-    },
-    stipend: {
-      received: 45000,
-      pending: 0,
-      onHold: false,
-      total: 45000,
-      status: 'Released',
-      effectiveDate: '2024-03-20T14:00:00Z',
-      breakdown: [
-        { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
-        { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
-        { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
-        { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Released' },
-        { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Released' },
-        { name: 'Book Allowance', amount: 5000, status: 'Released' },
-      ],
-      updates: [
-        {
-          message: 'Your stipend (₱45,000) for this semester has been fully released.',
-          type: 'success',
-        },
-      ],
-    },
-  },
-  {
-    id: 'stipend-2-1',
-    scholarInfo: {
-      id: 'scholar1',
-      name: 'Joshua De Larosa',
-      scholarId: '2021-00123',
-      email: 'joshua.delarosa@example.com',
-      contactNumber: '0917-123-4567',
-      scholarshipType: 'RA 7687',
-      batch: '2021',
-      province: 'Cavite', // Added province
-    },
-    placementInfo: {
-      university: 'University of the Philippines - Diliman',
-      program: 'BS Computer Science',
-    },
-    semesterInfo: {
-      year: '2nd Year',
-      semester: '1st Semester',
-      academicYear: 'AY 2024-2025',
-    },
-    stipend: {
-      received: 0,
-      pending: 45000,
-      onHold: false,
-      total: 45000,
-      status: 'Processing',
-      effectiveDate: '2024-10-18T11:20:00Z',
-      breakdown: [
-        { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Pending' },
-        { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Pending' },
-        { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Pending' },
-        { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'Pending' },
-        { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'Pending' },
-        { name: 'Book Allowance', amount: 5000, status: 'Pending' },
-      ],
-      updates: [
-        {
-          message: 'Your grade submission has been approved. Your stipend is now processing. Please wait 21 working days.',
-          type: 'info',
-        },
-      ],
-    },
-  },
-  {
-    id: 'stipend-2-2',
-    scholarInfo: {
-      id: 'scholar2',
-      name: 'Maria Clara',
-      scholarId: '2022-00456',
-      email: 'maria.clara@example.com',
-      contactNumber: '0998-765-4321',
-      scholarshipType: 'Merit',
-      batch: '2022',
-      province: 'Laguna', // Added province
-    },
-    placementInfo: {
-      university: 'Ateneo de Manila University',
-      program: 'BS Physics',
-    },
-    semesterInfo: {
-      year: '1st Year',
-      semester: '1st Semester',
-      academicYear: 'AY 2023-2024',
-    },
-    stipend: {
-      received: 24000,
-      pending: 22000,
-      onHold: true,
-      total: 46000,
-      status: 'On hold',
-      effectiveDate: '2023-10-15T09:30:00Z',
-      breakdown: [
-        { name: 'Monthly Stipend (Month 1)', amount: 8000, status: 'Released' },
-        { name: 'Monthly Stipend (Month 2)', amount: 8000, status: 'Released' },
-        { name: 'Monthly Stipend (Month 3)', amount: 8000, status: 'Released' },
-        { name: 'Monthly Stipend (Month 4)', amount: 8000, status: 'On hold' },
-        { name: 'Monthly Stipend (Month 5)', amount: 8000, status: 'On hold' },
-        { name: 'Book Allowance', amount: 5000, status: 'On hold' },
-        { name: 'Clothing Allowance', amount: 1000, status: 'On hold' },
-      ],
-      updates: [
-        {
-          message: 'Stipend On Hold: Your 1st Semester 2024 stipend (₱22,000) is on hold.',
-          type: 'warning',
-        },
-      ],
-    },
-  },
-];
-
 const ITEMS_PER_PAGE = 7;
 
 interface StipendTrackingTableProps {
   searchTerm: string;
+  filters: StipendFiltersState;
 }
 
-export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) {
+export function StipendTrackingTable({ searchTerm, filters }: StipendTrackingTableProps) {
   // Data State
   const [stipends, setStipends] = useState<StipendDetails[]>([]);
   const [loading, setLoading] = useState(true);
@@ -279,9 +96,50 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800)); // Simulate API delay
-      // Fetch from the persistent MOCK_DB
-      setStipends([...MOCK_DB]); 
+      const response = await fetch('/api/admin/stipend-tracking/get');
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.error || 'Failed to fetch');
+
+      // Map Database View (Flat) to Frontend Interface (Nested)
+      const mappedData: StipendDetails[] = result.stipends.map((item: any) => {
+        const breakdown = (item.allowance_breakdown as Allowance[]) || [];
+        
+        return {
+          id: item.id.toString(),
+          scholarInfo: {
+            id: item.spas_id,
+            name: item.full_name || 'Unknown',
+            scholarId: item.spas_id || 'N/A',
+            email: item.email || '',
+            contactNumber: item.contact_number || '',
+            scholarshipType: item.scholarship_type || 'N/A',
+            batch: item.year_awarded || 'N/A',
+            province: (item.province as Province) || 'Metro Manila',
+          },
+          placementInfo: {
+            university: item.university || 'N/A',
+            program: item.program_course || 'N/A',
+          },
+          semesterInfo: {
+            year: `${item.year_level || 1}th Year` as YearLevel,
+            semester: item.semester as Semester,
+            academicYear: item.academic_year || 'N/A', 
+          },
+          stipend: {
+            received: item.received || 0,
+            pending: item.unreleased || 0,
+            onHold: item.status === 'On hold',
+            total: (item.received || 0) + (item.unreleased || 0),
+            status: item.status,
+            effectiveDate: item.updated_at,
+            breakdown: breakdown,
+            updates: [], // Logic for updates can be added if a separate table/column exists
+          },
+        };
+      });
+
+      setStipends(mappedData);
     } catch (err) {
       console.error(err);
       toast.error('Failed to fetch stipend records.');
@@ -297,10 +155,52 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
   // --- Filtering & Pagination ---
   const filteredData = useMemo(() => {
     if (!stipends) return [];
-    return stipends.filter((s) =>
-      s.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [stipends, searchTerm]);
+
+    return stipends.filter((s) => {
+      // 1. Search Term (Name)
+      const matchesSearch = s.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // 2. Status
+      const matchesStatus = 
+        filters.status === 'All' || s.stipend.status === filters.status;
+
+      // 3. Academic Year
+      const matchesAY = 
+        filters.academicYear === 'All' || s.semesterInfo.academicYear === filters.academicYear;
+
+      // 4. Semester
+      const matchesSemester = 
+        filters.semester === 'All' || s.semesterInfo.semester === filters.semester;
+
+      // 5. University
+      const matchesUniversity = 
+        filters.university === 'All' || s.placementInfo.university === filters.university;
+
+      // 6. Province
+      const matchesProvince = 
+        filters.province === 'All' || s.scholarInfo.province === filters.province;
+
+      // 7. Date Range
+      let matchesDate = true;
+      if (filters.dateRange.start && filters.dateRange.end && s.stipend.effectiveDate) {
+        const recordDate = new Date(s.stipend.effectiveDate);
+        matchesDate = isWithinInterval(recordDate, {
+          start: startOfDay(filters.dateRange.start),
+          end: endOfDay(filters.dateRange.end),
+        });
+      }
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesAY &&
+        matchesSemester &&
+        matchesUniversity &&
+        matchesProvince &&
+        matchesDate
+      );
+    });
+  }, [stipends, searchTerm, filters]);
 
   const paginatedData = useMemo(() => {
     const from = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -352,51 +252,57 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
   const handleBulkActionExecute = async () => {
     if (!pendingPayload) return;
     setIsSubmitting(true);
+    
     try {
-        await new Promise((res) => setTimeout(res, 1000));
-        
         const actionType = pendingPayload.adminNote ? 'Hold' : 'Release';
         const newStatus: SubmissionStatus = actionType === 'Hold' ? 'On hold' : 'Released';
-        const isHold = actionType === 'Hold';
+        
+        // Loop through selected items and fire update requests
+        const updatePromises = selectedStipendIds.map(async (id) => {
+            const currentItem = stipends.find(s => s.id === id);
+            if (!currentItem) return;
 
-        // Update MOCK_DB directly
-        MOCK_DB = MOCK_DB.map((item) => {
-          if (selectedStipendIds.includes(item.id)) {
-            return {
-              ...item,
-              stipend: {
-                ...item.stipend,
+            const updatedBreakdown = currentItem.stipend.breakdown.map(b => ({
+                ...b,
+                status: actionType === 'Hold' ? 'On hold' : 'Released' as any
+            }));
+
+            // Recalculate totals
+            const newReceived = updatedBreakdown
+              .filter(i => i.status === 'Released')
+              .reduce((sum, i) => sum + i.amount, 0);
+            
+            const newPending = updatedBreakdown
+              .filter(i => i.status !== 'Released')
+              .reduce((sum, i) => sum + i.amount, 0);
+
+            const body = {
+                id: Number(id),
                 status: newStatus,
-                onHold: isHold,
-                breakdown: item.stipend.breakdown.map(b => ({
-                  ...b,
-                  status: isHold ? 'On hold' : 'Released'
-                })),
-                updates: [
-                  {
-                    message: isHold 
-                      ? `Stipend placed on hold: ${pendingPayload.adminNote}` 
-                      : 'Stipend allowances released.',
-                    type: isHold ? 'warning' : 'success',
-                    date: new Date().toISOString()
-                  },
-                  ...item.stipend.updates
-                ]
-              }
+                received: newReceived,
+                pending: newPending,
+                breakdown: updatedBreakdown
             };
-          }
-          return item;
+
+            await fetch('/api/admin/stipend-tracking/put', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
         });
+
+        await Promise.all(updatePromises);
 
         if (actionType === 'Release') {
             toast.success(`Successfully released allowances for ${selectedStipendIds.length} scholar(s).`);
         } else {
             toast.warning(`Placed ${selectedStipendIds.length} stipend(s) on hold.`);
         }
+
         setIsConfirmOpen(false);
         setPendingPayload(null);
         setSelectedStipendIds([]);
-        fetchData(); // Refresh UI
+        fetchData(); // Refresh UI with real data
     } catch (error) {
         console.error(error);
         toast.error("An error occurred while processing the request.");
@@ -417,17 +323,33 @@ export function StipendTrackingTable({ searchTerm }: StipendTrackingTableProps) 
   };
 
   const handleSave = async (updatedStipend: StipendDetails) => {
-    // Simulate API Call
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      const body = {
+        id: Number(updatedStipend.id),
+        status: updatedStipend.stipend.status,
+        received: updatedStipend.stipend.received,
+        pending: updatedStipend.stipend.pending,
+        breakdown: updatedStipend.stipend.breakdown,
+      };
 
-    // Update MOCK_DB
-    MOCK_DB = MOCK_DB.map((item) => 
-      item.id === updatedStipend.id ? updatedStipend : item
-    );
+      const res = await fetch('/api/admin/stipend-tracking/put', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
 
-    toast.success("Stipend record updated successfully.");
-    handleCloseModal();
-    fetchData(); // Refresh UI
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Update failed');
+      }
+
+      toast.success("Stipend record updated successfully.");
+      handleCloseModal();
+      fetchData(); // Refresh UI
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Failed to update stipend.");
+    }
   };
 
   const selectedCount = selectedStipendIds.length;

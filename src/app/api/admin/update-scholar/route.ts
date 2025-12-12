@@ -46,7 +46,6 @@ export async function POST(request: Request) {
     const fullAddress = `${scholar.addressBrgy}, ${scholar.addressCity}, ${scholar.addressProvince}`;
 
     // --- 2. Update the public.User table ---
-    // This is the main data table
     const { error: userTableError } = await supabase
       .from('User')
       .update({
@@ -58,7 +57,7 @@ export async function POST(request: Request) {
         suffix: scholar.suffix,
         date_of_birth: scholar.dateOfBirth,
         contact_number: scholar.contactNumber,
-        address: scholar.addressBrgy, // Assuming this is Brgy/Street
+        address: scholar.addressBrgy,
         municipality_city: scholar.addressCity,
         province: scholar.addressProvince,
         scholarship_type: scholar.scholarshipType,
@@ -70,20 +69,18 @@ export async function POST(request: Request) {
         midyear_classes: midyearClasses,
         thesis_year: thesisYear,
         ojt: ojt,
-        // We don't update curriculum_file_key here unless a new file was uploaded
       })
-      .eq('id', scholar.id); // Use the 'id' (UUID) to find the row
+      .eq('id', scholar.id);
 
     if (userTableError) {
       throw new Error(`User Table Error: ${userTableError.message}`);
     }
 
     // --- 3. Update the auth.users metadata ---
-    // This keeps the auth metadata in sync with the public table
     const { error: authUserError } = await supabase.auth.admin.updateUserById(
       scholar.id,
       {
-        email: scholar.email, // Update email in auth as well
+        email: scholar.email,
         user_metadata: {
           spas_id: scholar.scholarId,
           first_name: scholar.firstName,
@@ -92,7 +89,7 @@ export async function POST(request: Request) {
           suffix: scholar.suffix,
           date_of_birth: scholar.dateOfBirth,
           contact_number: scholar.contactNumber,
-          address: fullAddress, // A combined address for metadata
+          address: fullAddress,
           municipality_city: scholar.addressCity,
           province: scholar.addressProvince,
           scholarship_type: scholar.scholarshipType,
@@ -109,8 +106,53 @@ export async function POST(request: Request) {
     );
 
     if (authUserError) {
-      // Note: This might fail if the email is already in use by another user
       throw new Error(`Auth User Error: ${authUserError.message}`);
+    }
+
+    // --- 4. Handle Suspension Logic (Auto-Hold Stipends) ---
+    if (scholar.status === 'Suspended') {
+      // Fetch all stipend records for this scholar that are NOT 'Released'
+      // We assume records that are already 'Released' should not be touched.
+      const { data: stipendRecords, error: fetchStipendError } = await supabase
+        .from('Stipend Tracking')
+        .select('*')
+        .eq('spas_id', scholar.scholarId)
+        .neq('status', 'Released');
+
+      if (fetchStipendError) {
+        console.error('Error fetching stipends for suspension:', fetchStipendError);
+        // We continue execution, but log the error. You might choose to throw here instead.
+      } else if (stipendRecords && stipendRecords.length > 0) {
+        
+        // Process each record to update its status and breakdown
+        const updatePromises = stipendRecords.map(async (record) => {
+          let breakdown = record.allowance_breakdown as any[];
+          
+          // If breakdown exists, map through it and set 'Pending' items to 'On hold'
+          if (Array.isArray(breakdown)) {
+            breakdown = breakdown.map((item) => {
+              // You can adjust this condition if you want to hold 'Processing' items as well
+              if (item.status === 'Pending' || item.status === 'Processing') {
+                return { ...item, status: 'On hold' };
+              }
+              return item;
+            });
+          }
+
+          // Update the database record
+          return supabase
+            .from('Stipend Tracking')
+            .update({
+              status: 'On hold',
+              allowance_breakdown: breakdown,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', record.id);
+        });
+
+        // Execute all updates in parallel
+        await Promise.all(updatePromises);
+      }
     }
 
     return NextResponse.json({ success: true });

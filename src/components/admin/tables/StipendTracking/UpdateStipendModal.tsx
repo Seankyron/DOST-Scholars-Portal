@@ -173,21 +173,6 @@ export function UpdateStipendModal({
             </div>
           </section>
 
-          {/* --- BOTTOM SECTION: Admin Custom Update --- */}
-          <section className="bg-white border rounded-lg shadow-sm p-5 space-y-3">
-            <Label className="text-base font-semibold text-gray-800 border-b pb-2 block">
-              Add Custom Update
-            </Label>
-            <div className="space-y-3">
-              <Textarea
-                placeholder="e.g., 'On hold pending Form 5 submission...'"
-                value={customUpdateMsg}
-                onChange={(e) => setCustomUpdateMsg(e.target.value)}
-                className="min-h-[100px]"
-              />
-            </div>
-          </section>
-
         </ModalBody>
 
         <ModalFooter>

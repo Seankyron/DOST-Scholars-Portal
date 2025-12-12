@@ -108,7 +108,7 @@ export function ProfileSection() {
 
   // FIXED: Handle profile_image (snake_case) vs profileImage (camelCase) mismatch
   // We check for both to be safe, or default to placeholder
-  const profileImage = (scholar as any)?.profile_image || (scholar as any)?.profileImage || '/images/placeholders/avatar-placeholder.png';
+  const profileImage = (scholar as any)?.profile_image || (scholar as any)?.profileImage || '/images/placeholders/avatar-placeholder.webp';
   
   const scholarName = `${scholar?.first_name || ''} ${scholar?.last_name || ''}`;
   const spasId = scholar?.spas_id || 'N/A';
@@ -137,7 +137,7 @@ export function ProfileSection() {
                         )}
                         onError={(e: SyntheticEvent<HTMLImageElement>) => {
                             (e.currentTarget as HTMLImageElement).src =
-                            '/images/placeholders/avatar-placeholder.png';
+                            '/images/placeholders/avatar-placeholder.webp';
                         }}
                     />
                 </div>
