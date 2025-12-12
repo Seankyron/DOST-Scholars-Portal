@@ -48,7 +48,7 @@ export function StipendDetailsModal({ isOpen, onClose, data, title }: StipendDet
           .from('Recent Activities')
           .select('activity, status, created_at, type')
           .eq('spas_id', data.dbRecord.spas_id)
-          .eq('type', 'Stipend Tracking')
+          .eq('activity', 'Stipend Tracking')
           .eq('year_level', data.dbRecord.year_level)
           .eq('semester', data.dbRecord.semester)
           .order('created_at', { ascending: false });
@@ -58,13 +58,14 @@ export function StipendDetailsModal({ isOpen, onClose, data, title }: StipendDet
           return;
         }
         
-        const mappedUpdates: StipendUpdate[] = (activities || []).map((data) => {
+        console.log('Data: ', activities)
+        const mappedUpdates: StipendUpdate[] = (activities || []).map((item) => {
           let type: 'info' | 'success' | 'warning' = 'info';
           // Logic: Pending -> info, Released -> success, On hold -> warning
           // Note: 'Partial' status often treated similarly to Released or Pending depending on context, 
           // but strict rules were: Pending->info, Released->success, On hold->warning.
           
-          const statusLower = data.status?.toLowerCase() || '';
+          const statusLower = item.status?.toLowerCase() || '';
           
           if (statusLower === 'released') {
             type = 'success';
@@ -76,9 +77,9 @@ export function StipendDetailsModal({ isOpen, onClose, data, title }: StipendDet
           }
           
           return {
-            message: data.activity || 'Stipend update', // 'activity' column often holds the description
+            message: item.type || 'Stipend update', // 'activity' column often holds the description
             type,
-            date: formatDate(data.created_at)
+            date: formatDate(item.created_at)
           };
         });
         
