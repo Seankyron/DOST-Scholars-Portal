@@ -1,3 +1,5 @@
+// seankyron/dost-scholars-portal/DOST-Scholars-Portal-merge/src/components/admin/tables/StipendTracking/StipendTrackingRow.tsx
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -42,6 +44,11 @@ export function StipendTrackingRow({
             {scholarInfo.scholarId}
           </span>
         </div>
+      </td>
+
+      {/* Added Province Column */}
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+        {scholarInfo.province}
       </td>
 
       <td className="px-4 py-3 whitespace-nowrap">

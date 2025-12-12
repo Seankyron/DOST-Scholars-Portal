@@ -5,45 +5,158 @@ import { Filter } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { DashboardStats } from '@/components/admin/dashboard/stats/DashboardStats';
-import { StipendReleased } from '@/components/admin/dashboard/finance/StipendReleased';
-import { DemographicsPanel } from '@/components/admin/dashboard/charts/DemographicsPanel';
 import { ServiceGrid } from '@/components/admin/dashboard/service/ServiceGrid';
 
-// Ensure this function uses STATIC data or deterministic logic (no Math.random)
 const getDashboardData = (year: string, semester: string) => {
   const isPastYear = year === '2023-2024';
+  
+  // MOCK DATA: In a real app, this would come from an API based on year/semester
   return {
     kpi: {
       totalScholars: isPastYear ? 980 : 1245,
       stipendReleased: isPastYear ? 12000000 : 15450000,
       urgentPending: isPastYear ? 0 : 18, 
     },
+    
     provinceStats: [
-      { province: 'Cavite', total: 450, stipendReleased: 5000000, status: { Active: 400, Warning: 30, Suspended: 20 }, type: { 'RA 7687': 300, 'Merit': 150 } },
-      { province: 'Laguna', total: 320, stipendReleased: 4200000, status: { Active: 290, Warning: 20, Suspended: 10 }, type: { 'RA 7687': 200, 'Merit': 120 } },
-      { province: 'Batangas', total: 280, stipendReleased: 3500000, status: { Active: 250, Warning: 25, Suspended: 5 }, type: { 'RA 7687': 220, 'Merit': 60 } },
-      { province: 'Rizal', total: 110, stipendReleased: 1850000, status: { Active: 100, Warning: 8, Suspended: 2 }, type: { 'RA 7687': 80, 'Merit': 30 } },
-      { province: 'Quezon', total: 85, stipendReleased: 900000, status: { Active: 70, Warning: 10, Suspended: 5 }, type: { 'RA 7687': 60, 'Merit': 25 } },
+      { 
+        province: 'Cavite', 
+        total: 450, 
+        stipendReleased: 5000000, 
+        pendingAmount: 1200000,
+        status: { 
+          'Active': 350, 
+          'Warning': 30, 
+          '2nd Warning': 10, 
+          'Suspended': 10, 
+          'On hold': 20, 
+          'Graduated': 25, 
+          'Terminated': 5 
+        }, 
+        type: { 
+          'RA 7687': 200, 
+          'Merit': 100, 
+          'JLSS, RA 7687': 80, 
+          'JLSS, Merit': 50, 
+          'JLSS, RA 10612': 20 
+        } 
+      },
+      { 
+        province: 'Laguna', 
+        total: 320, 
+        stipendReleased: 4200000, 
+        pendingAmount: 800000,
+        status: { 
+          'Active': 250, 
+          'Warning': 20, 
+          '2nd Warning': 5, 
+          'Suspended': 5, 
+          'On hold': 10, 
+          'Graduated': 30, 
+          'Terminated': 0 
+        }, 
+        type: { 
+          'RA 7687': 150, 
+          'Merit': 80, 
+          'JLSS, RA 7687': 50, 
+          'JLSS, Merit': 30, 
+          'JLSS, RA 10612': 10 
+        } 
+      },
+      { 
+        province: 'Batangas', 
+        total: 280, 
+        stipendReleased: 3500000, 
+        pendingAmount: 1500000,
+        status: { 
+          'Active': 220, 
+          'Warning': 25, 
+          '2nd Warning': 5, 
+          'Suspended': 5, 
+          'On hold': 5, 
+          'Graduated': 20, 
+          'Terminated': 0 
+        }, 
+        type: { 
+          'RA 7687': 120, 
+          'Merit': 60, 
+          'JLSS, RA 7687': 60, 
+          'JLSS, Merit': 20, 
+          'JLSS, RA 10612': 20 
+        } 
+      },
+      { 
+        province: 'Rizal', 
+        total: 110, 
+        stipendReleased: 1850000, 
+        pendingAmount: 50000,
+        status: { 
+          'Active': 90, 
+          'Warning': 5, 
+          '2nd Warning': 3, 
+          'Suspended': 2, 
+          'On hold': 5, 
+          'Graduated': 5, 
+          'Terminated': 0 
+        }, 
+        type: { 
+          'RA 7687': 50, 
+          'Merit': 20, 
+          'JLSS, RA 7687': 20, 
+          'JLSS, Merit': 10, 
+          'JLSS, RA 10612': 10 
+        } 
+      },
+      { 
+        province: 'Quezon', 
+        total: 85, 
+        stipendReleased: 900000, 
+        pendingAmount: 450000,
+        status: { 
+          'Active': 60, 
+          'Warning': 5, 
+          '2nd Warning': 2, 
+          'Suspended': 3, 
+          'On hold': 5, 
+          'Graduated': 10, 
+          'Terminated': 0 
+        }, 
+        type: { 
+          'RA 7687': 40, 
+          'Merit': 15, 
+          'JLSS, RA 7687': 15, 
+          'JLSS, Merit': 10, 
+          'JLSS, RA 10612': 5 
+        } 
+      },
     ],
+    
     universityStats: [
-      { name: 'Cavite State University', province: 'Cavite', amount: 3000000, scholarCount: 200 },
-      { name: 'De La Salle - Dasmariñas', province: 'Cavite', amount: 2000000, scholarCount: 150 },
-      { name: 'UP Los Baños', province: 'Laguna', amount: 3200000, scholarCount: 210 },
-      { name: 'Laguna State Poly U', province: 'Laguna', amount: 1000000, scholarCount: 80 },
-      { name: 'Batangas State University', province: 'Batangas', amount: 3500000, scholarCount: 320 },
-      { name: 'Rizal Technological Univ', province: 'Rizal', amount: 1500000, scholarCount: 90 },
-      { name: 'University of Rizal System', province: 'Rizal', amount: 350000, scholarCount: 20 },
-      { name: 'Southern Luzon State U', province: 'Quezon', amount: 900000, scholarCount: 85 },
+      { name: 'Cavite State University', province: 'Cavite', amount: 3000000, pending: 500000, scholarCount: 200 },
+      { name: 'De La Salle - Dasmariñas', province: 'Cavite', amount: 2000000, pending: 700000, scholarCount: 150 },
+      { name: 'UP Los Baños', province: 'Laguna', amount: 3200000, pending: 0, scholarCount: 210 },
+      { name: 'Laguna State Poly U', province: 'Laguna', amount: 1000000, pending: 800000, scholarCount: 80 },
+      { name: 'Batangas State University', province: 'Batangas', amount: 3500000, pending: 1500000, scholarCount: 320 },
+      { name: 'Rizal Technological Univ', province: 'Rizal', amount: 1500000, pending: 50000, scholarCount: 90 },
+      { name: 'University of Rizal System', province: 'Rizal', amount: 350000, pending: 0, scholarCount: 20 },
+      { name: 'Southern Luzon State U', province: 'Quezon', amount: 900000, pending: 450000, scholarCount: 85 },
     ],
+
     services: [
-      { id: 'grade-submissions', name: 'Grade Submission', topCategory: 'Regular Semester', stats: { newPending: 45, resubmitPending: 12 } },
-      { id: 'travel-clearance', name: 'Travel Clearance', topCategory: 'Personal Travel', stats: { newPending: 5, resubmitPending: 1 } },
-      { id: 'thesis-allowance', name: 'Thesis Allowance', topCategory: 'Full Release', stats: { newPending: 12, resubmitPending: 5 } },
-      { id: 'request-forms', name: 'Request Forms', topCategory: 'Certificate of Grades', stats: { newPending: 8, resubmitPending: 2 } },
-      { id: 'shifting', name: 'Shifting/Transferring', topCategory: 'Shifting Course', stats: { newPending: 3, resubmitPending: 0 } },
-      { id: 'loas', name: 'Leave of Absence', topCategory: 'Medical Reason', stats: { newPending: 1, resubmitPending: 0 } },
-      { id: 'reimbursements', name: 'Reimbursements', topCategory: 'Tuition Fee', stats: { newPending: 15, resubmitPending: 4 } },
-      { id: 'clearance', name: 'Final Clearance', topCategory: 'Graduation', stats: { newPending: 0, resubmitPending: 0 } },
+      // ROW 1
+      { id: 'grade-submissions', name: 'Grade Submission', topCategory: 'Regular Semester', stats: { newPending: 45, resubmitPending: 12, waitingOnScholar: 10, approved: 150 } },
+      { id: 'practical-training', name: 'Practical Training', topCategory: 'OJT/Practicum', stats: { newPending: 10, resubmitPending: 3, waitingOnScholar: 5, approved: 40 } },
+      { id: 'thesis-allowance', name: 'Thesis Allowance', topCategory: 'Full Release', stats: { newPending: 12, resubmitPending: 5, waitingOnScholar: 8, approved: 45 } },
+      { id: 'travel-clearance', name: 'Travel Clearance', topCategory: 'Personal Travel', stats: { newPending: 5, resubmitPending: 1, waitingOnScholar: 2, approved: 30 } },
+      
+      // ROW 2
+      { id: 'request-forms', name: 'Request Forms', topCategory: 'Certificate of Grades', stats: { newPending: 8, resubmitPending: 2, waitingOnScholar: 5, approved: 100 } },
+      { id: 'shifting-transferring', name: 'Shifting/Transferring', topCategory: 'Shifting Course', stats: { newPending: 3, resubmitPending: 0, waitingOnScholar: 1, approved: 10 } },
+      { id: 'leave-of-absence', name: 'Leave of Absence', topCategory: 'Medical Reason', stats: { newPending: 1, resubmitPending: 0, waitingOnScholar: 0, approved: 5 } },
+      { id: 'reimbursement', name: 'Reimbursements', topCategory: 'Tuition Fee', stats: { newPending: 15, resubmitPending: 4, waitingOnScholar: 12, approved: 80 } },
+      
+      // ROW 3
+      { id: 'support-feedback', name: 'Scholar Feedback', topCategory: 'General Inquiry', stats: { newPending: 6, resubmitPending: 1, waitingOnScholar: 0, approved: 25 } },
     ]
   };
 };
@@ -53,17 +166,14 @@ export default function AdminDashboardPage() {
   const [selectedSem, setSelectedSem] = useState('1st');
   const [selectedMonth, setSelectedMonth] = useState('oct');
   
-  // FIX: Add mounted check to prevent Hydration Errors
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Fetch data
   const data = getDashboardData(selectedYear, selectedSem);
 
-  // FIX: Prevent rendering dashboard until client is ready
   if (!isMounted) {
     return <div className="p-6 space-y-8 bg-slate-50 min-h-screen"></div>;
   }
@@ -108,21 +218,14 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <DashboardStats data={data.kpi} />
+      <DashboardStats 
+        data={data.kpi} 
+        provinceData={data.provinceStats}
+        universityData={data.universityStats}
+        services={data.services}
+      />
 
-      <div className="grid gap-6 md:grid-cols-12 h-auto">
-        <div className="md:col-span-8 h-full">
-           <StipendReleased 
-              provinceData={data.provinceStats} 
-              universityData={data.universityStats}
-           />
-        </div>
-
-        <div className="md:col-span-4 h-full">
-           <DemographicsPanel provinceData={data.provinceStats} />
-        </div>
-      </div>
-
+      {/* SERVICE REQUESTS GRID */}
       <div>
         <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
           Service Requests 

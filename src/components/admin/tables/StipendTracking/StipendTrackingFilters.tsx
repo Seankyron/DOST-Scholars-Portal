@@ -1,3 +1,5 @@
+// seankyron/dost-scholars-portal/DOST-Scholars-Portal-merge/src/components/admin/tables/StipendTracking/StipendTrackingFilters.tsx
+
 'use client';
 
 import {
@@ -12,11 +14,13 @@ import { X, Calendar } from 'lucide-react';
 import { DateRangeFilter } from '@/components/shared/DateRangeFilter';
 import { UNIVERSITIES } from '@/lib/utils/constants';
 
+const PROVINCES = ['Cavite', 'Laguna', 'Batangas', 'Rizal', 'Quezon'];
+
 export function StipendTrackingFilters() {
   return (
     <div className="flex flex-col gap-4 bg-white p-1">
       {/* Primary Filters Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {/* 1. Status */}
         <Select>
           <SelectTrigger className="bg-white h-10 w-full">
@@ -65,6 +69,21 @@ export function StipendTrackingFilters() {
             {UNIVERSITIES.map((u) => (
               <SelectItem key={u} value={u}>
                 {u}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* 5. Province (New) */}
+        <Select>
+          <SelectTrigger className="bg-white h-10 w-full">
+            <SelectValue placeholder="Province: All" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="All">All Provinces</SelectItem>
+            {PROVINCES.map((p) => (
+              <SelectItem key={p} value={p}>
+                {p}
               </SelectItem>
             ))}
           </SelectContent>
