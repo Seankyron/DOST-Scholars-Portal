@@ -256,8 +256,9 @@ export function GradeSubmissionModal({ isOpen, onClose, semester }: GradeSubmiss
                  </div>
               )}
 
+              {/* ADDED mt-6 HERE for spacing */}
               {hasSubmission && !isEditing && (
-                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <div className="mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
                      <div className="flex flex-col gap-1">
                          <span className="text-xs font-semibold text-gray-500 uppercase">Current Status</span>
                          <div><StatusBadge status={dbStatus} /></div>

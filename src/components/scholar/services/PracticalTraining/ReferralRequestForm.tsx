@@ -35,12 +35,9 @@ export function ReferralRequestForm({
   const gradeFKUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${gradeUrl}.pdf`;
   const replySlipFKUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${replySlipUrl}.pdf`;
 
-  // Helper to check if a field should be editable based on admin comments
   const checkVisibility = (keywords: string[]) => {
-    // If we are NOT resubmitting, use the parent's isReadOnly state
     if (!isResubmit) return { isEditable: !isReadOnly };
     
-    // If resubmitting, only unlock fields mentioned in the comment
     const hasMatch = keywords.some(k => adminComment.toLowerCase().includes(k));
     return { isEditable: hasMatch }; 
   };
@@ -48,8 +45,6 @@ export function ReferralRequestForm({
   const showGrades = checkVisibility(['grades', 'checklist', 'certified']);
   const showReplySlip = checkVisibility(['reply', 'slip']);
 
-  // Options mapping: Value -> Label
-  // We use simple string keys for values to make database storage easier
   const planOptions = [
     { value: "undertake_ptp", label: "I will undertake 2025 Practical Training Program." },
     { value: "ojt_midyear_and_ptp", label: "I have required OJT during Midyear under curriculum and will undertake the 2025 Practical Training Program." },
@@ -98,10 +93,10 @@ export function ReferralRequestForm({
                   required
                />
             ) : (
-               // This handles both "Read Only Mode" AND "Auto-Detected File"
                <div className="space-y-2">
                  <FileDisplayReadOnly 
-                    label="" 
+                    // RESTORED LABEL HERE
+                    label="Certified Complete Grades" 
                     fileName={hasRecentGrade ? "Most Recent Certified Complete Grades from Grade Submission" : "Submitted Grades File"} 
                     fileUrl={gradeFKUrl}
                  />
@@ -119,9 +114,12 @@ export function ReferralRequestForm({
                     required
                 />
             ) : (
-                <FileDisplayReadOnly label=""
-                fileName={`${user.spas_id} – Reply Slip.pdf`}
-                fileUrl={replySlipFKUrl} />
+                <FileDisplayReadOnly 
+                    // RESTORED LABEL HERE
+                    label="Accomplished Reply Slip"
+                    fileName={`${user.spas_id} – Reply Slip.pdf`}
+                    fileUrl={replySlipFKUrl} 
+                />
             )}
         </div>
       </div>  

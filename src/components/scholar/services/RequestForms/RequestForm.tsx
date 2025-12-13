@@ -84,7 +84,7 @@ export function RequestForm({
              {isReadOnly ? (
                 /* --- THIS IS THE READ ONLY DISPLAY --- */
                 <FileDisplayReadOnly 
-                   label="Submitted Document"
+                   label=""
                    fileName={file ? file.name : "No file attached"}
                    // In a real app, you'd pass the fileUrl here
                    className={!file ? "opacity-50" : ""} 
