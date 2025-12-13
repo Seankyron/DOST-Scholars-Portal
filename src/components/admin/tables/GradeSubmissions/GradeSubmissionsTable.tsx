@@ -81,7 +81,7 @@ export function GradeSubmissionsTable({ searchTerm }: GradeSubmissionsTableProps
         program: e.program,
       },
       submissionInfo: {
-        year: `${e.year_level}th Year` as YearLevel,
+        year: `${e.year_level}${e.year_level === 1 ? 'st' : e.year_level === 2 ? 'nd' : e.year_level === 3 ? 'rd' : 'th'} Year` as YearLevel,
         semester: e.semester as Semester,
         academicYear: e.academic_year,
         dateSubmitted: e.updated_at,
