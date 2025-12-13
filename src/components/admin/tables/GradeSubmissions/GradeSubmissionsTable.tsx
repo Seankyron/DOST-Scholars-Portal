@@ -5,8 +5,9 @@ import { GradeSubmissionRow } from './GradeSubmissionRow';
 import { Pagination } from '@/components/shared/Pagination';
 import type { SubmissionStatus, YearLevel, Semester, ScholarshipType } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Download, Loader2, RefreshCw } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/toaster';
+import Export from '@/components/shared/Export'; // Assuming you want the export button here too
 
 export interface GradeSubmissionDetails {
   id: number;
@@ -43,79 +44,90 @@ interface GradeSubmissionsTableProps {
   searchTerm: string;
 }
 
+const ITEMS_PER_PAGE = 7;
+
 export function GradeSubmissionsTable({ searchTerm }: GradeSubmissionsTableProps) {
   const [submissions, setSubmissions] = useState<GradeSubmissionDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
- const fetchData = useCallback(async () => {
-  setLoading(true);
-  setError(null);
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-  try {
-    const query = new URLSearchParams({
-      view: 'GradeSubmissionView',
-      orderBy: 'submission_status',
-      ascending: 'false',
-    });
+    try {
+      const query = new URLSearchParams({
+        view: 'GradeSubmissionView',
+        orderBy: 'submission_status',
+        ascending: 'false',
+      });
 
-    const response = await fetch(`/api/admin/get_view?${query.toString()}`);
-    if (!response.ok) throw new Error('Failed to fetch data');
+      const response = await fetch(`/api/admin/get_view?${query.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch data');
 
-    const res = await response.json();
-    const rows = res.data || [];
+      const res = await response.json();
+      const rows = res.data || [];
 
-    const formatted: GradeSubmissionDetails[] = rows.map((e: any) => ({
-      id: e.submission_id,
-      spas_id: e.spas_id,
-      scholarInfo: {
-        name: e.scholar_name,
-        contactNumber: e.contact_number,
-        dateOfBirth: e.date_of_birth,
-        completeAddress: e.complete_address,
-      },
-      placementInfo: {
-        scholarshipType: e.scholarship_type as ScholarshipType,
-        batch: Number(e.batch),
-        university: e.university,
-        program: e.program,
-      },
-      submissionInfo: {
-        year: `${e.year_level}th Year` as YearLevel,
-        semester: e.semester as Semester,
-        academicYear: e.academic_year,
-        dateSubmitted: e.updated_at,
-        status: e.submission_status as SubmissionStatus,
-        adminComment: e.comment || '',
-      },
-      files: {
-        registrationForm: e.cor_file_key,
-        copyOfGrades: e.grade_file_key,
-        curriculumFile: e.curriculum_file_key,
-      },
-      scholarStatus: e.scholar_status === 'pending' ? 'Active' : (e.scholar_status as any),
-    }));
+      const formatted: GradeSubmissionDetails[] = rows.map((e: any) => ({
+        id: e.submission_id,
+        spas_id: e.spas_id,
+        scholarInfo: {
+          name: e.scholar_name,
+          contactNumber: e.contact_number,
+          dateOfBirth: e.date_of_birth,
+          completeAddress: e.complete_address,
+        },
+        placementInfo: {
+          scholarshipType: e.scholarship_type as ScholarshipType,
+          batch: Number(e.batch),
+          university: e.university,
+          program: e.program,
+        },
+        submissionInfo: {
+          year: `${e.year_level}th Year` as YearLevel,
+          semester: e.semester as Semester,
+          academicYear: e.academic_year,
+          dateSubmitted: e.updated_at,
+          status: e.submission_status as SubmissionStatus,
+          adminComment: e.comment || '',
+        },
+        files: {
+          registrationForm: e.cor_file_key,
+          copyOfGrades: e.grade_file_key,
+          curriculumFile: e.curriculum_file_key,
+        },
+        scholarStatus: e.scholar_status === 'pending' ? 'Active' : (e.scholar_status as any),
+      }));
 
-    setSubmissions(formatted);
-  } catch (err) {
-    console.error(err);
-    setError('Failed to fetch submissions.');
-    toast.error('Error', {
-      description: 'Failed to load grade submissions.',
-    });
-  } finally {
-    setLoading(false);
-  }
-}, []);
-
+      setSubmissions(formatted);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch submissions.');
+      toast.error('Error', {
+        description: 'Failed to load grade submissions.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const filteredSubmissions = submissions.filter((s) =>
     s.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredSubmissions.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentData = filteredSubmissions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   if (loading) {
     return (
@@ -151,7 +163,7 @@ export function GradeSubmissionsTable({ searchTerm }: GradeSubmissionsTableProps
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredSubmissions.map((submission) => (
+            {currentData.map((submission) => (
               <GradeSubmissionRow 
                 key={submission.id} 
                 submission={submission} 
@@ -167,18 +179,23 @@ export function GradeSubmissionsTable({ searchTerm }: GradeSubmissionsTableProps
       </div>
 
       <div className="p-4 grid grid-cols-1 sm:grid-cols-3 items-center gap-4 border-t">
+        {/* FIX: Use currentData.length to show visible items, and filteredSubmissions.length for total */}
         <p className="text-sm text-gray-700 sm:justify-self-start sm:text-left">
-          Showing {filteredSubmissions.length} of {submissions.length} Grade Submissions
+          Showing {currentData.length} of {filteredSubmissions.length} Grade Submissions
         </p>
 
-        <Pagination
-          currentPage={1}
-          totalPages={1}
-          onPageChange={() => {}}
-          className="sm:justify-self-center"
-        />
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            className="sm:justify-self-center"
+          />
+        )}
+        {totalPages <= 1 && <div />}
 
         <div className="flex sm:justify-end gap-2">
+          {/* Note: If you have the Export component, you can use it here instead of the button */}
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export Report
