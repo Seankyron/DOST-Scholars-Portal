@@ -9,8 +9,6 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   const cookieStore = await cookies(); // <-- ADDED
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-  console.log(cookieStore);
   
   if (!supabaseUrl) {
     return NextResponse.json(

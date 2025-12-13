@@ -105,6 +105,7 @@ export default function ScholarManagementPage() {
   const handleConfirmDelete = async () => {
     if (!deletingScholar) return;
 
+    console.log(deletingScholar)
     setIsSubmitting(true);
     try {
       const response = await fetch('/api/admin/delete-scholar', {
