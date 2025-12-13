@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+// CHANGE: Import SelectInput instead of Select
+import { SelectInput } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FileUpload } from '@/components/ui/file-upload';
 import {
@@ -61,11 +62,21 @@ export function AddScholarModal() {
   
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  // --- Generic Change Handlers (Unchanged) ---
+  // --- Handlers ---
+  
+  // For standard HTML Inputs (Input, Checkbox that emits event)
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // NEW: Specific handler for SelectInput which returns { target: { value } } but NO name
+  const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -85,7 +96,7 @@ export function AddScholarModal() {
   const handleFileChange = (file: File | null) => {
     if (file) {
       setCurriculumFile(file);
-      setCurriculumFile(file);
+      // Removed duplicate setCurriculumFile(file)
     }
   };
 
@@ -136,13 +147,13 @@ export function AddScholarModal() {
       
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || 'An unknown error occurred.');    } finally {
+      toast.error(err.message || 'An unknown error occurred.');    
+    } finally {
       setLoading(false);
     }
   };
 
-
-  // --- Options (Unchanged) ---
+  // --- Options ---
   const statusOptions = [
     { value: 'Active', label: 'Active' },
     { value: 'Warning', label: 'Warning' },
@@ -167,7 +178,6 @@ export function AddScholarModal() {
     { value: '4', label: '4th Year' },
     { value: '5', label: '5th Year' },
   ];
- 
 
   return (
     <>
@@ -284,11 +294,11 @@ export function AddScholarModal() {
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Select
+                  {/* CHANGED: Use SelectInput and handleSelectChange */}
+                  <SelectInput
                     label="Province"
-                    name="addressProvince"
                     value={formData.addressProvince}
-                    onChange={handleChange}
+                    onChange={(e) => handleSelectChange('addressProvince', e.target.value)}
                     options={provinceOptions}
                     placeholder="Select Province"
                     required
@@ -317,11 +327,10 @@ export function AddScholarModal() {
                   Curriculum & Scholarship
                 </legend>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Select
+                  <SelectInput
                     label="Scholarship Type"
-                    name="scholarshipType"
                     value={formData.scholarshipType}
-                    onChange={handleChange}
+                    onChange={(e) => handleSelectChange('scholarshipType', e.target.value)}
                     options={scholarshipOptions}
                     placeholder="Select Scholarship Type"
                     required
@@ -335,11 +344,10 @@ export function AddScholarModal() {
                     placeholder="YYYY"
                     required
                   />
-                  <Select
+                  <SelectInput
                     label="School / University"
-                    name="university"
                     value={formData.university}
-                    onChange={handleChange}
+                    onChange={(e) => handleSelectChange('university', e.target.value)}
                     options={universityOptions}
                     placeholder="Select University"
                     required
@@ -354,11 +362,10 @@ export function AddScholarModal() {
                     onChange={handleChange}
                     required
                   />
-                  <Select
+                  <SelectInput
                     label="Duration of Course"
-                    name="courseDuration"
                     value={formData.courseDuration}
-                    onChange={handleChange}
+                    onChange={(e) => handleSelectChange('courseDuration', e.target.value)}
                     options={[
                       { value: '4', label: '4 Years' },
                       { value: '5', label: '5 Years' },
@@ -397,11 +404,10 @@ export function AddScholarModal() {
                     </div>
                   </div>
                   <div>
-                    <Select
+                    <SelectInput
                       label="Thesis in Curriculum"
-                      name="thesisYear"
                       value={formData.thesisYear}
-                      onChange={handleChange}
+                      onChange={(e) => handleSelectChange('thesisYear', e.target.value)}
                       options={thesisYearOptions}
                       placeholder="Select Thesis Year"
                       required
@@ -410,20 +416,18 @@ export function AddScholarModal() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Select
+                  <SelectInput
                     label="OJT Year"
-                    name="ojtYear"
                     value={formData.ojtYear}
-                    onChange={handleChange}
+                    onChange={(e) => handleSelectChange('ojtYear', e.target.value)}
                     options={yearOptions.slice(0, 5)}
                     placeholder="Select OJT Year"
                     required
                   />
-                  <Select
+                  <SelectInput
                     label="OJT Semester"
-                    name="ojtSemester"
                     value={formData.ojtSemester}
-                    onChange={handleChange}
+                    onChange={(e) => handleSelectChange('ojtSemester', e.target.value)}
                     options={semesterOptions}
                     placeholder="Select OJT Semester"
                     required
@@ -437,11 +441,10 @@ export function AddScholarModal() {
                   required
                 />
 
-                <Select
+                <SelectInput
                   label="Initial Status"
-                  name="scholarship_status"
                   value={formData.scholarship_status}
-                  onChange={handleChange}
+                  onChange={(e) => handleSelectChange('scholarship_status', e.target.value)}
                   options={statusOptions}
                   placeholder="Select Status"
                   required
@@ -478,7 +481,6 @@ export function AddScholarModal() {
         </ModalContent>
       </Modal>
 
-      {/* --- Confirmation Dialog (Unchanged) --- */}
       <ConfirmDialog
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
