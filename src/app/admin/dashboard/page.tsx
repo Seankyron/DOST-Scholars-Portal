@@ -11,7 +11,7 @@ import { DashboardStats } from '@/components/admin/dashboard/stats/DashboardStat
 import { ServiceGrid } from '@/components/admin/dashboard/service/ServiceGrid';
 import { DashboardData } from '@/types/dashboard';
 
-// Default empty state matching the interface
+// Default empty state
 const defaultData: DashboardData = {
   kpi: {
     totalScholars: 0,
@@ -20,16 +20,34 @@ const defaultData: DashboardData = {
   },
   provinceStats: [],
   services: [],
-  // @ts-ignore - universityStats might be missing from the strict type but is used in the component
+  // @ts-ignore
   universityStats: []
 };
 
+const MONTHS = [
+  { value: 'jan', label: 'January' },
+  { value: 'feb', label: 'February' },
+  { value: 'mar', label: 'March' },
+  { value: 'apr', label: 'April' },
+  { value: 'may', label: 'May' },
+  { value: 'jun', label: 'June' },
+  { value: 'jul', label: 'July' },
+  { value: 'aug', label: 'August' },
+  { value: 'sep', label: 'September' },
+  { value: 'oct', label: 'October' },
+  { value: 'nov', label: 'November' },
+  { value: 'dec', label: 'December' },
+];
+
 export default function AdminDashboardPage() {
-  const [selectedYear, setSelectedYear] = useState('2024-2025');
-  const [selectedSem, setSelectedSem] = useState('1st');
-  const [selectedMonth, setSelectedMonth] = useState('oct');
+  // Filters
+  const [selectedYear, setSelectedYear] = useState('All');
+  const [selectedSem, setSelectedSem] = useState('All');
+  const [selectedMonth, setSelectedMonth] = useState('All');
   
+  // Data State
   const [data, setData] = useState<DashboardData>(defaultData);
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   
@@ -37,37 +55,61 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    fetchAvailableYears();
   }, []);
+
+  // --- 1. Fetch Dynamic Academic Years from Data ---
+  const fetchAvailableYears = async () => {
+    try {
+      // We use GradeSubmissionView as a source of truth for existing Academic Years
+      const { data } = await supabase
+        .from('GradeSubmissionView')
+        .select('academic_year')
+        .not('academic_year', 'is', null);
+
+      if (data) {
+        // Extract unique years and sort them
+        const uniqueYears = Array.from(new Set(data.map(item => item.academic_year)))
+          .filter(Boolean)
+          .sort()
+          .reverse(); // Newest first
+        
+        setAvailableYears(uniqueYears as string[]);
+      }
+    } catch (error) {
+      console.error('Error fetching academic years:', error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      // Call the Postgres function we created
+      // --- 2. Pass all filters to the RPC ---
       const { data: analytics, error } = await supabase.rpc('get_admin_dashboard_analytics', {
-        filter_year: selectedYear,
-        filter_sem: selectedSem
-      });
+        filter_year: selectedYear === 'All' ? null : selectedYear,
+        filter_sem: selectedSem === 'All' ? null : selectedSem,
+        filter_month: selectedMonth === 'All' ? null : selectedMonth
+      } as any);
 
       if (error) throw error;
 
       if (analytics) {
-        // Force cast the JSON response to our DashboardData type
         setData(analytics as unknown as DashboardData);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      toast.error('Could not load dashboard analytics.')
+      toast.error('Could not load dashboard analytics.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch data when filters change
+  // Refetch when any filter changes
   useEffect(() => {
     if (isMounted) {
       fetchDashboardData();
     }
-  }, [selectedYear, selectedSem, isMounted]);
+  }, [selectedYear, selectedSem, selectedMonth, isMounted]);
 
   if (!isMounted) {
     return <div className="p-6 space-y-8 bg-slate-50 min-h-screen"></div>;
@@ -81,7 +123,12 @@ export default function AdminDashboardPage() {
         <div>
           <h1 className="text-3xl font-bold text-dost-title tracking-tight">Dashboard Overview</h1>
           <p className="text-muted-foreground">
-            Region IV-A System Status | <span className="font-semibold text-blue-600">{selectedYear}, {selectedSem} Sem</span>
+            Region IV-A System Status | 
+            <span className="font-semibold text-blue-600 ml-1">
+              {selectedYear === 'All' && selectedSem === 'All' && selectedMonth === 'All'
+                ? 'All Records' 
+                : 'Filtered View'}
+            </span>
           </p>
         </div>
         
@@ -101,28 +148,43 @@ export default function AdminDashboardPage() {
              <Filter className="h-3 w-3" /> Filters
            </div>
            
+           {/* Dynamic Year Filter */}
            <Select value={selectedYear} onValueChange={setSelectedYear}>
-             <SelectTrigger className="w-[140px] bg-white"><SelectValue/></SelectTrigger>
+             <SelectTrigger className="w-[140px] bg-white"><SelectValue placeholder="Year" /></SelectTrigger>
              <SelectContent>
-               <SelectItem value="2024-2025">AY 2024-2025</SelectItem>
-               <SelectItem value="2023-2024">AY 2023-2024</SelectItem>
+               <SelectItem value="All">All Years</SelectItem>
+               {availableYears.map((year) => (
+                 <SelectItem key={year} value={year}>{year}</SelectItem>
+               ))}
+               {availableYears.length === 0 && (
+                 <>
+                   {/* Fallback if no data found yet */}
+                   <SelectItem value="2024-2025">AY 2024-2025</SelectItem>
+                   <SelectItem value="2023-2024">AY 2023-2024</SelectItem>
+                 </>
+               )}
              </SelectContent>
            </Select>
            
+           {/* Semester Filter */}
            <Select value={selectedSem} onValueChange={setSelectedSem}>
-             <SelectTrigger className="w-[120px] bg-white"><SelectValue/></SelectTrigger>
+             <SelectTrigger className="w-[130px] bg-white"><SelectValue placeholder="Semester" /></SelectTrigger>
              <SelectContent>
-               <SelectItem value="1st">1st Sem</SelectItem>
-               <SelectItem value="2nd">2nd Sem</SelectItem>
+               <SelectItem value="All">All Semesters</SelectItem>
+               <SelectItem value="1st Semester">1st Semester</SelectItem>
+               <SelectItem value="2nd Semester">2nd Semester</SelectItem>
                <SelectItem value="Midyear">Midyear</SelectItem>
              </SelectContent>
            </Select>
            
+           {/* Expanded Month Filter */}
            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-             <SelectTrigger className="w-[120px] bg-white"><SelectValue/></SelectTrigger>
+             <SelectTrigger className="w-[130px] bg-white"><SelectValue placeholder="Month" /></SelectTrigger>
              <SelectContent>
-               <SelectItem value="oct">October</SelectItem>
-               <SelectItem value="nov">November</SelectItem>
+               <SelectItem value="All">All Months</SelectItem>
+               {MONTHS.map((m) => (
+                 <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+               ))}
              </SelectContent>
            </Select>
         </div>
