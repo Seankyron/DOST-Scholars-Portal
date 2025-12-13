@@ -272,7 +272,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
             />
           )}
 
-          <div className="space-y-6">
+          <div className="space-y-6 mt-4">
             {requiresPartialDocs && (
                 <>
                     {renderFileField(
@@ -314,7 +314,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
           )}
 
           {existingRequest && !isEditing && (
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                     <span className="text-xs font-semibold text-gray-500 uppercase">Current Status</span>
                     <div><StatusBadge status={status} /></div>

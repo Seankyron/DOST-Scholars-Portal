@@ -341,36 +341,39 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
               {showAdminAlert && (
                 <AdminCommentAlert status={status} comment={adminComment || ''} />
               )}
-
-              {type === 'Referral Letter' ? (
-                <ReferralRequestForm
-                   plan={plan} setPlan={setPlan}
-                   grades={grades} setGrades={setGrades}
-                   replySlip={replySlip} setReplySlip={setReplySlip}
-                   isReadOnly={!isEditing}
-                   isResubmit={isResubmit}
-                   adminComment={adminComment || ''}
-                   hasRecentGrade={hasRecentGrade}
-                   gradeUrl={(submissionData as PracticalTrainingReferral)?.curriculum || recentGradeKey as any}
-                   replySlipUrl={(submissionData as PracticalTrainingReferral)?.replySlip}
-                />
-              ) : (
-                <CompletionSubmissionForm
-                   form126={form126} setForm126={setForm126}
-                   form127={form127} setForm127={setForm127}
-                   form128={form128} setForm128={setForm128}
-                   dtr={dtr} setDtr={setDtr}
-                   certCompletion={certCompletion} setCertCompletion={setCertCompletion}
-                   isReadOnly={!isEditing}
-                   isResubmit={isResubmit}
-                   adminComment={adminComment || ''}
-                   DTRUrl={(submissionData as PracticalTrainingCompletion)?.dtr}
-                   certUrl={(submissionData as PracticalTrainingCompletion)?.trainingCompletion}
-                   form126Url={(submissionData as PracticalTrainingCompletion)?.form126}
-                   form127Url={(submissionData as PracticalTrainingCompletion)?.form127}
-                   form128Url={(submissionData as PracticalTrainingCompletion)?.form128}
-                />
-              )}
+              
+              {/* ADDED mt-4 HERE for space above the form */}
+              <div className="mt-4">
+                {type === 'Referral Letter' ? (
+                  <ReferralRequestForm
+                    plan={plan} setPlan={setPlan}
+                    grades={grades} setGrades={setGrades}
+                    replySlip={replySlip} setReplySlip={setReplySlip}
+                    isReadOnly={!isEditing}
+                    isResubmit={isResubmit}
+                    adminComment={adminComment || ''}
+                    hasRecentGrade={hasRecentGrade}
+                    gradeUrl={(submissionData as PracticalTrainingReferral)?.curriculum || recentGradeKey as any}
+                    replySlipUrl={(submissionData as PracticalTrainingReferral)?.replySlip}
+                  />
+                ) : (
+                  <CompletionSubmissionForm
+                    form126={form126} setForm126={setForm126}
+                    form127={form127} setForm127={setForm127}
+                    form128={form128} setForm128={setForm128}
+                    dtr={dtr} setDtr={setDtr}
+                    certCompletion={certCompletion} setCertCompletion={setCertCompletion}
+                    isReadOnly={!isEditing}
+                    isResubmit={isResubmit}
+                    adminComment={adminComment || ''}
+                    DTRUrl={(submissionData as PracticalTrainingCompletion)?.dtr}
+                    certUrl={(submissionData as PracticalTrainingCompletion)?.trainingCompletion}
+                    form126Url={(submissionData as PracticalTrainingCompletion)?.form126}
+                    form127Url={(submissionData as PracticalTrainingCompletion)?.form127}
+                    form128Url={(submissionData as PracticalTrainingCompletion)?.form128}
+                  />
+                )}
+              </div>
 
               {isEditing && (
                 <div className="pt-4 border-t mt-4">
@@ -382,8 +385,9 @@ export function PracticalTrainingModal({ isOpen, onClose, type, existingRequest 
                 </div>
               )}
 
+              {/* ADDED mt-6 HERE for spacing from previous elements */}
               {submissionData && !isEditing && (
-                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1">
                         <span className="text-xs font-semibold text-gray-500 uppercase">Current Status</span>
                         <div><StatusBadge status={status as any} /></div>

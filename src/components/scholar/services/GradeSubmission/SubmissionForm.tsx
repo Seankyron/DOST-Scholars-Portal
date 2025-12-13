@@ -53,7 +53,8 @@ export function SubmissionForm({
   const gradesFileUrl = submission?.copyOfGrades;
 
   return (
-    <div className="space-y-6">
+    // ADDED mt-4 HERE to create space above the form fields
+    <div className="space-y-6 mt-4">
       
       {/* Registration Form / Form 5 */}
       <div className="space-y-4">
