@@ -32,7 +32,7 @@ interface FeedbackHistoryProps {
 }
 
 export function FeedbackHistory({ onViewDetails }: FeedbackHistoryProps) {
-  const storedScholar = sessionStorage.getItem('scholar');
+  const storedScholar = sessionStorage.getItem('user');
   const scholar = storedScholar ? JSON.parse(storedScholar) : null;
 
   const { data, success, error } = useFetchFeedback(scholar.spas_id, 5);

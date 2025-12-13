@@ -14,6 +14,7 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const file = formData.get('file') as Blob | null;
     const folder = formData.get('folder') as string | null;
+    const public_id = formData.get('public_id') as string | undefined;
 
     if (!file || !folder) {
       return NextResponse.json({ error: 'File or folder not provided' }, { status: 400 });
@@ -26,7 +27,12 @@ export async function POST(req: Request) {
     // Upload using upload_stream
     const result: any = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder, access_mode: 'public', }, // 'auto' lets Cloudinary detect PDF
+        { 
+          folder, 
+          // FIX: Ensure this line exists to force the filename
+          public_id: public_id, 
+          access_mode: 'public', 
+        }, 
         (err, res) => {
           if (err) return reject(err);
           resolve(res);
@@ -41,7 +47,7 @@ export async function POST(req: Request) {
       url: result.secure_url,
     });
   } catch (err: any) {
-    console.error('Cloudinary upload failed:', err); // <-- log full error
+    console.error('Cloudinary upload failed:', err);
     return NextResponse.json({ error: err.message || 'Upload failed' }, { status: 500 });
   }
 }

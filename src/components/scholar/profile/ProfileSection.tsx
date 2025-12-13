@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, type SyntheticEvent } from 'react';
+import { useState, useRef, type SyntheticEvent, useEffect } from 'react';
 import {
   BadgeCheck,
   QrCode,
@@ -15,15 +15,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { InfoTooltip } from '@/components/shared/InfoToolTip';
-import { toast } from 'sonner'; // Ensure importing from sonner or your toaster re-export
+import { toast } from 'sonner'; 
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { ScholarStatus, SubmissionStatus } from '@/types';
+import { SubmissionStatus } from '@/types';
 import { QRCodeModal } from './QRCodeModal';
 import { useFetchScholar } from "@/hooks/scholars/Get/useFetchScholar";
-import { useEffect } from 'react';
 import { cn } from '@/lib/utils/cn';
-import { useCurrentScholar } from "@/hooks/scholar/useCurrentScholar";
-
 
 // Helper component for clean list items
 function InfoItem({
@@ -54,6 +51,8 @@ export function ProfileSection() {
   
   const [isQROpen, setIsQROpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  // Initialize with current time to ensure we fetch the latest version on load
+  const [imageRefreshKey, setImageRefreshKey] = useState(Date.now()); 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -61,6 +60,11 @@ export function ProfileSection() {
       sessionStorage.setItem("user", JSON.stringify(scholar));
     }
   }, [scholar]);
+
+  // FIX: Handle potential ID mismatch (database snake_case vs frontend camelCase)
+  // We use 'as any' to safely check both properties
+  const rawId = (scholar as any)?.spas_id || (scholar as any)?.scholarId;
+  const spasId = rawId || 'N/A';
 
   const handleEditClick = () => {
     fileInputRef.current?.click();
@@ -71,8 +75,12 @@ export function ProfileSection() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-        // FIXED: Correct Sonner syntax
         toast.error("Error", { description: "Please upload an image file." });
+        return;
+    }
+
+    if (!rawId) {
+        toast.error("Error", { description: "User ID not found. Cannot upload." });
         return;
     }
 
@@ -81,9 +89,12 @@ export function ProfileSection() {
     try {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('bucket', 'profile-pictures');
+        // Upload to folder: dost-portal/{id}
+        formData.append('folder', `dost-portal/${rawId}`);
+        // Force filename to be 'profile_photo'
+        formData.append('public_id', 'profile_photo');
 
-        const response = await fetch('/api/upload', {
+        const response = await fetch('/api/scholar/file-upload', {
             method: 'POST',
             body: formData,
         });
@@ -92,26 +103,28 @@ export function ProfileSection() {
 
         if (!response.ok) throw new Error(data.error || 'Upload failed');
 
-        // FIXED: Correct Sonner syntax
         toast.success("Success", { description: "Profile picture uploaded successfully!" });
         
-        window.location.reload(); 
+        // Update the timestamp to force Cloudinary to serve the new image
+        setImageRefreshKey(Date.now());
 
     } catch (error: any) {
         console.error(error);
-        // FIXED: Correct Sonner syntax
         toast.error("Error", { description: "Failed to upload image." });
     } finally {
         setIsUploading(false);
     }
   };
 
-  // FIXED: Handle profile_image (snake_case) vs profileImage (camelCase) mismatch
-  // We check for both to be safe, or default to placeholder
-  const profileImage = (scholar as any)?.profile_image || (scholar as any)?.profileImage || '/images/placeholders/avatar-placeholder.webp';
+  // Construct Cloudinary URL with Versioning to bust cache
+  // Format: https://res.cloudinary.com/{cloud_name}/image/upload/v{timestamp}/dost-portal/{id}/profile_photo.jpg
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  
+  const profileImage = (rawId && cloudName)
+    ? `https://res.cloudinary.com/${cloudName}/image/upload/v${imageRefreshKey}/dost-portal/${rawId}/profile_photo.jpg`
+    : '/images/placeholders/avatar-placeholder.webp';
   
   const scholarName = `${scholar?.first_name || ''} ${scholar?.last_name || ''}`;
-  const spasId = scholar?.spas_id || 'N/A';
 
   return (
     <Card className="shadow-md bg-white">
@@ -129,6 +142,7 @@ export function ProfileSection() {
                         </div>
                     )}
                     <img
+                        key={imageRefreshKey} // KEY PROP IS CRITICAL: Forces React to re-mount the img tag
                         src={profileImage}
                         alt="Profile Picture"
                         className={cn(
@@ -136,6 +150,7 @@ export function ProfileSection() {
                             isUploading && "opacity-50"
                         )}
                         onError={(e: SyntheticEvent<HTMLImageElement>) => {
+                            // Fallback if image doesn't exist yet
                             (e.currentTarget as HTMLImageElement).src =
                             '/images/placeholders/avatar-placeholder.webp';
                         }}
@@ -234,7 +249,7 @@ export function ProfileSection() {
         <QRCodeModal
           isOpen={isQROpen}
           onClose={() => setIsQROpen(false)}
-          scholarId={spasId}
+          scholarId={spasId.toString()}
           scholarName={scholarName}
         />
 

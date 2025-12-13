@@ -113,7 +113,7 @@ export function StipendDetailsModal({ isOpen, onClose, data, title }: StipendDet
 
   return (
     <Modal open={isOpen} onOpenChange={onClose}>
-      <ModalContent size="xl">
+      <ModalContent size="2xl">
         <ModalHeader>
           <ModalTitle>{title}</ModalTitle>
           <p className="text-sm text-gray-500 font-normal">
@@ -158,7 +158,7 @@ export function StipendDetailsModal({ isOpen, onClose, data, title }: StipendDet
 
           {/* Updates Timeline */}
           <div>
-             <h4 className="text-sm font-semibold text-gray-900 mb-3">Status Updates</h4>
+             <h4 className="text-sm font-semibold text-gray-900 mb-3 mt-3">Status Updates</h4>
              {loadingUpdates ? (
                <p className="text-sm text-gray-500 italic">Loading updates...</p>
              ) : updates.length > 0 ? (

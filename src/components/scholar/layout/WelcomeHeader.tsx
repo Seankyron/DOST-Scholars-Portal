@@ -1,11 +1,14 @@
 'use client';
 
 import { EventQuote } from '../event-banner/EventQuote';
-
-// Mock data
-const scholarName = 'Joshua';
+import { useFetchScholar } from "@/hooks/scholars/Get/useFetchScholar";
 
 export function WelcomeHeader() {
+  const { user } = useFetchScholar();
+  
+  // Use first name if available, otherwise default to "Scholar"
+  const scholarName = user?.first_name || 'Scholar';
+
   return (
     <div className="mb-6 text-center">
       {/* Use the consistent title color */}
