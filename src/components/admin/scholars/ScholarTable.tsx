@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { type Database } from '@/lib/supabase/type';
 import { ScholarRow, type ScholarRowData } from './ScholarRow';
@@ -9,8 +9,9 @@ import { type ScholarFiltersState } from './ScholarFilter';
 import type { ScholarStatus } from '@/types/scholar';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from '@/components/ui/button';
-import { Download, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/toaster';
+import Export from '@/components/shared/Export';
 
 // --- Helper Functions ---
 type ScholarViewRow = Database['public']['Views']['admin_scholar_view']['Row'];
@@ -67,6 +68,26 @@ export function ScholarTable({
   
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const supabase = createClient();
+
+  const exportData = useMemo(() => {
+    return scholars.map((scholar) => ({
+      "SPAS ID": scholar.scholarId,
+      "Full Name": `${scholar.surname}, ${scholar.firstName} ${scholar.middleName} ${scholar.suffix}`.trim(),
+      "Email": scholar.email,
+      "Scholarship Type": scholar.scholarshipType,
+      "Year Awarded": scholar.yearAwarded,
+      "University": scholar.university,
+      "Program": scholar.program,
+      "Year Level": scholar.yearLevel,
+      "Status": scholar.status,
+      "Contact Number": scholar.contactNumber,
+      "Address (Brgy)": scholar.addressBrgy,
+      "Address (City)": scholar.addressCity,
+      "Address (Province)": scholar.addressProvince,
+      "Date of Birth": scholar.dateOfBirth,
+
+    }));
+  }, [scholars]);
 
   useEffect(() => {
     async function fetchScholars() {
@@ -241,10 +262,11 @@ export function ScholarTable({
         />
 
         <div className="flex sm:justify-end gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export Report
-          </Button>
+          <Export 
+            data={exportData} 
+            fileName={`Scholar_Report_${new Date().toISOString().split('T')[0]}`} 
+            label="Export Report"
+          />
         </div>
       </div>
     </>
