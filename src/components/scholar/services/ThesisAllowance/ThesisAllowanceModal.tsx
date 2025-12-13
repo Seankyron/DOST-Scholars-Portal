@@ -20,6 +20,7 @@ import { FileUpload } from '@/components/ui/file-upload';
 import { FileDisplayReadOnly } from '@/components/shared/FileDisplayReadOnly'; 
 import { toast } from '@/components/ui/toaster';
 import { Label } from '@/components/ui/label';
+import { useRecentCOR } from '@/hooks/scholar/Thesis Allowance/useRecentCOR';
 
 // Import Custom Hooks
 import { useThesisUpload } from '@/hooks/scholar/Thesis Allowance/useThesisUpload';
@@ -38,7 +39,7 @@ interface ThesisAllowanceModalProps {
 export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequest }: ThesisAllowanceModalProps) {
   const userStr = typeof window !== 'undefined' ? sessionStorage.getItem('user') : null;
   const user = userStr ? JSON.parse(userStr) : null;
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
   const [isConfirmed, setIsConfirmed] = useState(false);
   
@@ -52,7 +53,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
   const isResubmit = status === 'Resubmit';
   
   const { data: fetchedData, loading: dataLoading } = useCurrentThesis(percentage);
-
+  const { recentGradeKey } = useRecentCOR(user?.spas_id);
   // State
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -152,6 +153,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
           abstract_thesis_file_key: abstractKey,
           approval_file_key: approvalKey,
           final_thesis_file_key: manuscriptKey,
+          cor_file_key: recentGradeKey,
           status: currentStatus,
           });
       } else {
@@ -161,6 +163,7 @@ export function ThesisAllowanceModal({ isOpen, onClose, percentage, existingRequ
               abstract_thesis_file_key: abstractKey,
               approval_file_key: approvalKey,
               final_thesis_file_key: manuscriptKey,
+              cor_file_key: recentGradeKey,
           });
       }
       toast.success(isResubmit ? 'Resubmission successful!' : 'Application submitted successfully!');

@@ -48,7 +48,7 @@ interface RecentLOARequestsProps {
 }
 
 export function RecentLOARequests({ onViewDetails }: RecentLOARequestsProps) {
-  const storedScholar = sessionStorage.getItem('scholar');
+  const storedScholar = sessionStorage.getItem('user');
   const scholar = storedScholar ? JSON.parse(storedScholar) : null;
 
   const { data } = useFetchLoa(scholar.spas_id, 5);

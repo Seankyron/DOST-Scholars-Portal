@@ -46,7 +46,7 @@ export function SupportFeedbackModal({ isOpen, onClose, category, existingReques
   const { submitFeedback, error } = useSubmitFeedback();
   const { uploadDocument } = useUploadDocument();
 
-  const storedSCholar = sessionStorage.getItem('scholar');
+  const storedSCholar = sessionStorage.getItem('user');
   const scholar = storedSCholar ? JSON.parse(storedSCholar) : null;
 
   const handleSubmit = async () => {

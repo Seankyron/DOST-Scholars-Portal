@@ -37,7 +37,7 @@ export function ThesisTable({ searchTerm }: ThesisTableProps) {
          percentage: item.type ? parseInt(item.type.replace('%','')) : 0,
          dateSubmitted: item.submitted_at ?? new Date().toISOString(),
          yearLevel: 'N/A', // Placeholder as per previous implementation
-         semester: item.term_semester ?? 'N/A',
+         semester: item.semester ?? 'N/A',
          academicYear: item.academic_year ?? 'N/A',
          adminComment: item.comment || '',
          
@@ -45,7 +45,7 @@ export function ThesisTable({ searchTerm }: ThesisTableProps) {
          abstract: item.abstract_thesis_file_key ?? '',
          approvalSheet: item.approval_file_key ?? '',
          registrationForm: item.cor_file_key ?? '',
-         finalManuscript: item.final_manuscript_file_key ?? '', // Added explicit mapping if available in DB
+         finalManuscript: item.final_thesis_file_key ?? '', // Added explicit mapping if available in DB
 
          scholarInfo: {
            name: item.full_name ?? 'Unknown',

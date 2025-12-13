@@ -7,6 +7,8 @@ import { NextResponse } from 'next/server';
 type FetchOptions = {
   orderBy?: string;
   ascending?: boolean;
+  filterColumn?: string; // --- ADDED ---
+  filterValue?: string;  // --- ADDED ---
 };
 
 export async function fetchView<T extends keyof Database['public']['Views']>(
@@ -31,6 +33,11 @@ export async function fetchView<T extends keyof Database['public']['Views']>(
 
   let query = supabase.from(viewName).select('*');
 
+  // --- ADDED: Filter Logic ---
+  if (options?.filterColumn && options?.filterValue) {
+    query = query.eq(options.filterColumn, options.filterValue as any);
+  }
+
   if (options?.orderBy) {
     query = query.order(options.orderBy, { ascending: options.ascending ?? true });
   }
@@ -50,12 +57,17 @@ export async function GET(request: Request) {
     const viewName = url.searchParams.get('view') as keyof Database['public']['Views'];
     const orderBy = url.searchParams.get('orderBy') ?? undefined;
     const ascending = url.searchParams.get('ascending') === 'true';
+    
+    // --- ADDED: Extract filter params ---
+    const filterColumn = url.searchParams.get('column') ?? undefined;
+    const filterValue = url.searchParams.get('value') ?? undefined;
 
     if (!viewName) {
       return NextResponse.json({ error: 'Missing view name' }, { status: 400 });
     }
 
-    return fetchView(viewName, { orderBy, ascending });
+    // --- UPDATED: Pass filters to function ---
+    return fetchView(viewName, { orderBy, ascending, filterColumn, filterValue });
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

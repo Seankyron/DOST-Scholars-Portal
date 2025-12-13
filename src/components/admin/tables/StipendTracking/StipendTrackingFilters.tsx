@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { X, Calendar } from 'lucide-react';
 import { DateRangeFilter } from '@/components/shared/DateRangeFilter';
 import { UNIVERSITIES } from '@/lib/utils/constants';
+import { useCallback } from 'react';
 
 const PROVINCES = ['Cavite', 'Laguna', 'Batangas', 'Rizal', 'Quezon'];
 
@@ -37,6 +38,12 @@ export function StipendTrackingFilters({
   onFilterChange,
   onReset,
 }: StipendTrackingFiltersProps) {
+
+  // Create a stable handler for the date filter
+  const handleDateFilter = useCallback((start: string, end: string) => {
+    onFilterChange('dateRange', { start, end });
+  }, [onFilterChange]);
+
   return (
     <div className="flex flex-col gap-4 bg-white p-1">
       {/* Primary Filters Grid */}
@@ -135,10 +142,9 @@ export function StipendTrackingFilters({
           </div>
           
           <div className="flex-1 w-full sm:w-auto">
-            {/* Key forces remount on reset */}
             <DateRangeFilter
               key={filters.dateRange.start ? 'active' : 'reset'}
-              onFilter={(start, end) => onFilterChange('dateRange', { start, end })}
+              onFilter={handleDateFilter} // Use the stable handler
               className="w-full"
             />
           </div>

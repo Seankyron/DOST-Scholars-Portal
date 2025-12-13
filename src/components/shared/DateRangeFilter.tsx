@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils/cn';
@@ -18,10 +18,18 @@ export function DateRangeFilter({ onFilter, className }: DateRangeFilterProps) {
   const debouncedStartDate = useDebounce(startDate, 500);
   const debouncedEndDate = useDebounce(endDate, 500);
 
-  useEffect(() => {
-    onFilter(debouncedStartDate, debouncedEndDate);
-  }, [debouncedStartDate, debouncedEndDate, onFilter]);
+  // Use a ref to hold the latest onFilter function
+  // This allows us to call it inside useEffect without adding it to the dependency array
+  const onFilterRef = useRef(onFilter);
 
+  useEffect(() => {
+    onFilterRef.current = onFilter;
+  }, [onFilter]);
+
+  useEffect(() => {
+    // Only call the function when the DATES change, not when the function reference changes
+    onFilterRef.current(debouncedStartDate, debouncedEndDate);
+  }, [debouncedStartDate, debouncedEndDate]);
 
   return (
     <div className={cn('flex flex-col sm:flex-row items-center gap-2', className)}>

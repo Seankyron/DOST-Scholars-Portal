@@ -90,7 +90,7 @@ export function LeaveOfAbsenceModal({ isOpen, onClose, reason, existingRequest }
   const [regForm, setRegForm] = useState<File | null>(null);
   const [proofAdmission, setProofAdmission] = useState<File | null>(null);
 
-  const storedScholar = sessionStorage.getItem('scholar');
+  const storedScholar = sessionStorage.getItem('user');
   const scholar = storedScholar ? JSON.parse(storedScholar) : null;
 
   const { uploadDocument } = useUploadDocument();

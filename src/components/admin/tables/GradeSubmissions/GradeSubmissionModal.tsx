@@ -178,65 +178,83 @@ export function GradeSubmissionModal({
   const handleApprove = async () => {
     const finalComment = adminComment.trim() === '' ? APPROVED_MESSAGE : adminComment;
 
-     try{
-        let { error: updateError } = await supabase
-        .from('Grade Submission')
-        .update({ status: "Approved", comment: finalComment })
-        .eq('id', submission.id);
+    try {
+      // CHANGED: Call the API route instead of direct Supabase update
+      const response = await fetch('/api/admin/grade-submissions/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: submission.id,
+          spas_id: submission.spas_id,
+          status: 'Approved',
+          comment: finalComment,
+          scholarStatus: scholarStatusState,
+        }),
+      });
 
-        if(updateError) throw new Error(updateError.message);
-       
-        const { error: userError } = await supabase
-        .from('User')
-        .update({ scholarship_status: scholarStatusState })
-        .eq('spas_id', submission.spas_id);
+      const result = await response.json();
 
-        if (userError) throw new Error(userError.message);
-        
-        toast.success('Submission Approved', { description: `${scholarInfo.name} has been notified.` });
-        
-        setCurrentStatus('Approved');
-        onUpdate();
-        setIsApproveOpen(false);
-        onClose(); 
-    }catch(e: any){
-        console.error('Update failed:', e);
-        toast.error('Update Failed', { description: e.message });
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update submission');
+      }
+
+      toast.success('Submission Approved', {
+        description: `${scholarInfo.name} has been notified.`,
+      });
+
+      setCurrentStatus('Approved');
+      onUpdate();
+      setIsApproveOpen(false);
+      onClose();
+    } catch (e: any) {
+      console.error('Update failed:', e);
+      toast.error('Update Failed', { description: e.message });
     }
   };
 
   const handleResubmit = async () => {
     if (adminComment.trim() === '') {
-      toast.error('Comment Required', { description: 'Please provide a comment before requesting resubmission.' });
+      toast.error('Comment Required', {
+        description: 'Please provide a comment before requesting resubmission.',
+      });
       return;
     }
-    
-    try{
-        const { error: updateError } = await supabase
-        .from('Grade Submission')
-        .update({ status: "Resubmit", comment: adminComment })
-        .eq('id', submission.id);
 
-        if(updateError) throw new Error(updateError.message);
+    try {
+      // CHANGED: Call the API route instead of direct Supabase update
+      const response = await fetch('/api/admin/grade-submissions/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: submission.id,
+          spas_id: submission.spas_id,
+          status: 'Resubmit',
+          comment: adminComment,
+          scholarStatus: scholarStatusState,
+        }),
+      });
 
-        const { error: userError } = await supabase
-        .from('User')
-        .update({ scholarship_status: scholarStatusState })
-        .eq('spas_id', submission.spas_id);
+      const result = await response.json();
 
-        if (userError) throw new Error(userError.message);
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to request resubmission');
+      }
 
-        toast.warning('Resubmission Requested', { 
-            description: `${scholarInfo.name} has been notified.`,
-            className: "bg-yellow-50 border-yellow-200", 
-        });
+      toast.warning('Resubmission Requested', {
+        description: `${scholarInfo.name} has been notified.`,
+        className: 'bg-yellow-50 border-yellow-200',
+      });
 
-        setCurrentStatus('Resubmit');
-        onUpdate();
-        setIsResubmitOpen(false);
-    }catch(e: any){
-        console.error('Update failed:', e);
-        toast.error('Update Failed', { description: e.message });
+      setCurrentStatus('Resubmit');
+      onUpdate();
+      setIsResubmitOpen(false);
+    } catch (e: any) {
+      console.error('Update failed:', e);
+      toast.error('Update Failed', { description: e.message });
     }
   };
 

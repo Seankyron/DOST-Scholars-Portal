@@ -11,7 +11,8 @@ import {
   ModalFooter,
 } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+// CHANGE 1: Import FormSelect instead of Select
+import { FormSelect } from '@/components/ui/form-select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FileUpload } from '@/components/ui/file-upload';
 import {
@@ -27,7 +28,7 @@ import { Label } from '@/components/ui/label';
 
 interface EditScholarModalProps {
   scholar: ScholarRowData;
-  onUpdate: (updatedScholar: ScholarRowData) => Promise<void>; // Make async
+  onUpdate: (updatedScholar: ScholarRowData) => Promise<void>;
   onClose: () => void;
   open: boolean;
 }
@@ -40,16 +41,21 @@ export function EditScholarModal({
 }: EditScholarModalProps) {
   const [formData, setFormData] = useState<ScholarRowData>({ ...scholar });
   const [loading, setLoading] = useState(false);
-  // const [newCurriculumFile, setNewCurriculumFile] = useState<File | null>(null); // For file upload logic
 
   useEffect(() => {
     setFormData({ ...scholar });
-  }, [scholar, open]); 
+  }, [scholar, open]);
 
+  // Handler for standard Inputs (text, date, number)
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // CHANGE 2: Helper for FormSelect components (which return value string directly)
+  const handleSelectChange = (name: keyof ScholarRowData, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -65,7 +71,7 @@ export function EditScholarModal({
     setLoading(true);
     // TODO: Add file upload logic here
 
-    await onUpdate(formData); // Call the async function from the page
+    await onUpdate(formData);
     setLoading(false);
   };
 
@@ -98,11 +104,8 @@ export function EditScholarModal({
     { value: '5', label: '5 Years' },
   ];
 
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const fileKey = String(scholar.curriculumFile?.name || ''); 
-  console.log("File Key: ", fileKey);
-
   const fileUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${fileKey}.pdf`;
 
   return (
@@ -173,11 +176,11 @@ export function EditScholarModal({
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Select
+                {/* CHANGE 3: Used FormSelect and handleSelectChange */}
+                <FormSelect
                   label="Province"
-                  name="addressProvince"
                   value={formData.addressProvince}
-                  onChange={handleChange}
+                  onChange={(val) => handleSelectChange('addressProvince', val)}
                   options={provinceOptions}
                   required
                 />
@@ -204,11 +207,10 @@ export function EditScholarModal({
                 Scholarship & Curriculum
               </legend>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Select
+                <FormSelect
                   label="Scholarship Type"
-                  name="scholarshipType"
                   value={formData.scholarshipType}
-                  onChange={handleChange}
+                  onChange={(val) => handleSelectChange('scholarshipType', val)}
                   options={scholarshipOptions}
                   required
                 />
@@ -220,21 +222,19 @@ export function EditScholarModal({
                   onChange={handleChange}
                   required
                 />
-                <Select
+                <FormSelect
                   label="Status"
-                  name="status"
                   value={formData.status}
-                  onChange={handleChange}
+                  onChange={(val) => handleSelectChange('status', val)}
                   options={statusOptions}
                   required
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Select
+                <FormSelect
                   label="University"
-                  name="university"
                   value={formData.university}
-                  onChange={handleChange}
+                  onChange={(val) => handleSelectChange('university', val)}
                   options={universityOptions}
                   required
                 />
@@ -245,11 +245,10 @@ export function EditScholarModal({
                   onChange={handleChange}
                   required
                 />
-                <Select
+                <FormSelect
                   label="Duration of Course"
-                  name="courseDuration"
                   value={formData.courseDuration}
-                  onChange={handleChange}
+                  onChange={(val) => handleSelectChange('courseDuration', val)}
                   options={durationOptions}
                   required
                 />
@@ -292,9 +291,8 @@ export function EditScholarModal({
                   </div>
                 </div>
                 <div>
-                  <Select
+                  <FormSelect
                     label="Thesis in Curriculum"
-                    name="thesisYear"
                     value={
                       (formData.thesis1stYear && '1') ||
                       (formData.thesis2ndYear && '2') ||
@@ -302,8 +300,7 @@ export function EditScholarModal({
                       (formData.thesis4thYear && '4') ||
                       ''
                     }
-                    onChange={(e) => {
-                      const val = e.target.value;
+                    onChange={(val) => {
                       setFormData((prev) => ({
                         ...prev,
                         thesis1stYear: val === '1',
@@ -319,19 +316,17 @@ export function EditScholarModal({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Select
+                <FormSelect
                   label="OJT Year"
-                  name="ojtYear"
                   value={formData.ojtYear}
-                  onChange={handleChange}
-                  options={yearOptions.slice(0, 5)} // 1st-5th Year
+                  onChange={(val) => handleSelectChange('ojtYear', val)}
+                  options={yearOptions.slice(0, 5)}
                   required
                 />
-                <Select
+                <FormSelect
                   label="OJT Semester"
-                  name="ojtSemester"
                   value={formData.ojtSemester}
-                  onChange={handleChange}
+                  onChange={(val) => handleSelectChange('ojtSemester', val)}
                   options={semesterOptions}
                   required
                 />
@@ -340,7 +335,6 @@ export function EditScholarModal({
               <FileUpload
                 label="Upload New Curriculum (PDF)"
                 onChange={(file) => {
-                  // setNewCurriculumFile(file);
                   alert('File upload logic is not yet implemented.');
                 }}
                 accept="application/pdf"
@@ -354,15 +348,14 @@ export function EditScholarModal({
                 </p>
               </a>
 
-              <Select
-                  label="Initial Status"
-                  name="scholarship_status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  options={statusOptions}
-                  placeholder="Select Status"
-                  required
-                />
+              <FormSelect
+                label="Initial Status"
+                value={formData.status}
+                onChange={(val) => handleSelectChange('status', val)}
+                options={statusOptions}
+                placeholder="Select Status"
+                required
+              />
 
             </fieldset>
           </form>

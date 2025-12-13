@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { StipendTrackingTable } from '@/components/admin/tables/StipendTracking/StipendTrackingTable';
 import { 
   StipendTrackingFilters, 
@@ -21,9 +21,9 @@ export default function AdminStipendTrackingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<StipendFiltersState>(INITIAL_FILTERS);
 
-  const handleFilterChange = (key: keyof StipendFiltersState, value: any) => {
+  const handleFilterChange = useCallback((key: keyof StipendFiltersState, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
-  };
+  }, []);
 
   const handleResetFilters = () => {
     setFilters(INITIAL_FILTERS);

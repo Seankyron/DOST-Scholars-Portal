@@ -7,6 +7,7 @@ interface ThesisSubmissionPayload {
   abstract_thesis_file_key?: string | null;
   approval_file_key?: string | null;
   final_thesis_file_key?: string | null;
+  cor_file_key?: string | null; // <--- Added this field
   status?: string;
 }
 
@@ -23,67 +24,48 @@ export const useThesisUpload = () => {
     const supabase = createClient();
 
     try {
+      // Common payload data
+      const commonData = {
+        spas_id: data.spas_id,
+        type: data.type,
+        cor_file_key: data.cor_file_key || null, // <--- Insert logic here
+        comment: null,
+        created_at: new Date().toISOString(),
+        status: 'Pending',
+      };
+
       if (data.type == '90%') {
         const { error: supabaseError } = await supabase
           .from('Thesis Allowance')
-          .upsert(
-          {
-            spas_id: data.spas_id,
-            type: data.type,
+          .upsert({
+            ...commonData,
             abstract_thesis_file_key: data.abstract_thesis_file_key,
             approval_file_key: data.approval_file_key,
             final_thesis_file_key: null,
-            comment: null,
-            created_at: new Date().toISOString(),
-            status: 'Pending',
-          },
-          );
-
-          if (supabaseError) {
-            throw new Error(supabaseError.message);
-          }
+          });
+          if (supabaseError) throw new Error(supabaseError.message);
       }
-
       else if (data.type == '10%') {
         const { error: supabaseError } = await supabase
           .from('Thesis Allowance')
-          .upsert(
-          {
-            spas_id: data.spas_id,
-            type: data.type,
+          .upsert({
+            ...commonData,
             abstract_thesis_file_key: null,
             approval_file_key: null,
             final_thesis_file_key: data.final_thesis_file_key,
-            comment: null,
-            created_at: new Date().toISOString(),
-            status: 'Pending',
-          },
-          );
-
-          if (supabaseError) {
-            throw new Error(supabaseError.message);
-          }
+          });
+          if (supabaseError) throw new Error(supabaseError.message);
       }
-
       else {
           const { error: supabaseError } = await supabase
           .from('Thesis Allowance')
-          .upsert(
-          {
-            spas_id: data.spas_id,
-            type: data.type,
+          .upsert({
+            ...commonData,
             abstract_thesis_file_key: data.abstract_thesis_file_key,
             approval_file_key: data.approval_file_key,
             final_thesis_file_key: data.final_thesis_file_key,
-            comment: null,
-            created_at: new Date().toISOString(),
-            status: 'Pending',
-          },
-          );
-
-          if (supabaseError) {
-            throw new Error(supabaseError.message);
-          }
+          });
+          if (supabaseError) throw new Error(supabaseError.message);
       }
 
       setSuccess(true);

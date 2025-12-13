@@ -22,19 +22,20 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
     try {
       const query = new URLSearchParams({
         view: 'ptp_view',
-        orderBy: 'ptp_status',
+        orderBy: 'ptp_created_at', // Sorted by creation date
         ascending: 'false',
       });
+      
       const response = await fetch(`/api/admin/get_view?${query.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch data');
 
       const res = await response.json();
       
-      // 1. Map the API response correctly without the hardcoded mock data artifacts
+      // Map the API response from 'ptp_view' to the PTPRequestDetails interface
       const allRequests: PTPRequestDetails[] = res.data.map((item: any) => ({
         id: item.ptp_id?.toString() ?? '',
         spas_id: item.spas_id ?? '',
-        type: item.ptp_type ?? 'Practical Training', // Ensure this matches 'Referral Letter' or 'Program Completion' in your DB
+        type: item.ptp_type ?? 'Practical Training',
         
         scholarInfo: {
           name: item.full_name ?? 'Unknown',
@@ -54,20 +55,31 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
         submissionInfo: {
           dateSubmitted: item.ptp_created_at ?? new Date().toISOString(),
           status: item.ptp_status ?? 'Pending',
-          trainingYear: "N/A", // Map this if available in API
+          // Practical Training is typically done in the Midyear term
+          semester: "Midyear", 
+          // Use the calculated column from the view
+          academicYear: item.academic_year || 'N/A', 
+          // Calculate/Estimate Year Level if not explicitly provided (Current Year - Batch + 1)
+          trainingYear: item.year_awarded 
+            ? `${Math.max(1, new Date().getFullYear() - Number(item.year_awarded) + 1)}th Year` 
+            : "N/A",
           plan: item.ptp_plan ?? undefined,
-          semester: "N/A", // Map this if available in API
-          academicYear: "N/A", // Map this if available in API
-          adminComment: item.comment || item.ptp_comment || item.admin_comment || item.remarks || '', 
+          adminComment: item.ptp_comment || item.comment || '', 
         },
         
-        // Initialize files object (map specific fields from item if your API returns them)
         files: {
-            // Example: form126: item.file_form126 ?? undefined
+            grades: item.grade_file_key || undefined,
+            replySlip: item.reply_slip_file_key || undefined,
+            form126: item.form_126_file_key || undefined,
+            form127: item.form_127_file_key || undefined,
+            form128: item.form_128_file_key || undefined,
+            dtr: item.dtr_file_key || undefined,
+            certCompletion: item.training_completion_file_key || undefined,
+            curriculum: item.curriculum_file_key || undefined, 
         }
       }));
 
-      // 2. Filter the mapped data based on the prop
+      // Filter locally based on the tab type
       const filtered = allRequests.filter(item => item.type === filterType);
       setRequests(filtered);
 
@@ -105,7 +117,6 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scholar</th>
               
-              {/* Only show Plan column for Referral Letters */}
               {filterType === 'Referral Letter' && (
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Selected Plan</th>
               )}
