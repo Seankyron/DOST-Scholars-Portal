@@ -210,12 +210,12 @@ export function ProfileSettings() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
+                        <Label>Province</Label>
                         <Controller
                             control={form.control}
                             name="addressProvince"
                             render={({ field }) => (
                                 <SelectInput
-                                    label="Province"
                                     placeholder="Select Province"
                                     options={RO4A_PROVINCES.map((p) => ({ value: p, label: p }))}
                                     error={form.formState.errors.addressProvince?.message}

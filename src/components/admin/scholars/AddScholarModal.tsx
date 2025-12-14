@@ -189,12 +189,12 @@ export function AddScholarModal() {
           </Button>
         </ModalTrigger>
 
-        <ModalContent size="4xl">
+        <ModalContent size="3xl">
           <ModalHeader>
             <ModalTitle>Add New Scholar</ModalTitle>
           </ModalHeader>
 
-          <ModalBody className="max-h-[70vh] overflow-y-auto scrollbar-thin p-6">
+          <ModalBody>
             <form id="add-scholar-form" onSubmit={handleFormSubmit} className="space-y-6">
               {error && (
                 <div
