@@ -7,6 +7,7 @@ import { Loader2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button'; 
 import { toast } from '@/components/ui/toaster';
 import type { SubmissionStatus, RequestFormType } from '@/types/services';
+import type { RequestFormsFiltersState } from './RequestFormsFilters';
 
 export interface RequestFormDetails {
   id: string;
@@ -37,9 +38,10 @@ export interface RequestFormDetails {
 
 interface RequestFormsTableProps {
   searchTerm: string;
+  filters: RequestFormsFiltersState; // Added prop
 }
 
-export function RequestFormsTable({ searchTerm }: RequestFormsTableProps) {
+export function RequestFormsTable({ searchTerm, filters }: RequestFormsTableProps) {
   const [requests, setRequests] = useState<RequestFormDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,10 +100,40 @@ export function RequestFormsTable({ searchTerm }: RequestFormsTableProps) {
     }
   }, []);
 
-
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Combined Filtering Logic
+  const filteredRequests = requests.filter((r) => {
+    // 1. Search (Name, SPAS ID, or Request Type)
+    const matchesSearch = 
+      r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.spas_id.includes(searchTerm) ||
+      r.requestType.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // 2. Status Filter
+    const matchesStatus = filters.status === 'All' || r.submissionInfo.status === filters.status;
+
+    // 3. Request Type Filter
+    const matchesType = filters.requestType === 'All' || r.requestType === filters.requestType;
+
+    // 4. University Filter
+    const matchesUniversity = filters.university === 'All' || r.currentPlacement.university === filters.university;
+
+    // 5. Date Range Filter
+    let matchesDate = true;
+    if (filters.dateRange.start && filters.dateRange.end) {
+      const dateSubmitted = new Date(r.submissionInfo.dateSubmitted);
+      const start = new Date(filters.dateRange.start);
+      const end = new Date(filters.dateRange.end);
+      end.setHours(23, 59, 59, 999); // Include the entire end day
+
+      matchesDate = dateSubmitted >= start && dateSubmitted <= end;
+    }
+
+    return matchesSearch && matchesStatus && matchesType && matchesUniversity && matchesDate;
+  });
 
   if (loading) {
     return (
@@ -112,12 +144,6 @@ export function RequestFormsTable({ searchTerm }: RequestFormsTableProps) {
   }
 
   if (error) return <p className="p-4 text-red-500 text-center">{error}</p>;
-
-  const filteredRequests = requests.filter((r) =>
-    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.spas_id.includes(searchTerm) ||
-    r.requestType.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <>
@@ -144,7 +170,7 @@ export function RequestFormsTable({ searchTerm }: RequestFormsTableProps) {
         </table>
         
         {filteredRequests.length === 0 && (
-           <p className="text-sm text-gray-500 text-center py-8">No requests found.</p>
+           <p className="text-sm text-gray-500 text-center py-8">No requests found matching the current filters.</p>
         )}
       </div>
 

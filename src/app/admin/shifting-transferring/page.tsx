@@ -1,12 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { ShiftingTransferringTable } from '@/components/admin/tables/ShiftingTransferring/ShiftingTransferringTable';
 import { SearchInput } from '@/components/shared/SearchInput';
-import { ShiftingTransferringFilters } from '@/components/admin/tables/ShiftingTransferring/ShiftingTransferringFilters';
+import { 
+  ShiftingTransferringFilters, 
+  type ShiftingTransferringFiltersState 
+} from '@/components/admin/tables/ShiftingTransferring/ShiftingTransferringFilters';
+
+const INITIAL_FILTERS: ShiftingTransferringFiltersState = {
+  status: 'All',
+  type: 'All',
+  university: 'All',
+  dateRange: { start: null, end: null },
+};
 
 export default function ShiftingTransferringPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<ShiftingTransferringFiltersState>(INITIAL_FILTERS);
+
+  const handleFilterChange = useCallback((key: keyof ShiftingTransferringFiltersState, value: any) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleResetFilters = () => {
+    setFilters(INITIAL_FILTERS);
+  };
 
   return (
     <div className="space-y-6">
@@ -17,7 +36,11 @@ export default function ShiftingTransferringPage() {
       </div>
 
       {/* Filter Components */}
-      <ShiftingTransferringFilters />
+      <ShiftingTransferringFilters 
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleResetFilters}
+      />
 
       {/* Table Section */}
       <div className="bg-white rounded-lg shadow-md">
@@ -31,7 +54,10 @@ export default function ShiftingTransferringPage() {
             className="w-full sm:max-w-xs"
           />
         </div>
-        <ShiftingTransferringTable searchTerm={searchTerm} />
+        <ShiftingTransferringTable 
+          searchTerm={searchTerm} 
+          filters={filters}
+        />
       </div>
     </div>
   );

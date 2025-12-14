@@ -1,12 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { LeaveOfAbsenceTable } from '@/components/admin/tables/LeaveOfAbsence/LeaveOfAbsenceTable';
-import { LeaveOfAbsenceFilters } from '@/components/admin/tables/LeaveOfAbsence/LeaveOfAbsenceFilters';
+import { 
+  LeaveOfAbsenceFilters, 
+  type LeaveOfAbsenceFiltersState 
+} from '@/components/admin/tables/LeaveOfAbsence/LeaveOfAbsenceFilters';
 import { SearchInput } from '@/components/shared/SearchInput';
+
+const INITIAL_FILTERS: LeaveOfAbsenceFiltersState = {
+  status: 'All',
+  reason: 'All',
+  university: 'All',
+  dateRange: { start: null, end: null },
+};
 
 export default function LeaveOfAbsencePage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<LeaveOfAbsenceFiltersState>(INITIAL_FILTERS);
+
+  const handleFilterChange = useCallback((key: keyof LeaveOfAbsenceFiltersState, value: any) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleResetFilters = () => {
+    setFilters(INITIAL_FILTERS);
+  };
 
   return (
     <div className="space-y-6">
@@ -17,7 +36,11 @@ export default function LeaveOfAbsencePage() {
       </div>
 
       {/* Filter Components */}
-      <LeaveOfAbsenceFilters />
+      <LeaveOfAbsenceFilters 
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleResetFilters}
+      />
 
       {/* Table Section */}
       <div className="bg-white rounded-lg shadow-md">
@@ -31,7 +54,10 @@ export default function LeaveOfAbsencePage() {
             className="w-full sm:max-w-xs"
           />
         </div>
-        <LeaveOfAbsenceTable searchTerm={searchTerm} />
+        <LeaveOfAbsenceTable 
+          searchTerm={searchTerm} 
+          filters={filters}
+        />
       </div>
     </div>
   );

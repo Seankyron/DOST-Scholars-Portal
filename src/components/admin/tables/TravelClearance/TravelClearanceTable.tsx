@@ -6,6 +6,7 @@ import { Pagination } from '@/components/shared/Pagination';
 import { Loader2, Download } from 'lucide-react'; 
 import { Button } from '@/components/ui/button'; 
 import type { SubmissionStatus, TravelPurpose } from '@/types/services';
+import { TravelClearanceFiltersState } from './TravelClearanceFilters';
 
 export interface TravelRequestDetails {
   id: string;
@@ -48,9 +49,10 @@ export interface TravelRequestDetails {
 
 interface TravelClearanceTableProps {
   searchTerm: string;
+  filters: TravelClearanceFiltersState;
 }
 
-export function TravelClearanceTable({ searchTerm }: TravelClearanceTableProps) {
+export function TravelClearanceTable({ searchTerm, filters }: TravelClearanceTableProps) {
   const [requests, setRequests] = useState<TravelRequestDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,11 +130,47 @@ export function TravelClearanceTable({ searchTerm }: TravelClearanceTableProps) 
     }
   }, []);
 
-
-
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Apply Filtering Logic
+  const filteredRequests = requests.filter((r) => {
+    // 1. Search Term (Scholar Name)
+    const matchesSearch = r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // 2. Status
+    const matchesStatus = filters.status === 'All' || r.submissionInfo.status === filters.status;
+
+    // 3. Purpose
+    let matchesPurpose = true;
+    if (filters.purpose !== 'All') {
+      if (filters.purpose === 'Official Business Travel') {
+        matchesPurpose = r.purpose === 'Official Business Travel';
+      } else if (filters.purpose === 'Other') {
+        // Matches Personal or anything else that isn't Official Business
+        matchesPurpose = r.purpose !== 'Official Business Travel';
+      }
+    }
+
+    // 4. University
+    const matchesUniversity = filters.university === 'All' || r.placementInfo.university === filters.university;
+
+    // 5. Date Range (Date Submitted)
+    let matchesDate = true;
+    if (filters.dateRange.start && filters.dateRange.end) {
+      const submittedDate = new Date(r.submissionInfo.dateSubmitted);
+      const start = new Date(filters.dateRange.start);
+      const end = new Date(filters.dateRange.end);
+      
+      // Set end date to end of the day to ensure inclusive comparison
+      end.setHours(23, 59, 59, 999);
+      
+      matchesDate = submittedDate >= start && submittedDate <= end;
+    }
+
+    return matchesSearch && matchesStatus && matchesPurpose && matchesUniversity && matchesDate;
+  });
 
   if (loading) {
     return (
@@ -143,10 +181,6 @@ export function TravelClearanceTable({ searchTerm }: TravelClearanceTableProps) 
   }
 
   if (error) return <p className="p-4 text-red-500 text-center">{error}</p>;
-
-  const filteredRequests = requests.filter((r) =>
-    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <>

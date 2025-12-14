@@ -11,16 +11,48 @@ import { Button } from '@/components/ui/button';
 import { X, Calendar } from 'lucide-react';
 import { DateRangeFilter } from '@/components/shared/DateRangeFilter';
 import { UNIVERSITIES } from '@/lib/utils/constants';
+import { useCallback } from 'react';
 
-export function TravelClearanceFilters() {
+// 1. Define the shape of the filter state (mirrors the structure in StipendTracking)
+export interface TravelClearanceFiltersState {
+  status: string;
+  purpose: string;
+  university: string;
+  dateRange: {
+    start: Date | null;
+    end: Date | null;
+  };
+}
+
+// 2. Define props for the component
+interface TravelClearanceFiltersProps {
+  filters: TravelClearanceFiltersState;
+  onFilterChange: (key: keyof TravelClearanceFiltersState, value: any) => void;
+  onReset: () => void;
+}
+
+export function TravelClearanceFilters({
+  filters,
+  onFilterChange,
+  onReset,
+}: TravelClearanceFiltersProps) {
+
+  // Create a stable handler for the date filter
+  const handleDateFilter = useCallback((start: string, end: string) => {
+    onFilterChange('dateRange', { start, end });
+  }, [onFilterChange]);
+
   return (
     <div className="flex flex-col gap-4">
       
       {/* Primary Filters Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3     gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         
         {/* 1. Status */}
-        <Select>
+        <Select
+          value={filters.status}
+          onValueChange={(val) => onFilterChange('status', val)}
+        >
           <SelectTrigger className="bg-white h-10">
             <SelectValue placeholder="Status: All" />
           </SelectTrigger>
@@ -34,7 +66,10 @@ export function TravelClearanceFilters() {
         </Select>
         
         {/* 2. Purpose (Specific to Travel) */}
-        <Select>
+        <Select
+          value={filters.purpose}
+          onValueChange={(val) => onFilterChange('purpose', val)}
+        >
           <SelectTrigger className="bg-white h-10">
             <SelectValue placeholder="Purpose: All" />
           </SelectTrigger>
@@ -46,8 +81,11 @@ export function TravelClearanceFilters() {
         </Select>
 
         
-        {/* 4. University */}
-        <Select>
+        {/* 3. University */}
+        <Select
+          value={filters.university}
+          onValueChange={(val) => onFilterChange('university', val)}
+        >
           <SelectTrigger className="bg-white h-10">
              <SelectValue placeholder="University: All" />
           </SelectTrigger>
@@ -64,13 +102,15 @@ export function TravelClearanceFilters() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 border-t border-gray-50">
         <div className="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-500">
            <div className="flex items-center gap-2 mb-1 sm:mb-0">
-              <Calendar className="h-4 w-4" />
-              <span className="sm:inline">Filter by Date Submitted:</span>
+              <Calendar className="h-4 w-4 shrink-0 text-gray-400" />
+              <span className="sm:inline text-nowrap">Filter by Date Submitted:</span>
            </div>
 
            <div className="flex-1 w-full sm:w-auto">
              <DateRangeFilter 
-                onFilter={(start, end) => console.log(start, end)} 
+                // Force re-render on reset to clear internal state of DateRangeFilter if needed
+                key={filters.dateRange.start ? 'active' : 'reset'}
+                onFilter={handleDateFilter} 
                 className="w-full"
              />
            </div>
@@ -79,7 +119,9 @@ export function TravelClearanceFilters() {
         <Button 
           type="button" 
           variant="ghost" 
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 h-10 w-full sm:w-auto"
+          onClick={onReset}
+          className="w-full sm:w-auto text-red-600 hover:text-red-700 hover:bg-red-50 h-9 px-3 flex items-center justify-center sm:justify-start"
+          title="Reset Filters"
         >
            <X className="h-4 w-4 mr-2" />
            Reset Filters

@@ -10,14 +10,42 @@ import {
 import { Button } from '@/components/ui/button';
 import { X, Calendar } from 'lucide-react';
 import { DateRangeFilter } from '@/components/shared/DateRangeFilter';
+import { useCallback } from 'react';
 
-export function SupportFeedbackFilters() {
+export interface SupportFeedbackFiltersState {
+  status: string;
+  category: string;
+  dateRange: {
+    start: Date | null;
+    end: Date | null;
+  };
+}
+
+interface SupportFeedbackFiltersProps {
+  filters: SupportFeedbackFiltersState;
+  onFilterChange: (key: keyof SupportFeedbackFiltersState, value: any) => void;
+  onReset: () => void;
+}
+
+export function SupportFeedbackFilters({
+  filters,
+  onFilterChange,
+  onReset,
+}: SupportFeedbackFiltersProps) {
+
+  const handleDateFilter = useCallback((start: string, end: string) => {
+    onFilterChange('dateRange', { start, end });
+  }, [onFilterChange]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         
         {/* 1. Status Filter */}
-        <Select>
+        <Select
+          value={filters.status}
+          onValueChange={(val) => onFilterChange('status', val)}
+        >
           <SelectTrigger className="bg-white h-10">
             <SelectValue placeholder="Status: All" />
           </SelectTrigger>
@@ -31,7 +59,10 @@ export function SupportFeedbackFilters() {
         </Select>
         
         {/* 2. Category Filter (Matches Scholar View) */}
-        <Select>
+        <Select
+          value={filters.category}
+          onValueChange={(val) => onFilterChange('category', val)}
+        >
           <SelectTrigger className="bg-white h-10">
             <SelectValue placeholder="Category: All" />
           </SelectTrigger>
@@ -41,19 +72,6 @@ export function SupportFeedbackFilters() {
             <SelectItem value="Scholarship Inquiry">Scholarship Inquiry</SelectItem>
             <SelectItem value="Suggestion / Feedback">Suggestion / Feedback</SelectItem>
             <SelectItem value="Others">Others</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {/* 3. Priority (Mock Placeholder) */}
-        <Select>
-          <SelectTrigger className="bg-white h-10">
-             <SelectValue placeholder="Priority: All" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="All">All Priorities</SelectItem>
-            <SelectItem value="High">High</SelectItem>
-            <SelectItem value="Normal">Normal</SelectItem>
-            <SelectItem value="Low">Low</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -66,7 +84,8 @@ export function SupportFeedbackFilters() {
            </div>
            <div className="flex-1 w-full sm:w-auto">
              <DateRangeFilter 
-                onFilter={(start, end) => console.log(start, end)} 
+                key={filters.dateRange.start ? 'active' : 'reset'}
+                onFilter={handleDateFilter} 
                 className="w-full"
              />
            </div>
@@ -75,6 +94,7 @@ export function SupportFeedbackFilters() {
         <Button 
           type="button" 
           variant="ghost" 
+          onClick={onReset}
           className="text-red-600 hover:text-red-700 hover:bg-red-50 h-10 w-full sm:w-auto"
         >
            <X className="h-4 w-4 mr-2" />

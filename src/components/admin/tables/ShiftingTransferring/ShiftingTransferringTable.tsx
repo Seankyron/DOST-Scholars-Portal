@@ -7,6 +7,7 @@ import { Loader2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button'; 
 import { toast } from '@/components/ui/toaster';
 import type { SubmissionStatus, ShiftingType } from '@/types/services';
+import type { ShiftingTransferringFiltersState } from './ShiftingTransferringFilters';
 
 export interface ShiftingRequestDetails {
   id: string;
@@ -50,9 +51,10 @@ export interface ShiftingRequestDetails {
 
 interface ShiftingTransferringTableProps {
   searchTerm: string;
+  filters: ShiftingTransferringFiltersState;
 }
 
-export function ShiftingTransferringTable({ searchTerm }: ShiftingTransferringTableProps) {
+export function ShiftingTransferringTable({ searchTerm, filters }: ShiftingTransferringTableProps) {
   const [requests, setRequests] = useState<ShiftingRequestDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,6 +135,35 @@ export function ShiftingTransferringTable({ searchTerm }: ShiftingTransferringTa
     fetchData();
   }, [fetchData]);
 
+  const filteredRequests = requests.filter((r) => {
+    // 1. Search Term
+    const matchesSearch = 
+      r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      r.spas_id.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // 2. Status
+    const matchesStatus = filters.status === 'All' || r.submissionInfo.status === filters.status;
+
+    // 3. Application Type
+    const matchesType = filters.type === 'All' || r.applicationType === filters.type;
+
+    // 4. University (Matching against current placement)
+    const matchesUniversity = filters.university === 'All' || r.currentPlacement.university === filters.university;
+
+    // 5. Date Range
+    let matchesDate = true;
+    if (filters.dateRange.start && filters.dateRange.end) {
+      const date = new Date(r.submissionInfo.dateSubmitted);
+      const start = new Date(filters.dateRange.start);
+      const end = new Date(filters.dateRange.end);
+      // Set to end of day to include submission on the end date
+      end.setHours(23, 59, 59, 999);
+      matchesDate = date >= start && date <= end;
+    }
+
+    return matchesSearch && matchesStatus && matchesType && matchesUniversity && matchesDate;
+  });
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-48">
@@ -142,10 +173,6 @@ export function ShiftingTransferringTable({ searchTerm }: ShiftingTransferringTa
   }
 
   if (error) return <p className="p-4 text-red-500 text-center">{error}</p>;
-
-  const filteredRequests = requests.filter((r) =>
-    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <>

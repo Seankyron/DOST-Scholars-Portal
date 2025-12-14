@@ -2,11 +2,43 @@
 
 import { useState } from 'react';
 import { TravelClearanceTable } from '@/components/admin/tables/TravelClearance/TravelClearanceTable';
-import { TravelClearanceFilters } from '@/components/admin/tables/TravelClearance/TravelClearanceFilters';
+import { 
+  TravelClearanceFilters, 
+  TravelClearanceFiltersState 
+} from '@/components/admin/tables/TravelClearance/TravelClearanceFilters';
 import { SearchInput } from '@/components/shared/SearchInput';
 
 export default function TravelClearancePage() {
   const [searchTerm, setSearchTerm] = useState('');
+
+  // 1. Initialize Filter State
+  const [filters, setFilters] = useState<TravelClearanceFiltersState>({
+    status: 'All',
+    purpose: 'All',
+    university: 'All',
+    dateRange: {
+      start: null,
+      end: null,
+    },
+  });
+
+  // 2. Filter Change Handler
+  const handleFilterChange = (key: keyof TravelClearanceFiltersState, value: any) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // 3. Reset Handler
+  const handleReset = () => {
+    setFilters({
+      status: 'All',
+      purpose: 'All',
+      university: 'All',
+      dateRange: {
+        start: null,
+        end: null,
+      },
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -15,7 +47,11 @@ export default function TravelClearancePage() {
       </h1>
 
       {/* Filter Components */}
-      <TravelClearanceFilters />
+      <TravelClearanceFilters 
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleReset}
+      />
 
       {/* Table Section */}
       <div className="bg-white rounded-lg shadow-md">
@@ -29,7 +65,8 @@ export default function TravelClearancePage() {
             className="w-full sm:max-w-xs"
           />
         </div>
-        <TravelClearanceTable searchTerm={searchTerm} />
+        {/* Pass filters to the table */}
+        <TravelClearanceTable searchTerm={searchTerm} filters={filters} />
       </div>
     </div>
   );

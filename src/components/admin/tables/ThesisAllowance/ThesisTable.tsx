@@ -7,12 +7,14 @@ import { Loader2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
 import type { ThesisRequestDetails } from '@/types/admin';
+import type { ThesisFiltersState } from './ThesisFilters';
 
 interface ThesisTableProps {
   searchTerm: string;
+  filters: ThesisFiltersState;
 }
 
-export function ThesisTable({ searchTerm }: ThesisTableProps) {
+export function ThesisTable({ searchTerm, filters }: ThesisTableProps) {
   const [requests, setRequests] = useState<ThesisRequestDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export function ThesisTable({ searchTerm }: ThesisTableProps) {
          status: item.status ?? 'Pending',
          percentage: item.type ? parseInt(item.type.replace('%','')) : 0,
          dateSubmitted: item.submitted_at ?? new Date().toISOString(),
-         yearLevel: 'N/A', // Placeholder as per previous implementation
+         yearLevel: 'N/A',
          semester: item.semester ?? 'N/A',
          academicYear: item.academic_year ?? 'N/A',
          adminComment: item.comment || '',
@@ -45,7 +47,7 @@ export function ThesisTable({ searchTerm }: ThesisTableProps) {
          abstract: item.abstract_thesis_file_key ?? '',
          approvalSheet: item.approval_file_key ?? '',
          registrationForm: item.cor_file_key ?? '',
-         finalManuscript: item.final_thesis_file_key ?? '', // Added explicit mapping if available in DB
+         finalManuscript: item.final_thesis_file_key ?? '',
 
          scholarInfo: {
            name: item.full_name ?? 'Unknown',
@@ -75,9 +77,60 @@ export function ThesisTable({ searchTerm }: ThesisTableProps) {
     fetchData();
   }, [fetchData]);
 
-  const filteredRequests = requests.filter((r) =>
-    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Combined Filtering Logic
+  const filteredRequests = requests.filter((r) => {
+    // 1. Search Term (Scholar Name)
+    if (searchTerm && !r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+
+    // 2. Status
+    if (filters.status !== 'All' && r.status !== filters.status) {
+      return false;
+    }
+
+    // 4. Semester
+    if (filters.semester !== 'All' && r.semester !== filters.semester) {
+      return false;
+    }
+
+    // 5. Academic Year
+    if (filters.academicYear !== 'All' && r.academicYear !== filters.academicYear) {
+      return false;
+    }
+
+    // 6. University
+    if (filters.university !== 'All' && r.scholarInfo.university !== filters.university) {
+      return false;
+    }
+
+    // 7. Year (Based on Submission Date)
+    if (filters.year !== 'All') {
+      const submissionYear = new Date(r.dateSubmitted).getFullYear().toString();
+      if (submissionYear !== filters.year) return false;
+    }
+
+    // 8. Date Range (Submission Date)
+    if (filters.dateRange.start || filters.dateRange.end) {
+      const submissionDate = new Date(r.dateSubmitted);
+      // Normalize to start of day for comparison
+      submissionDate.setHours(0, 0, 0, 0);
+
+      if (filters.dateRange.start) {
+        const start = new Date(filters.dateRange.start);
+        start.setHours(0, 0, 0, 0);
+        if (submissionDate < start) return false;
+      }
+      
+      if (filters.dateRange.end) {
+        const end = new Date(filters.dateRange.end);
+        end.setHours(0, 0, 0, 0);
+        if (submissionDate > end) return false;
+      }
+    }
+
+    return true;
+  });
 
   if (loading) {
     return (
@@ -125,7 +178,7 @@ export function ThesisTable({ searchTerm }: ThesisTableProps) {
         </table>
         
         {filteredRequests.length === 0 && (
-           <p className="text-sm text-gray-500 text-center py-8">No requests found.</p>
+           <p className="text-sm text-gray-500 text-center py-8">No requests found matching your filters.</p>
         )}
       </div>
 

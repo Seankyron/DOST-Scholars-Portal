@@ -2,13 +2,35 @@
 
 import { useState } from 'react';
 import { PTPTable } from '@/components/admin/tables/PracticalTraining/PTPTable';
-import { PTPFilters } from '@/components/admin/tables/PracticalTraining/PTPFilters';
+import { PTPFilters, PTPFiltersState } from '@/components/admin/tables/PracticalTraining/PTPFilters';
 import { SearchInput } from '@/components/shared/SearchInput';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function PracticalTrainingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('referral');
+
+  // --- Filter State Management ---
+  const initialFilters: PTPFiltersState = {
+    status: 'All',
+    trainingYear: 'All',
+    semester: 'All',
+    academicYear: 'All',
+    university: 'All',
+    plan: 'All',
+    dateRange: { start: null, end: null },
+  };
+
+  const [filters, setFilters] = useState<PTPFiltersState>(initialFilters);
+
+  const handleFilterChange = (key: keyof PTPFiltersState, value: any) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters(initialFilters);
+  };
+  // -------------------------------
 
   return (
     <div className="space-y-6">
@@ -35,9 +57,14 @@ export default function PracticalTrainingPage() {
           </TabsList>
         </div>
 
-        {/* --- Filters (Shared but Context-Aware) --- */}
+        {/* --- Filters (Rendered Here, Controlled by State) --- */}
         <div className="mb-6">
-           <PTPFilters showPlanFilter={activeTab === 'referral'} />
+           <PTPFilters 
+             showPlanFilter={activeTab === 'referral'} 
+             filters={filters}
+             onFilterChange={handleFilterChange}
+             onReset={handleResetFilters}
+           />
         </div>
 
         {/* --- Tab Contents --- */}
@@ -55,7 +82,12 @@ export default function PracticalTrainingPage() {
                 className="w-full sm:max-w-xs"
               />
             </div>
-            <PTPTable searchTerm={searchTerm} filterType="Referral Letter" />
+            {/* Pass filters state down to table */}
+            <PTPTable 
+              searchTerm={searchTerm} 
+              filterType="Referral Letter" 
+              filters={filters}
+            />
           </div>
         </TabsContent>
 
@@ -73,10 +105,15 @@ export default function PracticalTrainingPage() {
                 className="w-full sm:max-w-xs"
               />
             </div>
-            <PTPTable searchTerm={searchTerm} filterType="Program Completion" />
+             {/* Pass filters state down to table */}
+            <PTPTable 
+              searchTerm={searchTerm} 
+              filterType="Program Completion" 
+              filters={filters}
+            />
           </div>
         </TabsContent>
       </Tabs>
     </div>
   );
-} 
+}

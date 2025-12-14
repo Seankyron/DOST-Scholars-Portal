@@ -1,12 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { ThesisTable } from '@/components/admin/tables/ThesisAllowance/ThesisTable';
-import { ThesisFilters } from '@/components/admin/tables/ThesisAllowance/ThesisFilters';
+import { ThesisFilters, type ThesisFiltersState } from '@/components/admin/tables/ThesisAllowance/ThesisFilters';
 import { SearchInput } from '@/components/shared/SearchInput';
+
+const INITIAL_FILTERS: ThesisFiltersState = {
+  status: 'All',
+  year: 'All',
+  semester: 'All',
+  academicYear: 'All',
+  university: 'All',
+  dateRange: {
+    start: null,
+    end: null,
+  },
+};
 
 export default function ThesisAllowancePage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<ThesisFiltersState>(INITIAL_FILTERS);
+
+  const handleFilterChange = useCallback((key: keyof ThesisFiltersState, value: any) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setFilters(INITIAL_FILTERS);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -15,7 +39,11 @@ export default function ThesisAllowancePage() {
       </h1>
 
       {/* Filter Components */}
-      <ThesisFilters />
+      <ThesisFilters 
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleReset}
+      />
 
       {/* Table Section */}
       <div className="bg-white rounded-lg shadow-md">
@@ -29,7 +57,7 @@ export default function ThesisAllowancePage() {
             className="w-full sm:max-w-xs"
           />
         </div>
-        <ThesisTable searchTerm={searchTerm} />
+        <ThesisTable searchTerm={searchTerm} filters={filters} />
       </div>
     </div>
   );

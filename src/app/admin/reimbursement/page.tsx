@@ -1,12 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { ReimbursementTable } from '@/components/admin/tables/Reimbursement/ReimbursementTable';
-import { ReimbursementFilters } from '@/components/admin/tables/Reimbursement/ReimbursementFilters';
+import { 
+  ReimbursementFilters, 
+  type ReimbursementFiltersState 
+} from '@/components/admin/tables/Reimbursement/ReimbursementFilters';
 import { SearchInput } from '@/components/shared/SearchInput';
+
+const INITIAL_FILTERS: ReimbursementFiltersState = {
+  status: 'All',
+  type: 'All',
+  university: 'All',
+  dateRange: { start: null, end: null },
+};
 
 export default function ReimbursementPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState<ReimbursementFiltersState>(INITIAL_FILTERS);
+
+  const handleFilterChange = useCallback((key: keyof ReimbursementFiltersState, value: any) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleResetFilters = () => {
+    setFilters(INITIAL_FILTERS);
+  };
 
   return (
     <div className="space-y-6">
@@ -17,7 +36,11 @@ export default function ReimbursementPage() {
       </div>
 
       {/* Filter Components */}
-      <ReimbursementFilters />
+      <ReimbursementFilters 
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onReset={handleResetFilters}
+      />
 
       {/* Table Section */}
       <div className="bg-white rounded-lg shadow-md">
@@ -31,7 +54,10 @@ export default function ReimbursementPage() {
             className="w-full sm:max-w-xs"
           />
         </div>
-        <ReimbursementTable searchTerm={searchTerm} />
+        <ReimbursementTable 
+          searchTerm={searchTerm} 
+          filters={filters}
+        />
       </div>
     </div>
   );

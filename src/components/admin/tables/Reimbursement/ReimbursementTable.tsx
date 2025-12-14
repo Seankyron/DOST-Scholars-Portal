@@ -7,6 +7,7 @@ import { Loader2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button'; 
 import { toast } from '@/components/ui/toaster';
 import type { SubmissionStatus } from '@/types/services';
+import type { ReimbursementFiltersState } from './ReimbursementFilters';
 
 // Extended interface for Admin View
 export interface ReimbursementRequestDetails {
@@ -39,9 +40,10 @@ export interface ReimbursementRequestDetails {
 
 interface ReimbursementTableProps {
   searchTerm: string;
+  filters: ReimbursementFiltersState;
 }
 
-export function ReimbursementTable({ searchTerm }: ReimbursementTableProps) {
+export function ReimbursementTable({ searchTerm, filters }: ReimbursementTableProps) {
   const [requests, setRequests] = useState<ReimbursementRequestDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,9 +106,38 @@ export function ReimbursementTable({ searchTerm }: ReimbursementTableProps) {
   }, []);
 
 
-    useEffect(() => {
-      fetchData();
-    }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const filteredRequests = requests.filter((r) => {
+    // 1. Search Term
+    const matchesSearch = 
+      r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.spas_id.includes(searchTerm);
+
+    // 2. Status
+    const matchesStatus = filters.status === 'All' || r.submissionInfo.status === filters.status;
+
+    // 3. Reimbursement Type
+    const matchesType = filters.type === 'All' || r.reimbursementType === filters.type;
+
+    // 4. University
+    const matchesUniversity = filters.university === 'All' || r.currentPlacement.university === filters.university;
+
+    // 5. Date Range
+    let matchesDate = true;
+    if (filters.dateRange.start && filters.dateRange.end) {
+      const date = new Date(r.submissionInfo.dateSubmitted);
+      const start = new Date(filters.dateRange.start);
+      const end = new Date(filters.dateRange.end);
+      // Set to end of day
+      end.setHours(23, 59, 59, 999);
+      matchesDate = date >= start && date <= end;
+    }
+
+    return matchesSearch && matchesStatus && matchesType && matchesUniversity && matchesDate;
+  });
 
   if (loading) {
     return (
@@ -117,11 +148,6 @@ export function ReimbursementTable({ searchTerm }: ReimbursementTableProps) {
   }
 
   if (error) return <p className="p-4 text-red-500 text-center">{error}</p>;
-
-  const filteredRequests = requests.filter((r) =>
-    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.spas_id.includes(searchTerm)
-  );
 
   return (
     <>

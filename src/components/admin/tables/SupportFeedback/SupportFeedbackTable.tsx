@@ -7,6 +7,7 @@ import { Loader2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button'; 
 import { toast } from '@/components/ui/toaster';
 import type { SubmissionStatus } from '@/types/services';
+import type { SupportFeedbackFiltersState } from './SupportFeedbackFilters';
 
 // Interface matching Scholar Data Structure
 export interface SupportFeedbackRequestDetails {
@@ -38,9 +39,10 @@ export interface SupportFeedbackRequestDetails {
 
 interface SupportFeedbackTableProps {
   searchTerm: string;
+  filters: SupportFeedbackFiltersState;
 }
 
-export function SupportFeedbackTable({ searchTerm }: SupportFeedbackTableProps) {
+export function SupportFeedbackTable({ searchTerm, filters }: SupportFeedbackTableProps) {
   const [requests, setRequests] = useState<SupportFeedbackRequestDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,6 +111,33 @@ export function SupportFeedbackTable({ searchTerm }: SupportFeedbackTableProps) 
     fetchData();
   }, [fetchData]);
 
+  const filteredRequests = requests.filter((r) => {
+    // 1. Search Term
+    const matchesSearch = 
+      r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.spas_id.includes(searchTerm) ||
+      r.submissionInfo.category.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // 2. Status
+    const matchesStatus = filters.status === 'All' || r.submissionInfo.status === filters.status;
+
+    // 3. Category
+    const matchesCategory = filters.category === 'All' || r.submissionInfo.category === filters.category;
+
+    // 4. Date Range
+    let matchesDate = true;
+    if (filters.dateRange.start && filters.dateRange.end) {
+      const date = new Date(r.submissionInfo.dateSubmitted);
+      const start = new Date(filters.dateRange.start);
+      const end = new Date(filters.dateRange.end);
+      // Set to end of day
+      end.setHours(23, 59, 59, 999);
+      matchesDate = date >= start && date <= end;
+    }
+
+    return matchesSearch && matchesStatus && matchesCategory && matchesDate;
+  });
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-48">
@@ -118,12 +147,6 @@ export function SupportFeedbackTable({ searchTerm }: SupportFeedbackTableProps) 
   }
 
   if (error) return <p className="p-4 text-red-500 text-center">{error}</p>;
-
-  const filteredRequests = requests.filter((r) =>
-    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.spas_id.includes(searchTerm) ||
-    r.submissionInfo.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <>

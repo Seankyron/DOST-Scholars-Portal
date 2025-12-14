@@ -7,6 +7,8 @@ import type { SubmissionStatus, YearLevel, Semester, ScholarshipType } from '@/t
 import { Button } from '@/components/ui/button';
 import { Download, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from '@/components/ui/toaster';
+// Import the filter state interface
+import { GradeSubmissionFiltersState } from './GradeSubmissionFilters';
 
 export interface GradeSubmissionDetails {
   id: number;
@@ -41,83 +43,114 @@ export interface GradeSubmissionDetails {
 
 interface GradeSubmissionsTableProps {
   searchTerm: string;
+  filters: GradeSubmissionFiltersState; // Add filters prop
 }
 
-export function GradeSubmissionsTable({ searchTerm }: GradeSubmissionsTableProps) {
+export function GradeSubmissionsTable({ searchTerm, filters }: GradeSubmissionsTableProps) {
   const [submissions, setSubmissions] = useState<GradeSubmissionDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
- const fetchData = useCallback(async () => {
-  setLoading(true);
-  setError(null);
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-  try {
-    const query = new URLSearchParams({
-      view: 'GradeSubmissionView',
-      orderBy: 'submission_status',
-      ascending: 'false',
-    });
+    try {
+      const query = new URLSearchParams({
+        view: 'GradeSubmissionView',
+        orderBy: 'submission_status',
+        ascending: 'false',
+      });
 
-    const response = await fetch(`/api/admin/get_view?${query.toString()}`);
-    if (!response.ok) throw new Error('Failed to fetch data');
+      const response = await fetch(`/api/admin/get_view?${query.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch data');
 
-    const res = await response.json();
-    const rows = res.data || [];
+      const res = await response.json();
+      const rows = res.data || [];
 
-    const formatted: GradeSubmissionDetails[] = rows.map((e: any) => ({
-      id: e.submission_id,
-      spas_id: e.spas_id,
-      scholarInfo: {
-        name: e.scholar_name,
-        contactNumber: e.contact_number,
-        dateOfBirth: e.date_of_birth,
-        completeAddress: e.complete_address,
-      },
-      placementInfo: {
-        scholarshipType: e.scholarship_type as ScholarshipType,
-        batch: Number(e.batch),
-        university: e.university,
-        program: e.program,
-      },
-      submissionInfo: {
-        year: `${e.year_level}${e.year_level === 1 ? 'st' : e.year_level === 2 ? 'nd' : e.year_level === 3 ? 'rd' : 'th'} Year` as YearLevel,
-        semester: e.semester as Semester,
-        academicYear: e.academic_year,
-        dateSubmitted: e.updated_at,
-        status: e.submission_status as SubmissionStatus,
-        adminComment: e.comment || '',
-      },
-      files: {
-        registrationForm: e.cor_file_key,
-        copyOfGrades: e.grade_file_key,
-        curriculumFile: e.curriculum_file_key,
-      },
-      scholarStatus: e.scholar_status === 'pending' ? 'Active' : (e.scholar_status as any),
-    }))
-    // --- CHANGE: Filter out 'Open' status here ---
-    .filter((item: GradeSubmissionDetails) => item.submissionInfo.status !== 'Open');
+      const formatted: GradeSubmissionDetails[] = rows.map((e: any) => ({
+        id: e.submission_id,
+        spas_id: e.spas_id,
+        scholarInfo: {
+          name: e.scholar_name,
+          contactNumber: e.contact_number,
+          dateOfBirth: e.date_of_birth,
+          completeAddress: e.complete_address,
+        },
+        placementInfo: {
+          scholarshipType: e.scholarship_type as ScholarshipType,
+          batch: Number(e.batch),
+          university: e.university,
+          program: e.program,
+        },
+        submissionInfo: {
+          year: `${e.year_level}${e.year_level === 1 ? 'st' : e.year_level === 2 ? 'nd' : e.year_level === 3 ? 'rd' : 'th'} Year` as YearLevel,
+          semester: e.semester as Semester,
+          academicYear: e.academic_year,
+          dateSubmitted: e.updated_at,
+          status: e.submission_status as SubmissionStatus,
+          adminComment: e.comment || '',
+        },
+        files: {
+          registrationForm: e.cor_file_key,
+          copyOfGrades: e.grade_file_key,
+          curriculumFile: e.curriculum_file_key,
+        },
+        scholarStatus: e.scholar_status === 'pending' ? 'Active' : (e.scholar_status as any),
+      }))
+      .filter((item: GradeSubmissionDetails) => item.submissionInfo.status !== 'Open');
 
-    setSubmissions(formatted);
-  } catch (err) {
-    console.error(err);
-    setError('Failed to fetch submissions.');
-    toast.error('Error', {
-      description: 'Failed to load grade submissions.',
-    });
-  } finally {
-    setLoading(false);
-  }
-}, []);
-
+      setSubmissions(formatted);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch submissions.');
+      toast.error('Error', {
+        description: 'Failed to load grade submissions.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const filteredSubmissions = submissions.filter((s) =>
-    s.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Implement the filtering logic
+  const filteredSubmissions = submissions.filter((s) => {
+    // 1. Search Term
+    const matchesSearch = s.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // 2. Status
+    const matchesStatus = filters.status === 'All' || s.submissionInfo.status === filters.status;
+
+    // 3. Academic Year
+    const matchesAcademicYear = filters.academicYear === 'All' || s.submissionInfo.academicYear === filters.academicYear;
+
+    // 4. Semester
+    const matchesSemester = filters.semester === 'All' || s.submissionInfo.semester === filters.semester;
+
+    // 5. University
+    const matchesUniversity = filters.university === 'All' || s.placementInfo.university === filters.university;
+
+    // 6. Program
+    const matchesProgram = filters.program === 'All' || s.placementInfo.program === filters.program;
+
+    // 7. Date Range
+    let matchesDate = true;
+    if (filters.dateRange.start && filters.dateRange.end) {
+      const submissionDate = new Date(s.submissionInfo.dateSubmitted);
+      const startDate = new Date(filters.dateRange.start);
+      const endDate = new Date(filters.dateRange.end);
+      // Normalize time for comparison
+      startDate.setHours(0,0,0,0);
+      endDate.setHours(23,59,59,999);
+      
+      matchesDate = submissionDate >= startDate && submissionDate <= endDate;
+    }
+
+    return matchesSearch && matchesStatus && matchesAcademicYear && matchesSemester && matchesUniversity && matchesProgram && matchesDate;
+  });
 
   if (loading) {
     return (
@@ -164,7 +197,7 @@ export function GradeSubmissionsTable({ searchTerm }: GradeSubmissionsTableProps
         </table>
 
         {filteredSubmissions.length === 0 && (
-           <p className="text-sm text-gray-500 text-center py-8">No submissions found.</p>
+           <p className="text-sm text-gray-500 text-center py-8">No submissions found matching the selected filters.</p>
         )}
       </div>
 

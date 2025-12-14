@@ -11,14 +11,43 @@ import { Button } from '@/components/ui/button';
 import { X, Calendar } from 'lucide-react';
 import { DateRangeFilter } from '@/components/shared/DateRangeFilter';
 import { UNIVERSITIES } from '@/lib/utils/constants';
+import { useCallback } from 'react';
 
-export function LeaveOfAbsenceFilters() {
+export interface LeaveOfAbsenceFiltersState {
+  status: string;
+  reason: string;
+  university: string;
+  dateRange: {
+    start: Date | null;
+    end: Date | null;
+  };
+}
+
+interface LeaveOfAbsenceFiltersProps {
+  filters: LeaveOfAbsenceFiltersState;
+  onFilterChange: (key: keyof LeaveOfAbsenceFiltersState, value: any) => void;
+  onReset: () => void;
+}
+
+export function LeaveOfAbsenceFilters({
+  filters,
+  onFilterChange,
+  onReset,
+}: LeaveOfAbsenceFiltersProps) {
+
+  const handleDateFilter = useCallback((start: string, end: string) => {
+    onFilterChange('dateRange', { start, end });
+  }, [onFilterChange]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         
         {/* 1. Status */}
-        <Select>
+        <Select
+          value={filters.status}
+          onValueChange={(val) => onFilterChange('status', val)}
+        >
           <SelectTrigger className="bg-white h-10">
             <SelectValue placeholder="Status: All" />
           </SelectTrigger>
@@ -32,7 +61,10 @@ export function LeaveOfAbsenceFilters() {
         </Select>
         
         {/* 2. LOA Reason */}
-        <Select>
+        <Select
+          value={filters.reason}
+          onValueChange={(val) => onFilterChange('reason', val)}
+        >
           <SelectTrigger className="bg-white h-10">
             <SelectValue placeholder="Reason: All" />
           </SelectTrigger>
@@ -44,7 +76,10 @@ export function LeaveOfAbsenceFilters() {
         </Select>
 
         {/* 3. University */}
-        <Select>
+        <Select
+          value={filters.university}
+          onValueChange={(val) => onFilterChange('university', val)}
+        >
           <SelectTrigger className="bg-white h-10">
              <SelectValue placeholder="University: All" />
           </SelectTrigger>
@@ -65,7 +100,8 @@ export function LeaveOfAbsenceFilters() {
            </div>
            <div className="flex-1 w-full sm:w-auto">
              <DateRangeFilter 
-                onFilter={(start, end) => console.log(start, end)} 
+                key={filters.dateRange.start ? 'active' : 'reset'}
+                onFilter={handleDateFilter} 
                 className="w-full"
              />
            </div>
@@ -74,6 +110,7 @@ export function LeaveOfAbsenceFilters() {
         <Button 
           type="button" 
           variant="ghost" 
+          onClick={onReset}
           className="text-red-600 hover:text-red-700 hover:bg-red-50 h-10 w-full sm:w-auto"
         >
            <X className="h-4 w-4 mr-2" />

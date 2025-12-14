@@ -6,13 +6,16 @@ import { Pagination } from '@/components/shared/Pagination';
 import { Loader2, Download } from 'lucide-react'; 
 import { Button } from '@/components/ui/button'; 
 import type { PTPRequestDetails } from '@/types/admin';
+// Import the state interface only, not the component
+import type { PTPFiltersState } from './PTPFilters'; 
 
 interface PTPTableProps {
   searchTerm: string;
   filterType: 'Referral Letter' | 'Program Completion';
+  filters: PTPFiltersState; // Accept filters from parent
 }
 
-export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
+export function PTPTable({ searchTerm, filterType, filters }: PTPTableProps) {
   const [requests, setRequests] = useState<PTPRequestDetails[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +25,7 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
     try {
       const query = new URLSearchParams({
         view: 'ptp_view',
-        orderBy: 'ptp_created_at', // Sorted by creation date
+        orderBy: 'ptp_created_at',
         ascending: 'false',
       });
       
@@ -31,7 +34,6 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
 
       const res = await response.json();
       
-      // Map the API response from 'ptp_view' to the PTPRequestDetails interface
       const allRequests: PTPRequestDetails[] = res.data.map((item: any) => ({
         id: item.ptp_id?.toString() ?? '',
         spas_id: item.spas_id ?? '',
@@ -55,11 +57,8 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
         submissionInfo: {
           dateSubmitted: item.ptp_created_at ?? new Date().toISOString(),
           status: item.ptp_status ?? 'Pending',
-          // Practical Training is typically done in the Midyear term
           semester: "Midyear", 
-          // Use the calculated column from the view
           academicYear: item.academic_year || 'N/A', 
-          // Calculate/Estimate Year Level if not explicitly provided (Current Year - Batch + 1)
           trainingYear: item.year_awarded 
             ? `${Math.max(1, new Date().getFullYear() - Number(item.year_awarded) + 1)}th Year` 
             : "N/A",
@@ -79,7 +78,6 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
         }
       }));
 
-      // Filter locally based on the tab type
       const filtered = allRequests.filter(item => item.type === filterType);
       setRequests(filtered);
 
@@ -95,6 +93,52 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
     fetchData();
   }, [fetchData]);
 
+  // Apply filtering logic using the passed 'filters' prop
+  const filteredRequests = requests.filter((r) => {
+    // 1. Search Term
+    const matchesSearch = r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // 2. Status
+    const matchesStatus = filters.status === 'All' || r.submissionInfo.status === filters.status;
+
+    // 3. Training Year
+    const matchesTrainingYear = filters.trainingYear === 'All' 
+      || r.placementInfo.batch.toString() === filters.trainingYear;
+
+    // 4. Semester
+    const matchesSemester = filters.semester === 'All' || r.submissionInfo.semester === filters.semester;
+
+    // 5. Academic Year
+    const matchesAcademicYear = filters.academicYear === 'All' 
+      || r.submissionInfo.academicYear === filters.academicYear
+      || `AY ${r.submissionInfo.academicYear}` === filters.academicYear;
+
+    // 6. University
+    const matchesUniversity = filters.university === 'All' || r.placementInfo.university === filters.university;
+
+    // 7. Plan
+    const matchesPlan = filters.plan === 'All' || (r.submissionInfo.plan && r.submissionInfo.plan === filters.plan);
+
+    // 8. Date Range
+    let matchesDate = true;
+    if (filters.dateRange.start && filters.dateRange.end) {
+      const submittedDate = new Date(r.submissionInfo.dateSubmitted);
+      const start = new Date(filters.dateRange.start);
+      const end = new Date(filters.dateRange.end);
+      end.setHours(23, 59, 59, 999); 
+      matchesDate = submittedDate >= start && submittedDate <= end;
+    }
+
+    return matchesSearch 
+      && matchesStatus 
+      && matchesTrainingYear 
+      && matchesSemester 
+      && matchesAcademicYear 
+      && matchesUniversity 
+      && matchesPlan 
+      && matchesDate;
+  });
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-48">
@@ -104,10 +148,6 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
   }
 
   if (error) return <p className="p-4 text-red-500 text-center">{error}</p>;
-
-  const filteredRequests = requests.filter((r) =>
-    r.scholarInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <>
@@ -141,7 +181,7 @@ export function PTPTable({ searchTerm, filterType }: PTPTableProps) {
             ) : (
               <tr>
                 <td colSpan={filterType === 'Referral Letter' ? 7 : 6} className="px-4 py-8 text-center text-sm text-gray-500">
-                  No {filterType === 'Referral Letter' ? 'referral requests' : 'completion reports'} found.
+                  No {filterType === 'Referral Letter' ? 'referral requests' : 'completion reports'} found matching your filters.
                 </td>
               </tr>
             )}

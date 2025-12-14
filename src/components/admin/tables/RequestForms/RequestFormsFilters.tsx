@@ -11,14 +11,45 @@ import { Button } from '@/components/ui/button';
 import { X, Calendar } from 'lucide-react';
 import { DateRangeFilter } from '@/components/shared/DateRangeFilter';
 import { UNIVERSITIES } from '@/lib/utils/constants';
+import { useCallback } from 'react';
 
-export function RequestFormsFilters() {
+// Export this type so the parent Page and Table can use it
+export interface RequestFormsFiltersState {
+  status: string;
+  requestType: string;
+  university: string;
+  dateRange: {
+    start: Date | null;
+    end: Date | null;
+  };
+}
+
+interface RequestFormsFiltersProps {
+  filters: RequestFormsFiltersState;
+  onFilterChange: (key: keyof RequestFormsFiltersState, value: any) => void;
+  onReset: () => void;
+}
+
+export function RequestFormsFilters({
+  filters,
+  onFilterChange,
+  onReset,
+}: RequestFormsFiltersProps) {
+
+  // Create a stable handler for the date filter
+  const handleDateFilter = useCallback((start: Date | null, end: Date | null) => {
+    onFilterChange('dateRange', { start, end });
+  }, [onFilterChange]);
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 bg-white p-4 rounded-lg border shadow-sm">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         
         {/* 1. Status */}
-        <Select>
+        <Select
+          value={filters.status}
+          onValueChange={(val) => onFilterChange('status', val)}
+        >
           <SelectTrigger className="bg-white h-10">
             <SelectValue placeholder="Status: All" />
           </SelectTrigger>
@@ -32,7 +63,10 @@ export function RequestFormsFilters() {
         </Select>
         
         {/* 2. Request Type */}
-        <Select>
+        <Select
+          value={filters.requestType}
+          onValueChange={(val) => onFilterChange('requestType', val)}
+        >
           <SelectTrigger className="bg-white h-10">
             <SelectValue placeholder="Type: All" />
           </SelectTrigger>
@@ -48,7 +82,10 @@ export function RequestFormsFilters() {
         </Select>
 
         {/* 3. University */}
-        <Select>
+        <Select
+          value={filters.university}
+          onValueChange={(val) => onFilterChange('university', val)}
+        >
           <SelectTrigger className="bg-white h-10">
              <SelectValue placeholder="University: All" />
           </SelectTrigger>
@@ -64,12 +101,13 @@ export function RequestFormsFilters() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 border-t border-gray-50">
         <div className="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-gray-500">
            <div className="flex items-center gap-2 mb-1 sm:mb-0">
-              <Calendar className="h-4 w-4" />
-              <span className="sm:inline">Filter by Date Submitted:</span>
+              <Calendar className="h-4 w-4 shrink-0" />
+              <span className="sm:inline text-nowrap">Filter by Date Submitted:</span>
            </div>
            <div className="flex-1 w-full sm:w-auto">
              <DateRangeFilter 
-                onFilter={(start, end) => console.log(start, end)} 
+                key={filters.dateRange.start ? 'active' : 'reset'} // Force re-render on reset
+                onFilter={handleDateFilter as any} 
                 className="w-full"
              />
            </div>
@@ -78,6 +116,7 @@ export function RequestFormsFilters() {
         <Button 
           type="button" 
           variant="ghost" 
+          onClick={onReset}
           className="text-red-600 hover:text-red-700 hover:bg-red-50 h-10 w-full sm:w-auto"
         >
            <X className="h-4 w-4 mr-2" />
