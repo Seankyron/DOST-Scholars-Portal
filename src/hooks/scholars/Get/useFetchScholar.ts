@@ -24,7 +24,7 @@ export interface Scholar {
   course_duration: number;
   thesis_year: number;
   ojt?: Json | null;
-  curriculum_file_key: string;
+  curriculum_file_key: string | null;
   scholarship_status: string;
   is_verified: boolean;
   midyear_classes?: number[] | null;
