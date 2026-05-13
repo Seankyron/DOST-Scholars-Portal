@@ -70,7 +70,7 @@ export interface StipendTracking extends BaseSubmission {
 export type Allowance = {
   name: string;
   amount: number;
-  status: | 'Released' | 'Pending' | 'On hold';
+  status: | 'Released' | 'Processing' | 'Pending' | 'On hold';
 };
 
 export type StipendUpdate = {

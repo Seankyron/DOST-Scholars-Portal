@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/select';
+import { Select, SelectInput } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/components/ui/toaster'; 
@@ -44,7 +44,7 @@ export function CarouselSettings() {
         <div className="space-y-4">
           <div>
             <Label className="mb-1.5">Auto-advance Timer</Label>
-            <Select
+            <SelectInput
               value={timer}
               onChange={(e) => setTimer(e.target.value)}
               options={timerOptions}
@@ -54,7 +54,7 @@ export function CarouselSettings() {
 
           <div>
             <Label className="mb-1.5">Transition Effect</Label>
-            <Select
+            <SelectInput
               value={effect}
               onChange={(e) => setEffect(e.target.value)}
               options={effectOptions}

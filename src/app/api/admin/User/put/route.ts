@@ -33,7 +33,7 @@ export async function PUT(request: Request) {
     }
 
     // Perform update
-    let query = supabase.from('User').update(updateData).select().single();
+    let query = supabase.from('User').update(updateData);
 
     if (id) {
       query = query.eq('id', id);
