@@ -11,7 +11,7 @@ type FetchOptions = {
   filterValue?: string;  // --- ADDED ---
 };
 
-export async function fetchView<T extends keyof Database['public']['Views']>(
+async function fetchView<T extends keyof Database['public']['Views']>(
   viewName: T,
   options?: FetchOptions
 ) {
@@ -35,7 +35,7 @@ export async function fetchView<T extends keyof Database['public']['Views']>(
 
   // --- ADDED: Filter Logic ---
   if (options?.filterColumn && options?.filterValue) {
-    query = query.eq(options.filterColumn, options.filterValue as any);
+    query = query.eq(options.filterColumn as any, options.filterValue as any);
   }
 
   if (options?.orderBy) {
